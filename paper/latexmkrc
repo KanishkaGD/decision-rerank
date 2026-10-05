@@ -1,0 +1,8 @@
+# latexmk configuration for this paper: just run `latexmk` in this folder.
+#   latexmk        -> main.pdf (pdflatex + bibtex)
+#   latexmk -pvc   -> rebuild continuously on changes
+#   latexmk -c     -> remove auxiliary files
+@default_files = ('main.tex');
+$pdf_mode = 1;                 # pdflatex
+$bibtex_use = 2;               # run bibtex when needed, clean .bbl with -c
+$pdflatex = 'pdflatex -interaction=nonstopmode -file-line-error -synctex=1 %O %S';

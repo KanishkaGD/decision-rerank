@@ -1,0 +1,28 @@
+"""
+Paths and experiment-wide settings. Paths come from the environment so that the Slurm scripts (slurm/env.sh) can
+point them at /shared on the cluster; the defaults, relative to the working directory, keep local runs working.
+"""
+
+import os
+
+CDM_ROOT = os.environ.get("CDM_ROOT", ".")
+# Cached first-stage candidates: runs/<dataset>/<first-stage>/ (src/cdm/runs.py).
+RUNS_FOLDER = os.environ.get("CDM_RUNS", "runs")
+# Raw reranker outputs: outputs/<dataset>/<first-stage>/<system>/<phrasing>/ -- every score, per-query metrics,
+# the reranked run and a manifest. Large, gitignored; fetch selectively with cluster/fetch.sh --path.
+OUTPUTS_FOLDER = os.environ.get("CDM_OUTPUTS", "outputs")
+# results.csv, one row per evaluated configuration (src/cdm/results_csv.py). Tracked in git.
+RESULTS_FOLDER = os.environ.get("CDM_RESULTS", "results")
+
+SEED = 42
+
+# First stage: BM25 top-100 for every dataset (research plan, "Experimental setup").
+FIRST_STAGE_DEPTH = 100
+
+# Effectiveness metrics. Binary metrics use the dataset's relevance threshold (datasets.Dataset.rel_threshold),
+# so they are built per dataset by evaluation.effectiveness_measures(); nDCG uses the graded labels.
+NDCG_CUTOFFS = [10]
+RECALL_CUTOFFS = [10, 100]
+
+# Calibration: equal-width bins for the expected calibration error (ECE).
+ECE_BINS = 15

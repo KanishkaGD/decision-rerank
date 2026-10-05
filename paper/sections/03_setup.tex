@@ -1,0 +1,30 @@
+% =====================================================================================
+% Section 3 -- Experimental Setup
+% Source of truth for systems, datasets and metrics: src/cdm/{datasets,rerankers}/,
+% slurm/config.sh; numbers come from results/results.csv.
+% =====================================================================================
+\section{Experimental Setup}
+\label{sec:setup}
+
+\paragraph{Collections.}
+TREC DL 2019 and 2020~\cite{Craswell2020DL19,Craswell2021DL20} on the MS~MARCO passage
+corpus~\cite{Nguyen2016MSMARCO} (in-domain), and TREC-COVID, NFCorpus, SciFact, FiQA and SciDocs
+from BEIR~\cite{Thakur2021BEIR} (zero-shot).
+\TODO{MIRACL~\cite{Zhang2023MIRACL} for the multilingual checkpoint (open decision), BRIGHT~\cite{Su2024BRIGHT} for RQ5.}
+
+\paragraph{First stage.}
+Every reranker sees the same cached BM25 top-100 candidates from Pyserini~\cite{Lin2021Pyserini}
+($k_1=0.9$, $b=0.4$), so differences come from reranking alone.
+\TODO{Dense first stage for robustness.}
+
+\paragraph{Rerankers.}
+\TODO{Table: \laya{} (zero-shot, fine-tuned), \jev{} (if access), three cross-encoders, one
+listwise LLM reranker; parameters, context length, latency on one fixed GPU.}
+
+\paragraph{Question phrasing.}
+\TODO{3--5 phrasings fixed in advance, selected on MS~MARCO dev only, all reported.}
+
+\paragraph{Metrics.}
+nDCG@10 and Recall@10 with ir\_measures~\cite{MacAvaney2022irmeasures}; ECE and Brier score
+against binarised judgments; latency p50/p95; paired bootstrap per query with Holm correction
+across datasets.

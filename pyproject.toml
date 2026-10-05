@@ -1,0 +1,45 @@
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "cdm"
+version = "0.1.0"
+description = "Calibrated System One decision models as rerankers and retrieval controllers."
+authors = [{ name = "Michael Dinzinger" }]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10,<3.14"
+# Lower bounds only: the container freezes the resolved versions (/opt/cdm/pip-freeze.txt) and every output
+# manifest records them. Tighten a bound when a result depends on it.
+dependencies = [
+    "click>=8.1",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "scipy>=1.12",
+    "ir-measures>=0.3.7",
+    "pyserini>=0.44",
+    "torch>=2.4",
+    "transformers>=4.48",
+    "sentence-transformers>=4.0",
+    "huggingface-hub>=0.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "black>=25.1", "isort>=6.0"]
+
+[project.scripts]
+cdm = "cdm.cli:main"
+
+[tool.poetry]
+packages = [{ include = "cdm", from = "src" }]
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

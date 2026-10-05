@@ -1,0 +1,43 @@
+Bootstrap: docker
+From: python:3.12-slim-trixie
+
+%files
+    pyproject.toml /opt/cdm/pyproject.toml
+    README.md /opt/cdm/README.md
+    src /opt/cdm/src
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    # Java 21: Pyserini drives Anserini/Lucene in a JVM. git: provenance and pip installs from git.
+    apt-get install -y --no-install-recommends openjdk-21-jre-headless git
+    rm -rf /var/lib/apt/lists/*
+
+    pip install --no-cache-dir --upgrade pip
+    # Installs the dependencies from pyproject.toml, plus the package itself for the `cdm` entry point. At run time
+    # slurm/env.sh puts the synced src/ first on PYTHONPATH, so the code always comes from the repo on /shared and
+    # the image only needs a rebuild when dependencies change. The resolved versions are frozen into the image and
+    # referenced by every output manifest (src/cdm/provenance.py), since there is no lock file.
+    pip install --no-cache-dir /opt/cdm
+    pip freeze > /opt/cdm/pip-freeze.txt
+
+%environment
+    export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+    export PYTHONUNBUFFERED=1
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export CDM_PIP_FREEZE=/opt/cdm/pip-freeze.txt
+
+%runscript
+    exec cdm "$@"
+
+%labels
+    Author michi_d@gmx.net
+    Project calibrated-decision-models-for-ir
+
+%help
+    Apptainer image for calibrated-decision-models-for-ir: the dependencies of pyproject.toml. Rebuild after
+    changing them (container/build.sh). The code itself comes from the repo via PYTHONPATH (slurm/env.sh).
+        apptainer exec [--nv] --env PYTHONPATH=$PWD/src cdm.sif cdm --help
+    Environment the code reads (set by slurm/env.sh): CDM_ROOT, CDM_DATA, CDM_RUNS, CDM_OUTPUTS, CDM_RESULTS,
+    HF_HOME, PYSERINI_CACHE, HF_HUB_OFFLINE.

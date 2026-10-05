@@ -1,0 +1,63 @@
+% =====================================================================================
+% rq-macros.tex -- colour code and boxes for the research questions (RQ1--RQ5)
+% Load in the preamble:   \input{rq-macros}
+% Requires: xcolor, tcolorbox (both in every TeX Live).
+%
+% Usage
+%   \showRQ{2}                         framed box with the question text (defined below)
+%   \showRQ[(Sect.~\ref{...})]{2}      same, with a grey note right-aligned on the last line
+%   \RQ{3}                             inline badge for headings, table cells, and captions,
+%                                      e.g. \paragraph{Answer to \RQ{3}.}; in running prose keep
+%                                      plain "RQ3" so that the badges stay rare and salient
+%
+% Colour code: each RQ keeps its colour in the boxes, badges, and figures.
+%   RQ1 purple  -- zero-shot reranking quality (Laya vs. Jev vs. cross-encoders)
+%   RQ2 rose    -- fine-tuning and calibration
+%   RQ3 amber   -- calibrated probabilities as a control signal
+%   RQ4 teal    -- joint vs. isolated scoring
+%   RQ5 olive   -- limits on reasoning-intensive retrieval (stretch goal)
+% Keep the data colours of the figures apart from these five; figures carry no RQ badges.
+% Wording of the questions: docs/research-plan.md, "Research questions and hypotheses".
+% =====================================================================================
+\makeatletter
+
+\definecolor{rq1}{HTML}{6B4C9A}
+\definecolor{rq2}{HTML}{B03A55}
+\definecolor{rq3}{HTML}{A5620C}
+\definecolor{rq4}{HTML}{1B7F7A}
+\definecolor{rq5}{HTML}{5C6B1F}
+
+% ---- inline badge --------------------------------------------------------------------
+\newtcbox{\rq@badge}[1]{on line, nobeforeafter, colback=rq#1, colframe=rq#1,
+  coltext=white, boxrule=0pt, arc=1.2pt, boxsep=0pt,
+  left=2.2pt, right=2.2pt, top=1pt, bottom=0.8pt,
+  fontupper=\sffamily\bfseries\footnotesize}
+\DeclareRobustCommand{\RQ}[1]{\rq@badge{#1}{RQ#1}}
+
+% ---- framed box: badge on the first line, text hanging next to it ---------------------
+\newsavebox{\rq@savebox}
+\newtcolorbox{rqbox}[1]{colback=rq#1!7!white, colframe=rq#1, boxrule=0.6pt, arc=2pt,
+  boxsep=0pt, left=4pt, right=5pt, top=3.5pt, bottom=3.5pt,
+  before skip=5pt plus 2pt, after skip=5pt plus 2pt,
+  before upper={\sbox\rq@savebox{\RQ{#1}\hspace{0.5em}}%
+    \hangindent=\wd\rq@savebox \hangafter=1 \noindent\usebox\rq@savebox}}
+
+% right-aligned note on the last line (moves to its own line if it does not fit)
+\newcommand{\rq@note}[1]{\unskip\nobreak\hfil\penalty50\hskip1.5em\hbox{}\nobreak\hfill
+  {\color{black!60}#1}\parfillskip=0pt\finalhyphendemerits=0\par}
+
+% ---- single source for the wording of the questions -----------------------------------
+\newcommand{\defineRQ}[2]{\@namedef{rq@text@#1}{#2}}
+\newcommand{\showRQ}[2][]{\begin{rqbox}{#2}\@nameuse{rq@text@#2}%
+  \if\relax\detokenize{#1}\relax\else\rq@note{#1}\fi\end{rqbox}}
+
+\makeatother
+
+% ---- the research questions (edit wording here only) -----------------------------------
+\defineRQ{1}{How does zero-shot Laya rerank compared with Jev and off-the-shelf
+  cross-encoders?}
+\defineRQ{2}{Does fine-tuning Laya on MS~MARCO make it competitive with cross-encoders of
+  similar latency, and does fine-tuning destroy its calibration?}
+\defineRQ{3}{Are the calibrated probabilities useful as a control signal in retrieval?}
+\defineRQ{4}{Why does scoring all candidates in one state beat scoring each pair alone?}
+\defineRQ{5}{Where do fast, non-reasoning System One judges fail?}

@@ -1,0 +1,91 @@
+% =====================================================================================
+% Decide, then Rank: Calibrated System One Models as Rerankers and Retrieval Controllers
+% Working title (docs/research-plan.md). Venue still open: LNCS (llncs v2.24) for now,
+% which fits ECIR/CLEF; switch the class and bibliography style if the venue changes.
+%
+% Build:  make          (or: latexmk)       Checks: make check
+% Layout: one file per section in sections/, generated tables in tables/ (from
+%         results/results.csv -- never typed by hand), figures in figures/, images in
+%         images/, bibliography in sources.bib.
+%
+% Draft markers rendered in the PDF: \TODO{...}, \PENDING{...} (waits for a result),
+% \FLAG{...} (claim to double-check). `make check` does not catch them; grep for them
+% before submitting.
+% =====================================================================================
+\documentclass[runningheads]{llncs}
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+% \cellcolor in generated tables needs colortbl; load xcolor with [table] before
+% tcolorbox (which would otherwise load xcolor without it).
+\usepackage[table]{xcolor}
+\usepackage{tcolorbox}
+\input{rq-macros}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=blue, urlcolor=blue}
+% Hugging Face model name as a link, displayed without the organization: \hf{org}{model}
+\newcommand{\hf}[2]{\href{https://huggingface.co/#1/#2}{\texttt{#2}}}
+% Springer's eBook style for URLs:
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+\urlstyle{rm}
+
+% Draft markers
+\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\PENDING}[1]{\textcolor{orange}{[PENDING: #1]}}
+\newcommand{\FLAG}[1]{\textcolor{magenta}{[FLAG #1]}}
+
+% Names used throughout, so they can be changed in one place.
+\newcommand{\laya}{Laya}
+\newcommand{\jev}{Jev}
+
+\begin{document}
+
+\title{Decide, then Rank:\\Calibrated System One Models as Rerankers\\and Retrieval Controllers}
+\titlerunning{Decide, then Rank}
+
+% TODO: authors and affiliations (anonymize for review if the CfP requires it).
+\author{Anonymous}
+\authorrunning{Anonymous}
+\institute{Anonymous}
+
+\maketitle
+
+\begin{abstract}
+\TODO{Abstract, once the WP2 go/no-go decision is made. Planned contributions:
+(1) fine-tuned \laya{} versus cross-encoders at matched latency and hardware;
+(2) calibrated probabilities as a control signal for adaptive rerank depth,
+``nothing relevant'' detection and query performance prediction;
+(3) why scoring all candidates in one state beats scoring each pair alone;
+(4) where fast, non-reasoning judges fail on reasoning-intensive retrieval.}
+\keywords{Reranking \and Calibration \and System One Models \and Query Performance Prediction}
+\end{abstract}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_setup}
+\input{sections/04_reranking}
+\input{sections/05_control}
+\input{sections/06_joint_scoring}
+\input{sections/07_limits}
+\input{sections/08_conclusion}
+
+\begin{credits}
+\subsubsection{\ackname}
+\TODO{Funding acknowledgement, if any.}
+
+\subsubsection{\discintname}
+% Mandatory in LNCS since llncs 2.23.
+The authors have no competing interests to declare that are relevant to the content of this
+article.
+\end{credits}
+
+\bibliographystyle{splncs04}
+\bibliography{sources}
+
+\end{document}

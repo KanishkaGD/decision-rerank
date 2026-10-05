@@ -1,0 +1,169 @@
+% =====================================================================================
+% Bibliography. Web sources (prior work on System One reranking, Sep--Oct 2026) are
+% not peer-reviewed; keep their urldate current and re-check them before submission (WP0).
+% =====================================================================================
+
+% ---- System One models in retrieval (from docs/research-plan.md, "Prior work") --------------
+
+@misc{S1Rank,
+  key          = {S1Rank},
+  title        = {{S1Rank}: Reranking with {Jev}},
+  howpublished = {\url{https://github.com/zaesho/S1Rank}},
+  year         = {2026},
+  note         = {GitHub repository, accessed 2026-10-05}
+}
+
+@misc{JevRerank,
+  key          = {jev-rerank},
+  title        = {jev-rerank},
+  howpublished = {\url{https://github.com/hev/jev-rerank}},
+  year         = {2026},
+  note         = {GitHub repository, accessed 2026-10-05}
+}
+
+@misc{LanceDB2026,
+  title        = {How {Jev} Compares to Other Rerankers},
+  author       = {{LanceDB}},
+  howpublished = {\url{https://www.lancedb.com/blog/how-jev-compares-to-other-rerankers}},
+  year         = {2026},
+  note         = {Blog post, accessed 2026-10-05}
+}
+
+@misc{Elastic2026,
+  title        = {E-commerce Search Reranking: an {LLM} Alternative with {Jev}},
+  author       = {{Elastic Search Labs}},
+  howpublished = {\url{https://www.elastic.co/search-labs/blog/ecommerce-search-reranking-llm-alternative-jev}},
+  year         = {2026},
+  note         = {Blog post, accessed 2026-10-05}
+}
+
+@misc{Hindsight2026,
+  title        = {Adding a {Jev} Reranker: What We Learned},
+  author       = {{Vectorize}},
+  howpublished = {\url{https://hindsight.vectorize.io/blog/2026/09/24/adding-jev-reranker-what-we-learned}},
+  year         = {2026},
+  note         = {Blog post, accessed 2026-10-05}
+}
+
+@misc{Smriti2026,
+  key          = {smriti},
+  title        = {{Laya} as a Relevance Gate before Recall},
+  howpublished = {\url{https://github.com/zero8dotdev/smriti/issues/87}},
+  year         = {2026},
+  note         = {GitHub issue, accessed 2026-10-05}
+}
+
+@misc{Wu2026LayaJev,
+  title        = {{Jev} vs. {Laya}},
+  author       = {Wu, Wilson},
+  howpublished = {\url{https://wilsonwu.me/en/blog/2026/jev-vs-laya/}},
+  year         = {2026},
+  note         = {Blog post, accessed 2026-10-05}
+}
+
+@misc{LayaNode,
+  title        = {laya: {Node.js} port},
+  author       = {{receptron}},
+  howpublished = {\url{https://github.com/receptron/laya}},
+  year         = {2026},
+  note         = {GitHub repository, accessed 2026-10-05}
+}
+
+% ---- Collections, tools, background -----------------------------------------------------
+
+@inproceedings{Nguyen2016MSMARCO,
+  title     = {{MS MARCO}: A Human Generated {MA}chine Reading {CO}mprehension Dataset},
+  author    = {Nguyen, Tri and Rosenberg, Mir and Song, Xia and Gao, Jianfeng and Tiwary, Saurabh and
+               Majumder, Rangan and Deng, Li},
+  booktitle = {Proceedings of the Workshop on Cognitive Computation (CoCo@NIPS)},
+  year      = {2016}
+}
+
+@article{Craswell2020DL19,
+  title   = {Overview of the {TREC} 2019 Deep Learning Track},
+  author  = {Craswell, Nick and Mitra, Bhaskar and Yilmaz, Emine and Campos, Daniel and Voorhees, Ellen M.},
+  journal = {arXiv preprint arXiv:2003.07820},
+  year    = {2020}
+}
+
+@article{Craswell2021DL20,
+  title   = {Overview of the {TREC} 2020 Deep Learning Track},
+  author  = {Craswell, Nick and Mitra, Bhaskar and Yilmaz, Emine and Campos, Daniel},
+  journal = {arXiv preprint arXiv:2102.07662},
+  year    = {2021}
+}
+
+@inproceedings{Thakur2021BEIR,
+  title     = {{BEIR}: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models},
+  author    = {Thakur, Nandan and Reimers, Nils and R{\"u}ckl{\'e}, Andreas and Srivastava, Abhishek and
+               Gurevych, Iryna},
+  booktitle = {Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmarks},
+  year      = {2021}
+}
+
+@article{Zhang2023MIRACL,
+  title   = {{MIRACL}: A Multilingual Retrieval Dataset Covering 18 Diverse Languages},
+  author  = {Zhang, Xinyu and Thakur, Nandan and Ogundepo, Odunayo and Kamalloo, Ehsan and
+             Alfonso-Hermelo, David and Li, Xiaoguang and Liu, Qun and Rezagholizadeh, Mehdi and Lin, Jimmy},
+  journal = {Transactions of the Association for Computational Linguistics},
+  volume  = {11},
+  pages   = {1114--1131},
+  year    = {2023}
+}
+
+@article{Su2024BRIGHT,
+  title   = {{BRIGHT}: A Realistic and Challenging Benchmark for Reasoning-Intensive Retrieval},
+  author  = {Su, Hongjin and Yen, Howard and Xia, Mengzhou and Shi, Weijia and Muennighoff, Niklas and
+             Wang, Han-yu and Liu, Haisu and Shi, Quan and Siegel, Zachary S. and Tang, Michael and Sun, Ruoxi and
+             Yoon, Jinsung and Arik, Sercan O. and Chen, Danqi and Yu, Tao},
+  journal = {arXiv preprint arXiv:2407.12883},
+  year    = {2024}
+}
+
+@inproceedings{Lin2021Pyserini,
+  title     = {Pyserini: A {Python} Toolkit for Reproducible Information Retrieval Research with Sparse and
+               Dense Representations},
+  author    = {Lin, Jimmy and Ma, Xueguang and Lin, Sheng-Chieh and Yang, Jheng-Hong and Pradeep, Ronak and
+               Nogueira, Rodrigo},
+  booktitle = {Proceedings of the 44th International ACM SIGIR Conference on Research and Development in
+               Information Retrieval},
+  pages     = {2356--2362},
+  year      = {2021}
+}
+
+@inproceedings{MacAvaney2022irmeasures,
+  title     = {Streamlining Evaluation with ir-measures},
+  author    = {MacAvaney, Sean and Macdonald, Craig and Ounis, Iadh},
+  booktitle = {Advances in Information Retrieval (ECIR 2022)},
+  pages     = {305--310},
+  year      = {2022}
+}
+
+@article{Nogueira2019,
+  title   = {Passage Re-ranking with {BERT}},
+  author  = {Nogueira, Rodrigo and Cho, Kyunghyun},
+  journal = {arXiv preprint arXiv:1901.04085},
+  year    = {2019}
+}
+
+@article{Pradeep2023RankZephyr,
+  title   = {{RankZephyr}: Effective and Robust Zero-Shot Listwise Reranking is a Breeze!},
+  author  = {Pradeep, Ronak and Sharifymoghaddam, Sahel and Lin, Jimmy},
+  journal = {arXiv preprint arXiv:2312.02724},
+  year    = {2023}
+}
+
+@inproceedings{Guo2017Calibration,
+  title     = {On Calibration of Modern Neural Networks},
+  author    = {Guo, Chuan and Pleiss, Geoff and Sun, Yu and Weinberger, Kilian Q.},
+  booktitle = {Proceedings of the 34th International Conference on Machine Learning (ICML)},
+  pages     = {1321--1330},
+  year      = {2017}
+}
+
+@book{Kahneman2011,
+  title     = {Thinking, Fast and Slow},
+  author    = {Kahneman, Daniel},
+  publisher = {Farrar, Straus and Giroux},
+  year      = {2011}
+}

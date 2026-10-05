@@ -1,0 +1,46 @@
+# Secrets (HF_TOKEN, API keys) -- see .env.example
+.env
+# Per-machine cluster settings and cache (cluster/cluster.env)
+cluster/cluster.local.env
+cluster/.remote_root
+# Written by cluster/sync.sh for the cluster copy only
+REVISION
+REVISION.patch
+
+# Large artifacts: live on the cluster under /shared, fetched selectively (cluster/fetch.sh --path)
+container/*.sif
+container/*.sif.new
+data/
+runs/
+outputs/
+logs/
+checkpoints/
+snapshots/
+
+# results/ IS tracked (results.csv, tables); only its lock files are not
+results/*.lock
+results/*.tmp
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+poetry.lock
+
+# Editors
+.vscode/
+.idea/
+
+# LaTeX build files (paper/)
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/*.run.xml
+paper/main.pdf
