@@ -203,3 +203,19 @@ def kev_frame() -> tuple[pd.DataFrame, float]:
     kv["kev_exp"] = P @ (2.0 ** np.arange(4) - 1)
     kv["kev_ge2"] = P[:, 2] + P[:, 3]
     return kv, round(t, 4)
+
+
+def crossfit_platt(frame: pd.DataFrame, z: np.ndarray) -> tuple[np.ndarray, dict]:
+    """Platt scaling, sigmoid(a * z + b), fitted on the other collection's judged pairs (target rel >= 2).
+
+    Unlike a temperature, the intercept b can correct a model that over- or under-predicts relevance overall."""
+    from sklearn.linear_model import LogisticRegression
+
+    out, params = np.empty(len(frame)), {}
+    for test, train in CROSS:
+        m = (frame.qset == train).to_numpy() & frame.rel.notna().to_numpy()
+        lr = LogisticRegression(C=1e6).fit(z[m, None], (frame.rel.to_numpy()[m] >= data.REL_MIN).astype(int))
+        sel = (frame.qset == test).to_numpy()
+        out[sel] = lr.predict_proba(z[sel, None])[:, 1]
+        params[test] = (round(float(lr.coef_[0, 0]), 4), round(float(lr.intercept_[0]), 4))
+    return out, params
