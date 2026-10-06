@@ -26,12 +26,18 @@ colleague. Read in this order: this file, `CLAUDE.md`, `docs/collaboration.md`, 
 
 ## What the owner has to do (agents can't)
 
-1. Run `docs/vm-setup.md` on the VM. Step 3 creates the Kerberos keytab and needs the FAITH password, typed into
-   `ktutil` by the owner; never give it to an agent.
+1. Run `docs/vm-setup.md` on the VM (one shared Linux user, a profile per person). Step 3 creates the Kerberos
+   keytab and needs the FAITH password, typed into `ktutil` by the owner; never give it to an agent. Step 4: each
+   person creates their profile and logs in to GitHub and Claude Code with it.
 2. Copy `.env` (TypeSafe key `TYPESAFE_AI_API_KEY`, optional `HF_TOKEN`) from the laptop to `/srv/cdm/repo/.env`.
 3. Decide how `dev-michael` and the unrelated `master` of `KanishkaGD/decision-rerank` are combined; until then the
-   VM's `main` tracks `dev-michael` (`git config cdm.remoteBranch`).
+   VM's `main` tracks `dev-michael` (`git config cdm.remoteBranch`). `master` moved on 2026-10-06 (to `66a7a7b`),
+   so someone works there; agree before merging.
 4. Check that sharing the FAITH account `dinzinger` with the colleague's agent is allowed, or get a project account.
+5. Each person logs in to Claude Code with their own subscription through their profile and checks it with `/status`
+   (docs/vm-setup.md, step 4).
+6. Remove the stray test checkout `/shared/dinzinger/calibrated-decision-models-for-ir/checkouts/michael-alice-two`
+   on the cluster (left by a guard test; harmless).
 
 ## Next steps
 

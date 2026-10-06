@@ -11,6 +11,8 @@ Several people and agents share this repository. Follow `docs/collaboration.md`;
 
 - Start with `scripts/task.sh list` and `scripts/task.sh status`. Claim before you change anything:
   `scripts/task.sh start <id> "<description>"`, then work only in the worktree it creates.
+- On the VM, two people share one Linux user; `CDM_WHO` (from `~/people/<name>.env`) says whose session you are.
+  If it isn't set, stop and ask -- never set it yourself. Don't touch tasks claimed by the other person.
 - Never edit in the main checkout or on `main`; never force-push or rewrite history. A PreToolUse hook
   (`scripts/agent_guard.py`) enforces this -- don't work around it.
 - When the task works, `scripts/task.sh finish`: rebase on `main`, `scripts/check.sh`, fast-forward `main`, push,

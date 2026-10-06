@@ -139,8 +139,9 @@ cd paper && make && make check
 
 ## Working together
 
-The project runs on a shared VM (`docs/vm-setup.md`: repository, SSH, Kerberos keytab with automatic tickets) where
-several people and agents work in parallel. Every change is a claimed task in its own git worktree, merged back to
+The project runs on a shared VM (`docs/vm-setup.md`: one Linux user, a profile per person, Kerberos keytab with
+automatic tickets) where several people and agents work in parallel; start every session with
+`source ~/people/<name>.env`. Every change is a claimed task in its own git worktree, merged back to
 `main` as soon as it works (`docs/collaboration.md`):
 
 ```bash

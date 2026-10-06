@@ -6,8 +6,11 @@
 #   - the collaboration settings in git config: integration branch, remote and remote branch for scripts/task.sh.
 #
 # Usage: sudo cluster/vm/setup-repo.sh <git-url> [--group cdm] [--branch main] [--remote-branch main] [--users "a b"]
+#                                         [--shared-user]
+#   --shared-user  several people work under ONE Linux user (the one running sudo): sets cdm.sharedUser, so claims
+#                  and edits require each person's profile (cluster/vm/setup-person.sh). This is the chosen setup.
 #   e.g. sudo cluster/vm/setup-repo.sh https://github.com/KanishkaGD/decision-rerank.git --remote-branch dev-michael \
-#            --users "michael colleague"
+#            --shared-user
 set -euo pipefail
 URL="${1:?usage: sudo cluster/vm/setup-repo.sh <git-url> [options]}"
 shift
@@ -16,6 +19,7 @@ BRANCH="main"
 REMOTE_BRANCH=""
 USERS=""
 BASE="/srv/cdm"
+SHARED_USER=0
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --group) GROUP="$2"; shift ;;
@@ -23,6 +27,7 @@ while [ "$#" -gt 0 ]; do
         --remote-branch) REMOTE_BRANCH="$2"; shift ;;
         --users) USERS="$2"; shift ;;
         --base) BASE="$2"; shift ;;
+        --shared-user) SHARED_USER=1 ;;
         *) echo "setup-repo.sh: unknown option $1" >&2; exit 2 ;;
     esac
     shift
@@ -49,6 +54,7 @@ sudo -u "${OWNER}" git config core.sharedRepository group
 sudo -u "${OWNER}" git config cdm.mainBranch "${BRANCH}"
 sudo -u "${OWNER}" git config cdm.remote origin
 sudo -u "${OWNER}" git config cdm.remoteBranch "${REMOTE_BRANCH}"
+[ "${SHARED_USER}" -eq 1 ] && sudo -u "${OWNER}" git config cdm.sharedUser true
 sudo -u "${OWNER}" git branch --set-upstream-to "origin/${REMOTE_BRANCH}" "${BRANCH}" 2>/dev/null || true
 chgrp -R "${GROUP}" "${BASE}/repo"
 chmod -R g+rwX "${BASE}/repo"

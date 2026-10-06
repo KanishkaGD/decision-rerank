@@ -10,14 +10,18 @@
 #   scripts/task.sh list                          active claims: id, who, branch, since, description
 #   scripts/task.sh start <id> "<description>"    claim <id>, create branch task/<id> and its worktree from main
 #   scripts/task.sh status                        the claim of the current worktree (exit 1 if there is none)
-#   scripts/task.sh finish [--keep-worktree]      in a task worktree: check, rebase on main, fast-forward main,
+#   scripts/task.sh finish [--keep-worktree] [--force]
+#                                                 in a task worktree: check, rebase on main, fast-forward main,
 #                                                 push main (if a remote is configured), release the claim
-#   scripts/task.sh release <id>                  drop a claim without merging (abandoned work); keeps the branch
+#   scripts/task.sh release <id> [--force]        drop a claim without merging (abandoned work); keeps the branch
 #
 # Configuration (git config, shared by all worktrees):
 #   cdm.mainBranch   integration branch (default: main)
 #   cdm.remote       remote to push the integration branch to after finish (default: none, local only)
 #   cdm.remoteBranch branch on that remote (default: same as cdm.mainBranch)
+#   cdm.sharedUser   true when several people share one Linux user (the VM, docs/vm-setup.md): then CDM_WHO must be
+#                    set (by the person's profile, cluster/vm/setup-person.sh), and only the person who claimed a
+#                    task may finish or release it (--force overrides, after asking them)
 #   CDM_WHO          who you are in claims (default: git config user.name, else $USER)
 set -euo pipefail
 
@@ -30,6 +34,11 @@ mkdir -p "${CLAIMS}"
 MAIN_BRANCH="$(git config cdm.mainBranch || echo main)"
 REMOTE="$(git config cdm.remote || true)"
 REMOTE_BRANCH="$(git config cdm.remoteBranch || echo "${MAIN_BRANCH}")"
+SHARED_USER="$(git config --bool cdm.sharedUser || echo false)"
+if [ "${SHARED_USER}" = true ] && [ -z "${CDM_WHO:-}" ]; then
+    die "this repository is shared by several people under one Linux user: source your profile first
+          (source ~/people/<name>.env, see docs/vm-setup.md), so claims and commits carry your name"
+fi
 WHO="${CDM_WHO:-$(git config user.name || echo "${USER:-unknown}")}"
 # The main checkout is the first entry of `git worktree list`; it stays on the integration branch.
 MAIN_CHECKOUT="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
@@ -44,6 +53,14 @@ current_task() {
 }
 
 field() { sed -n "s/^$2=//p" "${CLAIMS}/$1/claim" 2>/dev/null; }
+
+# Finishing or releasing someone else's task needs --force (and a word with them first).
+check_owner() {
+    local id="$1" force="$2" owner
+    owner="$(field "${id}" who)"
+    [ "${owner}" = "${WHO}" ] || [ "${force}" -eq 1 ] ||
+        die "task '${id}' was claimed by ${owner}, you are ${WHO}; ask them, or add --force if they agreed"
+}
 
 cmd="${1:-list}"
 shift || true
@@ -95,9 +112,17 @@ case "${cmd}" in
 
     finish)
         keep=0
-        [ "${1:-}" = "--keep-worktree" ] && keep=1
+        force=0
+        for arg in "$@"; do
+            case "${arg}" in
+                --keep-worktree) keep=1 ;;
+                --force) force=1 ;;
+                *) die "finish: unknown option ${arg}" ;;
+            esac
+        done
         id="$(current_task)" || die "run finish inside a task worktree (branch task/<id>)"
         [ -f "${CLAIMS}/${id}/claim" ] || die "task '${id}' has no active claim"
+        check_owner "${id}" "${force}"
         [ -z "$(git status --porcelain --untracked-files=no)" ] || die "commit or stash your changes first"
         # One finish at a time: two agents fast-forwarding main concurrently would race.
         lock="${COMMON_DIR}/cdm-finish.lock"
@@ -133,8 +158,9 @@ case "${cmd}" in
 
     release)
         id="${1:-}"
-        [ -n "${id}" ] || die "usage: scripts/task.sh release <id>"
+        [ -n "${id}" ] || die "usage: scripts/task.sh release <id> [--force]"
         [ -d "${CLAIMS}/${id}" ] || die "no active claim '${id}'"
+        check_owner "${id}" "$([ "${2:-}" = --force ] && echo 1 || echo 0)"
         rm -rf "${CLAIMS:?}/${id}"
         echo "Released '${id}' (branch task/${id} and its worktree are kept; delete them when no longer needed)."
         ;;

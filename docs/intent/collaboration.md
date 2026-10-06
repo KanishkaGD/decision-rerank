@@ -10,6 +10,9 @@ Decided by the owner on 2026-10-06:
   checking that, or requesting a project account, is the owner's call.
 - **One git worktree per agent/task, merged back to main as soon as a task is finished and works**, so no two versions
   drift apart for long.
+- **One Linux user on the VM for both people** (decided later the same day, after being told what that shares):
+  per-person profiles keep names, git identity, Claude Code and GitHub logins apart; claims are owned by a person and
+  the guard keeps agents out of the other person's tasks. Nothing is private between the two on the VM.
 - Code is hosted at `https://github.com/KanishkaGD/decision-rerank` (private); Michael's history goes to branch
   `dev-michael` for now. How it combines with that repository's unrelated `master` is open.
 

@@ -5,6 +5,14 @@ shared VM (docs/vm-setup.md). These rules keep them from overwriting each other'
 version everyone builds on. `CLAUDE.md` points here; agents must follow these rules exactly. The guardrail hook
 (`scripts/agent_guard.py`, wired in `.claude/settings.json`) enforces the most important ones.
 
+## Who is who
+
+Both people share one Linux user on the VM (docs/vm-setup.md). Each person starts every session with
+`source ~/people/<name>.env`, which sets their name (`CDM_WHO`), git identity, Claude Code login and GitHub login. The
+repository is marked `cdm.sharedUser`: without a profile, `scripts/task.sh` refuses to claim, finish or release, and
+the guard stops edits. Claims carry the person's name; only that person (and their agents) may edit, finish or
+release the task -- `--force` exists for when they agreed.
+
 ## The rules
 
 1. **One task, one claim, one worktree.** Before changing anything, claim a task:
@@ -28,6 +36,9 @@ version everyone builds on. `CLAUDE.md` points here; agents must follow these ru
    `docs/tasks/backlog.md` if someone should pick it up.
 6. **Never force-push, never rewrite `main`, never delete someone else's branch or worktree.** The hook blocks the
    common ways.
+7. **Stay out of the other person's tasks.** Don't edit, finish or release a task claimed by someone else; ask them
+   (through your person). The guard enforces it for edits through the editing tools; it cannot see file writes made
+   from shell commands, so don't use those to get around it.
 
 ## Where things are written
 
@@ -68,7 +79,8 @@ resolved by keeping both entries, newest first.
 ## For agents in particular
 
 - Start every session with `scripts/task.sh list` and `scripts/task.sh status`. If you are in the main checkout,
-  start or resume a task first; don't work around the hook.
+  start or resume a task first; don't work around the hook. If `CDM_WHO` is not set, stop and ask your person to
+  source their profile and restart you -- don't set it yourself.
 - Don't stop with uncommitted changes in a task worktree. Either finish the task, or commit what you have, write the
   state into `docs/handoff.md` (in the task branch) and tell the person you work for.
 - Don't edit files another active task is clearly working on (check the descriptions in `scripts/task.sh list`). If

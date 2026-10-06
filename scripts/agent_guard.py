@@ -6,7 +6,9 @@ printing nothing. Standard library only.
 
 Edits (Edit, Write, NotebookEdit) to files inside this checkout are denied
   - on the integration branch (main): work happens in a task worktree (scripts/task.sh start);
-  - on a task/<id> branch whose claim is gone (finished or released by someone).
+  - on a task/<id> branch whose claim is gone (finished or released by someone);
+  - on someone else's task: when CDM_WHO is set (the person's profile, cluster/vm/setup-person.sh), it must match
+    the claim; with cdm.sharedUser=true (several people under one Linux user) CDM_WHO must be set at all.
 Shell commands are denied when they
   - force-push, delete remote branches, or push to the integration branch other than through scripts/task.sh finish;
   - reset --hard, clean -f, checkout/switch/rebase/merge/commit in the main checkout (it only ever fast-forwards);
@@ -52,6 +54,15 @@ def main():
             probe = os.path.dirname(probe)
         root = git("rev-parse", "--show-toplevel", cwd=probe or "/")
     else:
+        # A command that starts with `cd <dir> &&` (or uses `git -C <dir>`) runs there, not in the session's
+        # working directory: judge it by that checkout.
+        m = re.match(r"\s*cd\s+(\"[^\"]+\"|'[^']+'|\S+)\s*(&&|;)", inp.get("command", "")) or re.search(
+            r"\bgit\s+-C\s+(\"[^\"]+\"|'[^']+'|\S+)", inp.get("command", ""))
+        if m:
+            target = os.path.expanduser(m.group(1).strip("\"'"))
+            target = target if os.path.isabs(target) else os.path.join(cwd, target)
+            if os.path.isdir(target):
+                cwd = target
         root = git("rev-parse", "--show-toplevel", cwd=cwd)
     if not root:
         return
@@ -74,6 +85,16 @@ def main():
             claim = os.path.join(common, "cdm-claims", branch[len("task/"):], "claim")
             if not os.path.exists(claim):
                 deny(f"the claim for {branch} is gone (finished or released). Ask the owner, or claim a new task.")
+            who = os.environ.get("CDM_WHO", "")
+            shared = git("config", "--bool", "cdm.sharedUser", cwd=root) == "true"
+            if shared and not who:
+                deny("several people share this Linux user, and this session doesn't say whose it is. Quit, "
+                     "`source ~/people/<name>.env` (docs/vm-setup.md), and start Claude Code again.")
+            with open(claim) as f:
+                owner = next((line.split("=", 1)[1].strip() for line in f if line.startswith("who=")), "")
+            if who and owner and who != owner:
+                deny(f"{branch} is claimed by {owner}, and this session belongs to {who}. Don't edit someone "
+                     f"else's task; ask them, or claim your own (scripts/task.sh start).")
         else:
             deny(f"branch '{branch}' is not a task branch. Work on task/<id> branches from scripts/task.sh start.")
         return
