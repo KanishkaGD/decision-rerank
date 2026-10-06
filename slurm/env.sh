@@ -48,9 +48,15 @@ fi
 # cluster/sync.sh, and the container only needs a rebuild when dependencies (pyproject.toml) change. Batch jobs use
 # the snapshot slurm/submit.sh made at submission time (CDM_CODE_DIR) instead of the live src/.
 CDM_CODE_DIR="${CDM_CODE_DIR:-${CDM_ROOT}}"
+# A checkout under <project>/checkouts/<id>/ (cluster/cluster.env) links data, results etc. to the project directory
+# two levels up, so the container must see the whole project directory, not just the checkout.
+case "${CDM_ROOT}" in
+    */checkouts/*) CDM_BIND_ROOT="${CDM_ROOT%/checkouts/*}" ;;
+    *) CDM_BIND_ROOT="${CDM_ROOT}" ;;
+esac
 CONTAINER_CMD=(
     apptainer exec "${NV_ARGS[@]}"
-    --bind "${CDM_ROOT}:${CDM_ROOT}"
+    --bind "${CDM_BIND_ROOT}:${CDM_BIND_ROOT}"
     --pwd "${CDM_ROOT}"
     --env "PYTHONPATH=${CDM_CODE_DIR}/src,CDM_CODE_DIR=${CDM_CODE_DIR},CDM_ROOT=${CDM_ROOT},CDM_DATA=${CDM_DATA},HF_HOME=${HF_HOME},PYSERINI_CACHE=${PYSERINI_CACHE},XDG_CACHE_HOME=${XDG_CACHE_HOME},CDM_RUNS=${CDM_RUNS},CDM_OUTPUTS=${CDM_OUTPUTS},CDM_RESULTS=${CDM_RESULTS},HF_HUB_OFFLINE=${HF_HUB_OFFLINE}"
     "${ENV_ARGS[@]}"

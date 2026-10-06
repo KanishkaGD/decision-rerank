@@ -1,17 +1,33 @@
 # Project conventions
 
-Research project: calibrated System One decision models (Laya, Jev) as rerankers and retrieval controllers. The plan
-is `docs/research-plan.md` (do not edit it); decisions and failed attempts go to `docs/experiment-log.md`; the paper
-lives in `paper/`.
+Research project: calibrated System One decision models (Laya, Jev, Clef) as rerankers and retrieval controllers. The
+plan is `docs/research-plan.md` (do not edit it); decisions and failed attempts go to `docs/experiment-log.md`; the
+paper lives in `paper/`. The current state and next steps are in `docs/handoff.md`; open work in
+`docs/tasks/backlog.md`.
+
+## Working together (read first)
+
+Several people and agents share this repository. Follow `docs/collaboration.md`; in short:
+
+- Start with `scripts/task.sh list` and `scripts/task.sh status`. Claim before you change anything:
+  `scripts/task.sh start <id> "<description>"`, then work only in the worktree it creates.
+- Never edit in the main checkout or on `main`; never force-push or rewrite history. A PreToolUse hook
+  (`scripts/agent_guard.py`) enforces this -- don't work around it.
+- When the task works, `scripts/task.sh finish`: rebase on `main`, `scripts/check.sh`, fast-forward `main`, push,
+  release. Don't let branches live longer than the task.
+- Don't stop with uncommitted work; commit and update `docs/handoff.md` in your task if you leave it unfinished.
 
 ## Where things run
 
-- **You (the agent) run on the user's machine**, in this repo. Never on the cluster's login node: the FAITH docs forbid
-  autonomous agents and compute-heavy work there.
+- **You (the agent) run on the shared VM** (`docs/vm-setup.md`) or a user's machine, in a task worktree of this repo.
+  Never on the cluster's login node: the FAITH docs forbid autonomous agents and compute-heavy work there.
 - The cluster is reached only through `cluster/*.sh`, which send single commands over SSH to the login node and from
-  there to Slurm. They share one SSH connection that **the user opens** with `cluster/connect.sh` (password or
-  Kerberos; FAITH has no SSH keys). If a script fails with "no connection", stop and ask the user to run
-  `cluster/connect.sh` -- don't try to log in yourself, and never ask for or handle the password.
+  there to Slurm. They share one SSH connection per VM user, opened automatically with the Kerberos ticket that a
+  cron job keeps fresh from a keytab (VM), or by the user with `cluster/connect.sh` (laptop). If a script fails with
+  "no connection", stop and tell the user (on the VM: check `klist`, docs/vm-setup.md "Maintenance") -- never ask for
+  or handle the password, and never read, copy or print the keytab (`/srv/cdm/secrets/`).
+- Each checkout syncs its code to its own `checkouts/<user>-<worktree>/` on `/shared`; data, caches, outputs,
+  results, logs and the container are shared by all (`cluster/cluster.env`).
 - Which wrapper for what:
   - `cluster/exec.sh [--gpu] -- <cmd>` -- one blocking command in the container on a compute node (`short`
     partition): quick checks, `--max-queries 20` trial runs.

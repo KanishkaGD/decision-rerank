@@ -137,10 +137,21 @@ cd paper && make && make check
 `paper/main.tex` includes one file per section from `paper/sections/`; RQ boxes and badges come from
 `paper/rq-macros.tex`. Tables are generated from `results/results.csv` into `paper/tables/`.
 
+## Working together
+
+The project runs on a shared VM (`docs/vm-setup.md`: repository, SSH, Kerberos keytab with automatic tickets) where
+several people and agents work in parallel. Every change is a claimed task in its own git worktree, merged back to
+`main` as soon as it works (`docs/collaboration.md`):
+
+```bash
+scripts/task.sh list                                   # who works on what
+scripts/task.sh start jev-dl19-runs "Jev on DL19/20"   # claim + branch task/<id> + worktree
+scripts/task.sh finish                                 # in the worktree: rebase, scripts/check.sh, merge, push
+```
+
+A Claude Code hook (`scripts/agent_guard.py`, `.claude/settings.json`) blocks edits outside claimed task worktrees,
+force-pushes and direct pushes to `main`.
+
 ## Next steps
 
-1. Run the setup above, then `cluster/submit.sh hello`.
-2. Resolve the plan's open decisions (venue and deadline, compute/API budget, MIRACL, RQ5). Running the
-   `interview-me` skill on them gives a confirmed statement of intent in `docs/intent/`.
-3. WP0: verify the landscape and Laya's API; write `docs/notes/wp0-landscape.md`; implement `LayaReranker`.
-4. WP1/WP2: `first-stage --datasets all`, then all rerankers; go/no-go.
+`docs/handoff.md` (state of the project) and `docs/tasks/backlog.md` (open work, in order).

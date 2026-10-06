@@ -12,6 +12,42 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-06 -- Move to a shared VM; collaboration rules; per-checkout cluster layout
+
+Owner's decisions (`docs/intent/collaboration.md`): work continues on a shared VM in the university network with a
+colleague; jobs run under Michael's FAITH account via a Kerberos keytab and a cron job (no manual renewal); one
+worktree per agent/task, merged back to main as soon as a task works.
+
+- Kerberos works for FAITH: realm FIM.UNI-PASSAU.DE, KDCs via DNS SRV (ilium, ischii, neurocranium); a ticket lasts
+  10 h, renewable for 24 h -- hence a keytab for unattended use (`cluster/vm/setup-kerberos.sh`).
+- Cluster layout: each checkout syncs to `checkouts/<user>-<worktree>/` under the project directory, with data, runs,
+  outputs, results, logs, snapshots and the container linked in (`cluster/sync.sh`, `slurm/env.sh` binds the project
+  directory, `container/build.sh` writes through the link). Tested: sync + `cdm rerank minilm-l6 scifact
+  --first-stage bm25-d100-max20 --max-queries 2 --no-save` from the new layout (n_queries=2, as it should).
+- Collaboration: `scripts/task.sh` (claims in the shared git dir, worktrees, finish = rebase + `scripts/check.sh` +
+  fast-forward + push), `scripts/agent_guard.py` (PreToolUse hook), rules in `docs/collaboration.md`, open work in
+  `docs/tasks/backlog.md`. Tested in a scratch repository with a bare remote, including a concurrent remote commit.
+
+## 2026-10-06 -- First Laya and Clef-Flash runs (scifact, 20 queries)
+
+Container 35af14a adds gcc (Triton's run-time C build; Laya on GPU failed without it, job 4346919) and accelerate
+(device_map for Clef, job 4346907). Reruns on corellia (L40S), 20 scifact queries, bm25-d100-max20, phrasing s1rank,
+--no-save:
+
+| system | job | nDCG@10 | ECE_unjudged0 | requests | splits | truncated | p50 / query |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| BM25 | -- | 0.614 | | | | | |
+| minilm-l6 | exec | 0.674 | | | | 19.4% | 0.11 s |
+| jev (joint) | exec | 0.759 | | 38 | 18 | 0 | 1.09 s |
+| clef-flash (joint) | 4346927 | 0.666 | 0.067 | 82 | 62 | 0 | 9.5 s |
+| laya (English, isolated) | 4346926 | 0.374 | 0.310 | 2,000 | 0 | 22.7% | 0.74 s |
+
+- Laya zero-shot ranks below BM25 on these queries, with 22.7% of passages cut to its ~320-token state budget: an
+  early WP2 no-go signal, to confirm on TREC DL with all queries.
+- Clef-Flash (16k context) needed 62 splits for 20 queries (~4 requests of ~25 abstracts each); about MiniLM level.
+- scifact judges no non-relevant documents (`n_judged_nonrel_pairs` = 0), so only `ECE_unjudged0` means anything.
+- 20 queries only: the pipelines work; no conclusions.
+
 ## 2026-10-06 -- Laya and Clef wired up; evaluation fixes
 
 One `SystemOneReranker` with three backends (TypeSafe API, laya, Clef's joint_schema_model.py), commit f96953a.

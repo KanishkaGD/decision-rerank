@@ -17,6 +17,10 @@ export APPTAINER_TMPDIR="$(mktemp -d --tmpdir="/local/${USER}" apptainer.tmp.XXX
 export APPTAINER_CACHEDIR="$(mktemp -d --tmpdir="/local/${USER}" apptainer.cache.XXXXXXXX 2>/dev/null || mktemp -d)"
 trap 'rm -rf -- "${APPTAINER_TMPDIR}" "${APPTAINER_CACHEDIR}"' EXIT
 
-apptainer build --force --fakeroot container/cdm.sif.new container/cdm.def
-mv -f container/cdm.sif.new container/cdm.sif
-echo "Built container/cdm.sif ($(du -h container/cdm.sif | cut -f1)) from $(sed -n 's/^describe=//p' REVISION 2>/dev/null || echo 'unknown revision')"
+# In a checkout under checkouts/<id>/, container/cdm.sif is a link to the image all checkouts share: build next to
+# the link's target and replace that, not the link.
+TARGET="$(readlink -f container/cdm.sif 2>/dev/null || echo container/cdm.sif)"
+mkdir -p "$(dirname "${TARGET}")"
+apptainer build --force --fakeroot "${TARGET}.new" container/cdm.def
+mv -f "${TARGET}.new" "${TARGET}"
+echo "Built ${TARGET} ($(du -h "${TARGET}" | cut -f1)) from $(sed -n 's/^describe=//p' REVISION 2>/dev/null || echo 'unknown revision')"

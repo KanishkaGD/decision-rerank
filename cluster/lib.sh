@@ -80,11 +80,28 @@ remote_root() {
         echo "${cached#"${tag}"}"
         return
     fi
-    local user
+    local user root
     user="$(cluster_ssh 'id -un')"
     [ -n "${user}" ] || die "could not determine your user name on ${CLUSTER_HOST}"
-    echo "${tag}/shared/${user}/${PROJECT_NAME}" >"${cache}"
-    echo "/shared/${user}/${PROJECT_NAME}"
+    root="/shared/${user}/${PROJECT_NAME}/checkouts/$(checkout_id)"
+    echo "${tag}${root}" >"${cache}"
+    echo "${root}"
+}
+
+# This checkout's name under checkouts/ on the cluster (cluster/cluster.env, CHECKOUT_ID).
+checkout_id() {
+    local id="${CHECKOUT_ID:-$(id -un)-$(basename "${CDM_ROOT}")}"
+    echo "${id//[^A-Za-z0-9._-]/_}"
+}
+
+# The project directory that all checkouts share (data, results, logs, container), two levels above a checkout.
+remote_shared_root() {
+    local root
+    root="$(remote_root)"
+    case "${root}" in
+        */checkouts/*) echo "${root%/checkouts/*}" ;;
+        *) echo "${root}" ;;
+    esac
 }
 
 # Runs one command with its arguments in the remote repo root, each argument shell-quoted, so
