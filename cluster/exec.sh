@@ -3,7 +3,8 @@
 # quick checks and small experiments that don't deserve a batch job. Syncs the code first. Goes through
 # slurm/exec.sh (srun), so it queues like any job; the `short` partition (max 1h, higher priority) is the default.
 #
-# Usage: cluster/exec.sh [--no-sync] [--gpu] [--gres g] [--time hh:mm:ss] [--partition p] [--mem m] -- <command...>
+# Usage: cluster/exec.sh [--no-sync] [--gpu] [--gres g] [--constraint c] [--time hh:mm:ss] [--partition p] [--mem m]
+#        -- <command...>
 #   cluster/exec.sh -- cdm info
 #   cluster/exec.sh --gpu -- cdm rerank minilm-l6 scifact --max-queries 20 --no-save
 #   cluster/exec.sh --gpu --time 00:30:00 -- python -c 'import torch; print(torch.cuda.get_device_name())'

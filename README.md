@@ -103,9 +103,11 @@ hardware and configuration.
 | `cdm results` | print results.csv as a table |
 | `cdm info` | versions, paths, GPU |
 
-Status of the systems: the three cross-encoders work. Jev runs through the TypeSafe API (`jev`: all candidates in one
-request; `jev-isolated`: one per request), needs `TYPESAFE_AI_API_KEY` in `.env` and runs on the CPU partition.
-**Laya is a stub** (`src/cdm/rerankers/system_one.py`) until its API is available. The phrasings in
+Status of the systems: the three cross-encoders work. The System One models share one reranker
+(`src/cdm/rerankers/system_one.py`) and get identical requests: Jev through the TypeSafe API (`jev`: all candidates in
+one request; `jev-isolated`: one per request; needs `TYPESAFE_AI_API_KEY` in `.env`, runs on the CPU partition), Laya
+on a GPU (`laya`, `laya-multilingual`; one candidate per request, its context is too short for more) and Cloudflare's
+Clef on a GPU (`clef-flash`, `clef`, each also `-isolated`; `clef` needs an 80 GB GPU). The phrasings in
 `src/cdm/phrasings.py` are a draft until WP3 freezes them, except `s1rank` (S1Rank's question, for replication).
 
 ## Slurm details

@@ -24,6 +24,7 @@ dependencies = [
     "sentence-transformers>=4.0",
     "huggingface-hub>=0.26",
     "typesafe-sdk>=0.7.2",
+    "laya>=0.3.28",
 ]
 
 [project.optional-dependencies]

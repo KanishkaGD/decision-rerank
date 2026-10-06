@@ -18,6 +18,15 @@ SLURM_ACCOUNT="chair-ds"
 GPU_GRES="gpu:1"
 GPU_CONSTRAINT="gpumem.48gib"
 
+# The GPU memory feature for one system; the 27B Clef (~55 GB of bf16 weights) needs the A100-80GB/H200 nodes, which
+# are only in the gpu partition (slurm/exec.sh needs --partition gpu for them).
+gpu_constraint_for() {
+    case "$1" in
+        clef | clef-isolated) echo "gpumem.80gib" ;;
+        *) echo "${GPU_CONSTRAINT}" ;;
+    esac
+}
+
 # Dataset names as registered in src/cdm/datasets.py (`cdm datasets` lists them with their Pyserini ids).
 # "all" in `slurm/submit.sh ... --datasets all` means this list. msmarco-dev is the dev split for selecting the
 # question phrasing (WP3) and is never reported as a test result.
@@ -39,9 +48,14 @@ SYSTEMS=(
     "minilm-l6"
     "bge-m3"
     "mxbai-base"
-    "laya"  # stub until WP0 confirms the API
-    "jev"           # TypeSafe API, all candidates in one request; runs on CPU (API_SYSTEMS)
-    "jev-isolated"  # TypeSafe API, one candidate per request
+    "jev"                  # TypeSafe API, all candidates in one request; runs on CPU (API_SYSTEMS)
+    "jev-isolated"         # TypeSafe API, one candidate per request
+    "laya"                 # open weights, English checkpoint, one candidate per request
+    "laya-multilingual"    # open weights, multilingual checkpoint
+    "clef-flash"           # Cloudflare, 9B, all candidates in one request
+    "clef-flash-isolated"
+    "clef"                 # Cloudflare, 27B: needs an 80 GB GPU (gpu_constraint_for)
+    "clef-isolated"
 )
 # Systems served by an external API: slurm/submit.sh runs them on the general (CPU) partition, no GPU.
 API_SYSTEMS=("jev" "jev-isolated")

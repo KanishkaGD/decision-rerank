@@ -60,7 +60,7 @@ def prefetch(dataset_list, system_list):
         if not spec.hf:
             click.echo(f"[{name}] skipped: {spec.model_id} is not a Hugging Face model (yet)")
             continue
-        path = snapshot_download(spec.model_id)
+        path = snapshot_download(spec.model_id, revision=spec.revision)
         click.echo(f"[{name}] {spec.model_id} -> {path}")
 
 

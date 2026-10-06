@@ -115,7 +115,7 @@ for dataset in "${DATASET_LIST[@]}"; do
             elif [ -n "${GRES}" ]; then
                 RESOURCES=(--gres="${GRES}")
             else
-                RESOURCES=(--gres="${GPU_GRES}" --constraint="${GPU_CONSTRAINT}")
+                RESOURCES=(--gres="${GPU_GRES}" --constraint="$(gpu_constraint_for "${SYSTEM}")")
             fi
             submit "${COMMON[@]}" "${RESOURCES[@]}" \
                 --time="${TIME_OVERRIDE:-$(time_for rerank "${dataset}" "${SYSTEM}")}" \
