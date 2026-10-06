@@ -17,6 +17,7 @@ from decisionrerank import data
 from decisionrerank.scorers import LAYA_ID, MONOT5_ID, QWEN3_ID, SCORERS
 
 IDS = {"laya": LAYA_ID, "monot5": MONOT5_ID, "qwen3": QWEN3_ID}
+CHUNK = 10_000
 
 
 def revision(model_id: str) -> str | None:
@@ -45,16 +46,22 @@ def main():
         todo = pairs.merge(old[data.KEY], on=data.KEY, how="left", indicator=True)
         todo = pairs[(todo["_merge"] == "left_only").to_numpy()]
     print(f"{a.model}: {len(pairs)} pairs, {len(pairs) - len(todo)} cached, {len(todo)} to score", flush=True)
-    t = time.time()
-    new = todo[data.KEY].join(SCORERS[a.model](todo)) if len(todo) else None
-    secs = time.time() - t
-    out = pd.concat([x for x in (old, new) if x is not None], ignore_index=True)
-    out = pairs[data.KEY].merge(out, on=data.KEY, how="left", validate="1:1")
-    assert out.drop(columns=data.KEY).notna().all().all(), "unscored pairs left"
     data.RUNS.mkdir(exist_ok=True)
+    load, score = SCORERS[a.model]
+    loaded = load() if len(todo) else None
+    t, done = time.time(), [old] if old is not None else []
+    for s in range(0, len(todo), CHUNK):  # checkpoint every chunk; a restart resumes from here
+        part = todo.iloc[s:s + CHUNK]
+        done.append(part[data.KEY].join(score(part, loaded)))
+        pd.concat(done, ignore_index=True).to_parquet(path, index=False)
+        n, el = s + len(part), time.time() - t
+        print(f"  {n}/{len(todo)} pairs, {n / el:.0f}/s, ETA {(len(todo) - n) / (n / el) / 60:.1f} min", flush=True)
+    secs = time.time() - t
+    out = pairs[data.KEY].merge(pd.concat(done, ignore_index=True), on=data.KEY, how="left", validate="1:1")
+    assert out.drop(columns=data.KEY).notna().all().all(), "unscored pairs left"
     out.to_parquet(path, index=False)
     meta = {"model": IDS[a.model], "revision": revision(IDS[a.model]), "pairs": len(out),
-            "scored_this_run": len(todo), "seconds_this_run": round(secs, 1),
+            "scored_this_run": len(todo), "seconds_this_run": round(secs, 1), "logits": "fp32 (TF32 matmuls)",
             "gpu": torch.cuda.get_device_name() if torch.cuda.is_available() else None}
     (data.RUNS / f"{stem}.json").write_text(json.dumps(meta, indent=2) + "\n")
     print(json.dumps(meta), flush=True)

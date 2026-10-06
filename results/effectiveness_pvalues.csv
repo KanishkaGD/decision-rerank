@@ -1,0 +1,211 @@
+collection,measure,system,vs,p,p_holm
+DL19,nDCG@10,monoT5-base,BM25 (bm25s order of the pool),1.4346069678828028e-07,1.8649890582476437e-06
+DL19,nDCG@10,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),2.7692157555202965e-07,2.7692157555202965e-06
+DL19,nDCG@10,Laya noul: P(yes),BM25 (bm25s order of the pool),0.3081550786983663,1.0
+DL19,nDCG@10,Laya noul: P(yes),monoT5-base,6.672459957756274e-07,6.005213961980646e-06
+DL19,nDCG@10,Laya noul: P(yes),Qwen3-Reranker-0.6B,3.556322905608253e-05,0.00017781614528041267
+DL19,nDCG@10,Laya score: E[y],BM25 (bm25s order of the pool),0.9295759245630433,1.0
+DL19,nDCG@10,Laya score: E[y],monoT5-base,2.507272382536689e-07,2.757999620790358e-06
+DL19,nDCG@10,Laya score: E[y],Qwen3-Reranker-0.6B,1.0563273169443717e-05,6.33796390166623e-05
+DL19,nDCG@10,Laya score: E[2^y-1],BM25 (bm25s order of the pool),0.9627754550717649,1.0
+DL19,nDCG@10,Laya score: E[2^y-1],monoT5-base,2.1924131736179523e-07,2.630895808341543e-06
+DL19,nDCG@10,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,8.892459893386989e-06,6.224721925370893e-05
+DL19,nDCG@10,Laya score: P(y>=2),BM25 (bm25s order of the pool),0.8465564183459808,1.0
+DL19,nDCG@10,Laya score: P(y>=2),monoT5-base,1.173966486707034e-07,1.6435530813898475e-06
+DL19,nDCG@10,Laya score: P(y>=2),Qwen3-Reranker-0.6B,5.672778830566901e-06,4.538223064453521e-05
+DL19,nDCG@10 (exp),monoT5-base,BM25 (bm25s order of the pool),1.0,1.0
+DL19,nDCG@10 (exp),Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),1.0,1.0
+DL19,nDCG@10 (exp),Laya noul: P(yes),BM25 (bm25s order of the pool),1.0,1.0
+DL19,nDCG@10 (exp),Laya noul: P(yes),monoT5-base,1.0,1.0
+DL19,nDCG@10 (exp),Laya noul: P(yes),Qwen3-Reranker-0.6B,1.0,1.0
+DL19,nDCG@10 (exp),Laya score: E[y],BM25 (bm25s order of the pool),1.0,1.0
+DL19,nDCG@10 (exp),Laya score: E[y],monoT5-base,1.0,1.0
+DL19,nDCG@10 (exp),Laya score: E[y],Qwen3-Reranker-0.6B,1.0,1.0
+DL19,nDCG@10 (exp),Laya score: E[2^y-1],BM25 (bm25s order of the pool),1.0,1.0
+DL19,nDCG@10 (exp),Laya score: E[2^y-1],monoT5-base,1.0,1.0
+DL19,nDCG@10 (exp),Laya score: E[2^y-1],Qwen3-Reranker-0.6B,1.0,1.0
+DL19,nDCG@10 (exp),Laya score: P(y>=2),BM25 (bm25s order of the pool),1.0,1.0
+DL19,nDCG@10 (exp),Laya score: P(y>=2),monoT5-base,1.0,1.0
+DL19,nDCG@10 (exp),Laya score: P(y>=2),Qwen3-Reranker-0.6B,1.0,1.0
+DL19,RR@10,monoT5-base,BM25 (bm25s order of the pool),0.0022585233603656493,0.02484375696402214
+DL19,RR@10,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),0.028361488566493787,0.17431708917672042
+DL19,RR@10,Laya noul: P(yes),BM25 (bm25s order of the pool),0.22082946395169725,0.9181056290180888
+DL19,RR@10,Laya noul: P(yes),monoT5-base,0.01013898882224197,0.1013898882224197
+DL19,RR@10,Laya noul: P(yes),Qwen3-Reranker-0.6B,0.18362112580361775,0.9181056290180888
+DL19,RR@10,Laya score: E[y],BM25 (bm25s order of the pool),0.942996107008623,1.0
+DL19,RR@10,Laya score: E[y],monoT5-base,0.0002735929179027648,0.003556707932735942
+DL19,RR@10,Laya score: E[y],Qwen3-Reranker-0.6B,0.023892703289662618,0.17431708917672042
+DL19,RR@10,Laya score: E[2^y-1],BM25 (bm25s order of the pool),0.9959698617328268,1.0
+DL19,RR@10,Laya score: E[2^y-1],monoT5-base,0.0002483082027331989,0.0034763148382647847
+DL19,RR@10,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,0.021789636147090053,0.17431708917672042
+DL19,RR@10,Laya score: P(y>=2),BM25 (bm25s order of the pool),0.8801842382627348,1.0
+DL19,RR@10,Laya score: P(y>=2),monoT5-base,0.0003370862686950777,0.004045035224340932
+DL19,RR@10,Laya score: P(y>=2),Qwen3-Reranker-0.6B,0.012995393671553206,0.11695854304397886
+DL19,AP@1000,monoT5-base,BM25 (bm25s order of the pool),4.1582312473784056e-08,3.742408122640565e-07
+DL19,AP@1000,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),9.295364304786916e-09,9.960656466429944e-08
+DL19,AP@1000,Laya noul: P(yes),BM25 (bm25s order of the pool),0.0909645283292007,0.3638581133168028
+DL19,AP@1000,Laya noul: P(yes),monoT5-base,7.218126530649729e-11,1.010537714290962e-09
+DL19,AP@1000,Laya noul: P(yes),Qwen3-Reranker-0.6B,3.240738617009827e-07,2.5925908936078616e-06
+DL19,AP@1000,Laya score: E[y],BM25 (bm25s order of the pool),0.5268120895654711,1.0
+DL19,AP@1000,Laya score: E[y],monoT5-base,9.05514224220904e-09,9.960656466429944e-08
+DL19,AP@1000,Laya score: E[y],Qwen3-Reranker-0.6B,1.0120405125922401e-06,5.0602025629612e-06
+DL19,AP@1000,Laya score: E[2^y-1],BM25 (bm25s order of the pool),0.6162615583125656,1.0
+DL19,AP@1000,Laya score: E[2^y-1],monoT5-base,7.852063144916973e-09,9.422475773900367e-08
+DL19,AP@1000,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,8.13986049427661e-07,4.883916296565966e-06
+DL19,AP@1000,Laya score: P(y>=2),BM25 (bm25s order of the pool),0.48624810758900316,1.0
+DL19,AP@1000,Laya score: P(y>=2),monoT5-base,3.190202138903044e-09,4.147262780573957e-08
+DL19,AP@1000,Laya score: P(y>=2),Qwen3-Reranker-0.6B,4.483209233382927e-07,3.138246463368049e-06
+DL19,Judged@10,monoT5-base,BM25 (bm25s order of the pool),0.164067887700363,0.164067887700363
+DL19,Judged@10,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),0.03219037304443875,0.0643807460888775
+DL19,Judged@10,Laya noul: P(yes),BM25 (bm25s order of the pool),6.157831576679244e-10,7.389397892015092e-09
+DL19,Judged@10,Laya noul: P(yes),monoT5-base,4.873245164283786e-09,2.147264836934909e-08
+DL19,Judged@10,Laya noul: P(yes),Qwen3-Reranker-0.6B,3.6054826350345994e-08,1.0816447905103798e-07
+DL19,Judged@10,Laya score: E[y],BM25 (bm25s order of the pool),4.613764948852533e-10,6.4592709283935466e-09
+DL19,Judged@10,Laya score: E[y],monoT5-base,1.433886218249315e-09,1.433886218249315e-08
+DL19,Judged@10,Laya score: E[y],Qwen3-Reranker-0.6B,1.5646963271613922e-09,1.433886218249315e-08
+DL19,Judged@10,Laya score: E[2^y-1],BM25 (bm25s order of the pool),4.6137649488525605e-10,6.4592709283935466e-09
+DL19,Judged@10,Laya score: E[2^y-1],monoT5-base,1.971213870723693e-09,1.574979016155343e-08
+DL19,Judged@10,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,2.483273433360343e-09,1.574979016155343e-08
+DL19,Judged@10,Laya score: P(y>=2),BM25 (bm25s order of the pool),7.42661145899869e-10,8.16927260489856e-09
+DL19,Judged@10,Laya score: P(y>=2),monoT5-base,1.968723770194179e-09,1.574979016155343e-08
+DL19,Judged@10,Laya score: P(y>=2),Qwen3-Reranker-0.6B,4.294529673869818e-09,2.147264836934909e-08
+DL20,nDCG@10,monoT5-base,BM25 (bm25s order of the pool),2.4262538773843216e-09,2.662292846577745e-08
+DL20,nDCG@10,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),6.312639684755398e-08,3.7875838108532384e-07
+DL20,nDCG@10,Laya noul: P(yes),BM25 (bm25s order of the pool),0.4992924288710132,0.4992924288710132
+DL20,nDCG@10,Laya noul: P(yes),monoT5-base,2.7920521840655016e-09,2.662292846577745e-08
+DL20,nDCG@10,Laya noul: P(yes),Qwen3-Reranker-0.6B,5.888530641155249e-07,2.9442653205776243e-06
+DL20,nDCG@10,Laya score: E[y],BM25 (bm25s order of the pool),0.05638221497294709,0.13707568817774202
+DL20,nDCG@10,Laya score: E[y],monoT5-base,1.7268261044107377e-12,2.2040459478061082e-11
+DL20,nDCG@10,Laya score: E[y],Qwen3-Reranker-0.6B,7.2468371696001965e-09,5.072786018720137e-08
+DL20,nDCG@10,Laya score: E[2^y-1],BM25 (bm25s order of the pool),0.034268922044435504,0.13707568817774202
+DL20,nDCG@10,Laya score: E[2^y-1],monoT5-base,5.187612799094877e-13,7.262657918732828e-12
+DL20,nDCG@10,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,2.4202662241615863e-09,2.662292846577745e-08
+DL20,nDCG@10,Laya score: P(y>=2),BM25 (bm25s order of the pool),0.04389393959460908,0.13707568817774202
+DL20,nDCG@10,Laya score: P(y>=2),monoT5-base,1.6954199598508525e-12,2.2040459478061082e-11
+DL20,nDCG@10,Laya score: P(y>=2),Qwen3-Reranker-0.6B,4.9595716857294406e-09,3.9676573485835525e-08
+DL20,nDCG@10 (exp),monoT5-base,BM25 (bm25s order of the pool),1.0,1.0
+DL20,nDCG@10 (exp),Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),1.0,1.0
+DL20,nDCG@10 (exp),Laya noul: P(yes),BM25 (bm25s order of the pool),1.0,1.0
+DL20,nDCG@10 (exp),Laya noul: P(yes),monoT5-base,1.0,1.0
+DL20,nDCG@10 (exp),Laya noul: P(yes),Qwen3-Reranker-0.6B,1.0,1.0
+DL20,nDCG@10 (exp),Laya score: E[y],BM25 (bm25s order of the pool),1.0,1.0
+DL20,nDCG@10 (exp),Laya score: E[y],monoT5-base,1.0,1.0
+DL20,nDCG@10 (exp),Laya score: E[y],Qwen3-Reranker-0.6B,1.0,1.0
+DL20,nDCG@10 (exp),Laya score: E[2^y-1],BM25 (bm25s order of the pool),1.0,1.0
+DL20,nDCG@10 (exp),Laya score: E[2^y-1],monoT5-base,1.0,1.0
+DL20,nDCG@10 (exp),Laya score: E[2^y-1],Qwen3-Reranker-0.6B,1.0,1.0
+DL20,nDCG@10 (exp),Laya score: P(y>=2),BM25 (bm25s order of the pool),1.0,1.0
+DL20,nDCG@10 (exp),Laya score: P(y>=2),monoT5-base,1.0,1.0
+DL20,nDCG@10 (exp),Laya score: P(y>=2),Qwen3-Reranker-0.6B,1.0,1.0
+DL20,RR@10,monoT5-base,BM25 (bm25s order of the pool),3.49112369910805e-05,0.000349112369910805
+DL20,RR@10,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),0.0011110709461968345,0.006666425677181007
+DL20,RR@10,Laya noul: P(yes),BM25 (bm25s order of the pool),0.964467802983196,1.0
+DL20,RR@10,Laya noul: P(yes),monoT5-base,0.00017255349176826203,0.0015529814259143582
+DL20,RR@10,Laya noul: P(yes),Qwen3-Reranker-0.6B,0.005479049940842514,0.02739524970421257
+DL20,RR@10,Laya score: E[y],BM25 (bm25s order of the pool),0.5087845850879885,1.0
+DL20,RR@10,Laya score: E[y],monoT5-base,2.945561790940277e-06,3.534674149128333e-05
+DL20,RR@10,Laya score: E[y],Qwen3-Reranker-0.6B,0.0003426766379350564,0.0023987364655453946
+DL20,RR@10,Laya score: E[2^y-1],BM25 (bm25s order of the pool),0.3668555743007065,1.0
+DL20,RR@10,Laya score: E[2^y-1],monoT5-base,8.394326978825623e-07,1.0912625072473309e-05
+DL20,RR@10,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,0.00020782111121934739,0.001662568889754779
+DL20,RR@10,Laya score: P(y>=2),BM25 (bm25s order of the pool),0.06993249333396542,0.2797299733358617
+DL20,RR@10,Laya score: P(y>=2),monoT5-base,3.4840153358351415e-08,4.877621470169198e-07
+DL20,RR@10,Laya score: P(y>=2),Qwen3-Reranker-0.6B,5.447401993859395e-06,5.992142193245334e-05
+DL20,AP@1000,monoT5-base,BM25 (bm25s order of the pool),4.695691038710091e-10,5.1652601425811e-09
+DL20,AP@1000,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),6.242319214019554e-10,6.242319214019555e-09
+DL20,AP@1000,Laya noul: P(yes),BM25 (bm25s order of the pool),0.6858397580923836,0.7930492274153405
+DL20,AP@1000,Laya noul: P(yes),monoT5-base,2.751008304017748e-09,1.7711453440888743e-08
+DL20,AP@1000,Laya noul: P(yes),Qwen3-Reranker-0.6B,1.0281843093090447e-07,5.140921546545224e-07
+DL20,AP@1000,Laya score: E[y],BM25 (bm25s order of the pool),0.26434974247178017,0.7930492274153405
+DL20,AP@1000,Laya score: E[y],monoT5-base,1.2148125246357987e-11,1.5792562820265382e-10
+DL20,AP@1000,Laya score: E[y],Qwen3-Reranker-0.6B,2.1525741068505963e-09,1.722059285480477e-08
+DL20,AP@1000,Laya score: E[2^y-1],BM25 (bm25s order of the pool),0.1737990502638216,0.6951962010552863
+DL20,AP@1000,Laya score: E[2^y-1],monoT5-base,6.5433848221795935e-12,9.160738751051431e-11
+DL20,AP@1000,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,1.1242572684100687e-09,1.0118315415690618e-08
+DL20,AP@1000,Laya score: P(y>=2),BM25 (bm25s order of the pool),0.27601211031424966,0.7930492274153405
+DL20,AP@1000,Laya score: P(y>=2),monoT5-base,3.617771434320876e-11,4.3413257211850514e-10
+DL20,AP@1000,Laya score: P(y>=2),Qwen3-Reranker-0.6B,2.5302076344126778e-09,1.7711453440888743e-08
+DL20,Judged@10,monoT5-base,BM25 (bm25s order of the pool),0.009264014915583747,0.018528029831167494
+DL20,Judged@10,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),0.6658372720087847,0.6658372720087847
+DL20,Judged@10,Laya noul: P(yes),BM25 (bm25s order of the pool),1.4518207858720706e-11,7.259103929360354e-11
+DL20,Judged@10,Laya noul: P(yes),monoT5-base,1.3874697373231263e-13,1.9424576322523767e-12
+DL20,Judged@10,Laya noul: P(yes),Qwen3-Reranker-0.6B,1.564431559155239e-12,1.7208747150707627e-11
+DL20,Judged@10,Laya score: E[y],BM25 (bm25s order of the pool),1.0654746387668574e-11,6.392847832601144e-11
+DL20,Judged@10,Laya score: E[y],monoT5-base,3.249335963760712e-13,3.899203156512855e-12
+DL20,Judged@10,Laya score: E[y],Qwen3-Reranker-0.6B,4.457297865463554e-12,3.5658382923708434e-11
+DL20,Judged@10,Laya score: E[2^y-1],BM25 (bm25s order of the pool),4.543715733036763e-12,3.5658382923708434e-11
+DL20,Judged@10,Laya score: E[2^y-1],monoT5-base,1.6997364666422343e-13,2.2096574066349044e-12
+DL20,Judged@10,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,2.484399655536688e-12,2.279682376844885e-11
+DL20,Judged@10,Laya score: P(y>=2),BM25 (bm25s order of the pool),9.676238060431222e-11,2.902871418129366e-10
+DL20,Judged@10,Laya score: P(y>=2),monoT5-base,2.279682376844885e-12,2.279682376844885e-11
+DL20,Judged@10,Laya score: P(y>=2),Qwen3-Reranker-0.6B,2.874754867421296e-11,1.1499019469685184e-10
+DL19+20,nDCG@10,monoT5-base,BM25 (bm25s order of the pool),1.0950034361478567e-15,1.2045037797626423e-14
+DL19+20,nDCG@10,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),5.767517358184649e-14,5.190765622366184e-13
+DL19+20,nDCG@10,Laya noul: P(yes),BM25 (bm25s order of the pool),0.9558139783018222,0.9558139783018222
+DL19+20,nDCG@10,Laya noul: P(yes),monoT5-base,1.060128077910542e-14,1.060128077910542e-13
+DL19+20,nDCG@10,Laya noul: P(yes),Qwen3-Reranker-0.6B,8.132012998047244e-11,4.066006499023622e-10
+DL19+20,nDCG@10,Laya score: E[y],BM25 (bm25s order of the pool),0.1420915012585404,0.4054141139162588
+DL19+20,nDCG@10,Laya score: E[y],monoT5-base,2.587973924777284e-18,3.105568709732741e-17
+DL19+20,nDCG@10,Laya score: E[y],Qwen3-Reranker-0.6B,3.024780495551478e-13,1.8148682973308868e-12
+DL19+20,nDCG@10,Laya score: E[2^y-1],BM25 (bm25s order of the pool),0.08793888010482946,0.35175552041931785
+DL19+20,nDCG@10,Laya score: E[2^y-1],monoT5-base,7.5965037326012e-19,1.063510522564168e-17
+DL19+20,nDCG@10,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,8.843359015090098e-14,7.074687212072078e-13
+DL19+20,nDCG@10,Laya score: P(y>=2),BM25 (bm25s order of the pool),0.13513803797208626,0.4054141139162588
+DL19+20,nDCG@10,Laya score: P(y>=2),monoT5-base,1.3270882570258495e-18,1.7252147341336044e-17
+DL19+20,nDCG@10,Laya score: P(y>=2),Qwen3-Reranker-0.6B,1.2534716038643155e-13,8.774301227050208e-13
+DL19+20,nDCG@10 (exp),monoT5-base,BM25 (bm25s order of the pool),1.0,1.0
+DL19+20,nDCG@10 (exp),Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),1.0,1.0
+DL19+20,nDCG@10 (exp),Laya noul: P(yes),BM25 (bm25s order of the pool),1.0,1.0
+DL19+20,nDCG@10 (exp),Laya noul: P(yes),monoT5-base,1.0,1.0
+DL19+20,nDCG@10 (exp),Laya noul: P(yes),Qwen3-Reranker-0.6B,1.0,1.0
+DL19+20,nDCG@10 (exp),Laya score: E[y],BM25 (bm25s order of the pool),1.0,1.0
+DL19+20,nDCG@10 (exp),Laya score: E[y],monoT5-base,1.0,1.0
+DL19+20,nDCG@10 (exp),Laya score: E[y],Qwen3-Reranker-0.6B,1.0,1.0
+DL19+20,nDCG@10 (exp),Laya score: E[2^y-1],BM25 (bm25s order of the pool),1.0,1.0
+DL19+20,nDCG@10 (exp),Laya score: E[2^y-1],monoT5-base,1.0,1.0
+DL19+20,nDCG@10 (exp),Laya score: E[2^y-1],Qwen3-Reranker-0.6B,1.0,1.0
+DL19+20,nDCG@10 (exp),Laya score: P(y>=2),BM25 (bm25s order of the pool),1.0,1.0
+DL19+20,nDCG@10 (exp),Laya score: P(y>=2),monoT5-base,1.0,1.0
+DL19+20,nDCG@10 (exp),Laya score: P(y>=2),Qwen3-Reranker-0.6B,1.0,1.0
+DL19+20,RR@10,monoT5-base,BM25 (bm25s order of the pool),3.033720800607773e-07,3.0337208006077727e-06
+DL19+20,RR@10,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),9.866500160337927e-05,0.0005919900096202756
+DL19+20,RR@10,Laya noul: P(yes),BM25 (bm25s order of the pool),0.42478844473814953,1.0
+DL19+20,RR@10,Laya noul: P(yes),monoT5-base,4.878802648312205e-06,4.390922383480985e-05
+DL19+20,RR@10,Laya noul: P(yes),Qwen3-Reranker-0.6B,0.0021919737791172324,0.010959868895586162
+DL19+20,RR@10,Laya score: E[y],BM25 (bm25s order of the pool),0.6513965850246,1.0
+DL19+20,RR@10,Laya score: E[y],monoT5-base,2.544994494467009e-09,3.0539933933604104e-08
+DL19+20,RR@10,Laya score: E[y],Qwen3-Reranker-0.6B,2.3586444836755993e-05,0.00016510511385729195
+DL19+20,RR@10,Laya score: E[2^y-1],BM25 (bm25s order of the pool),0.5008949204829742,1.0
+DL19+20,RR@10,Laya score: E[2^y-1],monoT5-base,6.960887652882191e-10,9.049153948746849e-09
+DL19+20,RR@10,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,1.3489034804727813e-05,0.0001079122784378225
+DL19+20,RR@10,Laya score: P(y>=2),BM25 (bm25s order of the pool),0.19091613601985977,0.7636645440794391
+DL19+20,RR@10,Laya score: P(y>=2),monoT5-base,5.363910474899163e-11,7.509474664858829e-10
+DL19+20,RR@10,Laya score: P(y>=2),Qwen3-Reranker-0.6B,2.7016203105828544e-07,2.97178234164114e-06
+DL19+20,AP@1000,monoT5-base,BM25 (bm25s order of the pool),7.49809471579306e-17,7.49809471579306e-16
+DL19+20,AP@1000,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),2.270804421113239e-17,2.4978848632245627e-16
+DL19+20,AP@1000,Laya noul: P(yes),BM25 (bm25s order of the pool),0.1660432027186173,0.6641728108744692
+DL19+20,AP@1000,Laya noul: P(yes),monoT5-base,2.584604086101591e-16,2.326143677491432e-15
+DL19+20,AP@1000,Laya noul: P(yes),Qwen3-Reranker-0.6B,5.698811889727838e-13,2.849405944863919e-12
+DL19+20,AP@1000,Laya score: E[y],BM25 (bm25s order of the pool),0.6843372635537799,1.0
+DL19+20,AP@1000,Laya score: E[y],monoT5-base,1.7563933646562957e-18,2.2833113740531845e-17
+DL19+20,AP@1000,Laya score: E[y],Qwen3-Reranker-0.6B,1.2143287903366457e-14,7.285972742019874e-14
+DL19+20,AP@1000,Laya score: E[2^y-1],BM25 (bm25s order of the pool),0.49962333137145554,1.0
+DL19+20,AP@1000,Laya score: E[2^y-1],monoT5-base,8.146315142716116e-19,1.1404841199802562e-17
+DL19+20,AP@1000,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,5.163029938571823e-15,4.1304239508574585e-14
+DL19+20,AP@1000,Laya score: P(y>=2),BM25 (bm25s order of the pool),0.7152652871747524,1.0
+DL19+20,AP@1000,Laya score: P(y>=2),monoT5-base,3.679736208564408e-18,4.4156834502772894e-17
+DL19+20,AP@1000,Laya score: P(y>=2),Qwen3-Reranker-0.6B,8.229803581946507e-15,5.760862507362554e-14
+DL19+20,Judged@10,monoT5-base,BM25 (bm25s order of the pool),0.3478730357299048,0.3478730357299048
+DL19+20,Judged@10,Qwen3-Reranker-0.6B,BM25 (bm25s order of the pool),0.05375749364883759,0.10751498729767518
+DL19+20,Judged@10,Laya noul: P(yes),BM25 (bm25s order of the pool),3.230082720393381e-20,1.9702255538379464e-19
+DL19+20,Judged@10,Laya noul: P(yes),monoT5-base,2.8645559357563576e-21,3.437467122907629e-20
+DL19+20,Judged@10,Laya noul: P(yes),Qwen3-Reranker-0.6B,2.3415204084310466e-19,1.1707602042155233e-18
+DL19+20,Judged@10,Laya score: E[y],BM25 (bm25s order of the pool),1.662905648853371e-20,1.5154713957636523e-19
+DL19+20,Judged@10,Laya score: E[y],monoT5-base,1.7177272250341685e-21,2.233045392544419e-20
+DL19+20,Judged@10,Laya score: E[y],Qwen3-Reranker-0.6B,2.814607934054209e-20,1.9702255538379464e-19
+DL19+20,Judged@10,Laya score: E[2^y-1],BM25 (bm25s order of the pool),6.884866475765784e-21,7.573353123342363e-20
+DL19+20,Judged@10,Laya score: E[2^y-1],monoT5-base,1.2904906227133389e-21,1.8066868717986744e-20
+DL19+20,Judged@10,Laya score: E[2^y-1],Qwen3-Reranker-0.6B,2.423611561904339e-20,1.9388892495234711e-19
+DL19+20,Judged@10,Laya score: P(y>=2),BM25 (bm25s order of the pool),2.5988355657899315e-19,1.1707602042155233e-18
+DL19+20,Judged@10,Laya score: P(y>=2),monoT5-base,1.5154713957636525e-20,1.5154713957636523e-19
+DL19+20,Judged@10,Laya score: P(y>=2),Qwen3-Reranker-0.6B,4.375025594459666e-19,1.3125076783378998e-18

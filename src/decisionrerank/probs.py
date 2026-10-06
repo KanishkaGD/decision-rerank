@@ -40,7 +40,7 @@ def shipped_temperatures() -> dict:
 
     from .scorers import LAYA_ID
 
-    cfg = json.load(open(hf_hub_download(LAYA_ID, "config.json")))
+    cfg = json.load(open(hf_hub_download(LAYA_ID, "rl_agent_config.json")))  # the file Agent reads
     by_opt = {k: clamp_temperature(v) for k, v in cfg.get("temperature_by_options", {}).items()}
     temp = [clamp_temperature(t) for t in cfg["temperature"]]
     return {q: by_opt.get(temp_bucket(QTYPES[q], k), temp[QTYPES[q]]) for q, k in (("noul", 2), ("score", 4))}

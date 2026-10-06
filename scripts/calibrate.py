@@ -21,7 +21,7 @@ from decisionrerank.probs import CONDITIONS, systems
 
 PROB = {  # label -> P(rel >= 2) column
     "monoT5-base": "monot5_p",
-    "Qwen3-Reranker-4B": "qwen3_p",
+    "Qwen3-Reranker-0.6B": "qwen3_p",
     **{f"Laya noul ({c})": f"noul_p_{c}" for c in CONDITIONS},
     **{f"Laya score P(y>=2) ({c})": f"score_ge2_{c}" for c in CONDITIONS},
 }
@@ -31,9 +31,9 @@ INK, INK2, GRID = "#0b0b0b", "#52514e", "#e4e3df"
 COND_COLOR = {"raw": "#2a78d6", "shipped": "#eb6834", "fitted": "#1baf7a"}
 
 
-def base_rate(frame: pd.DataFrame, t: int) -> np.ndarray:
-    """Each pair gets the positive rate of the other collection's judged pairs."""
-    rate = {q: (frame[frame.qset == q].rel >= t).mean() for q in data.QSETS}
+def base_rate(frame: pd.DataFrame, judged: pd.DataFrame, t: int) -> np.ndarray:
+    """Each pair of `frame` gets the positive rate of the other collection's judged pairs."""
+    rate = {q: (judged[judged.qset == q].rel >= t).mean() for q in data.QSETS}
     other = {"dl19": "dl20", "dl20": "dl19"}
     return frame.qset.map(lambda q: rate[other[q]]).to_numpy(float)
 
@@ -46,12 +46,12 @@ def binary_table(judged: pd.DataFrame, ci: bool) -> pd.DataFrame:
             y = (f.rel >= t).to_numpy(float)
             groups = cal.query_groups(f) if ci else None
             preds = {name: f[col].to_numpy(float) for name, col in PROB.items()}
-            preds["Base rate (other collection)"] = base_rate(f, t)
+            preds["Base rate (other collection)"] = base_rate(f, judged, t)
             for name, p in preds.items():
                 row = {"target": f"rel>={t}", "collection": coll, "system": name, "n": len(f),
                        "pos_rate": y.mean(), "mean_p": p.mean()}
                 for m, fn in cal.BINARY.items():
-                    row[m] = np.nan if (m == "AUROC" and np.ptp(p) == 0) else fn(p, y)
+                    row[m] = np.nan if (m == "AUROC" and name.startswith("Base rate")) else fn(p, y)
                 if ci and t == 2:
                     for m in CI_METRICS:
                         row[f"{m}_lo"], row[f"{m}_hi"] = cal.bootstrap(
@@ -84,7 +84,7 @@ def fmt_ci(r, m):
 def reliability_figure(judged: pd.DataFrame):
     y = (judged.rel >= data.REL_MIN).to_numpy(float)
     panels = [("Trained rerankers", [("monoT5-base", "monot5_p", INK2, "-"),
-                                     ("Qwen3-Reranker-4B", "qwen3_p", INK2, "--")]),
+                                     ("Qwen3-Reranker-0.6B", "qwen3_p", INK2, "--")]),
               ("Laya noul: P(yes)", [(c, f"noul_p_{c}", COND_COLOR[c], "-") for c in CONDITIONS]),
               ("Laya score: P(y ≥ 2)", [(c, f"score_ge2_{c}", COND_COLOR[c], "-") for c in CONDITIONS])]
     fig, axes = plt.subplots(2, 3, figsize=(10.5, 4.9), height_ratios=[3, 1], sharex=True,
@@ -125,9 +125,9 @@ def reliability_figure(judged: pd.DataFrame):
     return pd.concat(rel_rows)
 
 
-def grades_figure(judged: pd.DataFrame):
+def grades_figure(judged: pd.DataFrame, temps: dict):
     conds = ("raw", "fitted")
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.2), gridspec_kw={"wspace": 0.25})
+    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.3), sharey=True, gridspec_kw={"wspace": 0.06})
     for ax, c in zip(axes, conds):
         M = np.stack([judged[judged.rel == g][[f"score_p{y}_{c}" for y in range(4)]].mean().to_numpy()
                       for g in range(4)])
@@ -138,15 +138,18 @@ def grades_figure(judged: pd.DataFrame):
                         color="white" if M[g, k] > 0.55 else INK)
         n = judged.rel.value_counts().sort_index()
         ax.set_yticks(range(4), [f"{g} (n={n[g]:,})" for g in range(4)], fontsize=7.5, color=INK2)
+        ax.tick_params(axis="y", labelleft=ax is axes[0])
         ax.set_xticks(range(4), range(4), fontsize=7.5, color=INK2)
         ax.set_xlabel("Laya grade y", fontsize=8.5, color=INK2)
-        ax.set_title(f"{c}", fontsize=9.5, color=INK, loc="left")
+        fitted = "/".join(f"{t:.2f}" for t in temps["fitted"]["score"])
+        ax.set_title({"raw": "raw (T = 1)", "fitted": f"fitted (cross-fit T = {fitted})"}[c],
+                     fontsize=9, color=INK2, loc="left")
         for s in ax.spines.values():
             s.set_visible(False)
         ax.tick_params(length=0)
     axes[0].set_ylabel("human grade", fontsize=8.5, color=INK2)
     fig.suptitle("Mean P(y) of the Laya score question, by human grade (DL19+20 judged pairs)",
-                 fontsize=10, color=INK, x=0.1, ha="left")
+                 fontsize=10, color=INK, x=0.02, y=1.04, ha="left")
     for ext in ("png", "pdf"):
         fig.savefig(data.FIGURES / f"grades.{ext}", dpi=200, bbox_inches="tight", facecolor="white")
     plt.close(fig)
@@ -164,7 +167,7 @@ def main():
     top_tab.to_csv(data.RESULTS / "calibration_pool.csv", index=False)
     grad_tab.to_csv(data.RESULTS / "calibration_graded.csv", index=False)
     reliability_figure(judged).to_csv(data.RESULTS / "reliability.csv", index=False)
-    grades_figure(judged)
+    grades_figure(judged, temps)
 
     cols = ["ECE", "aECE", "Brier", "NLL", "AUROC", "mean_p"]
     md = ["# Calibration of P(relevant)", "",

@@ -14,13 +14,13 @@ from decisionrerank.probs import CONDITIONS, SCORE_RULES, systems
 SYSTEMS = {  # label -> ranking column (Laya rows use the raw condition; see score_rules.csv)
     "BM25 (bm25s order of the pool)": "bm25",
     "monoT5-base": "monot5_p",
-    "Qwen3-Reranker-4B": "qwen3_p",
+    "Qwen3-Reranker-0.6B": "qwen3_p",
     "Laya noul: P(yes)": "noul_p_raw",
     "Laya score: E[y]": "score_lin_raw",
     "Laya score: E[2^y-1]": "score_exp_raw",
     "Laya score: P(y>=2)": "score_ge2_raw",
 }
-BASELINES = {"BM25 (bm25s order of the pool)": "a", "monoT5-base": "b", "Qwen3-Reranker-4B": "c"}  # superscript marks
+BASELINES = {"BM25 (bm25s order of the pool)": "a", "monoT5-base": "b", "Qwen3-Reranker-0.6B": "c"}  # superscript marks
 QSETS = {"DL19": ["dl19"], "DL20": ["dl20"], "DL19+20": ["dl19", "dl20"]}
 
 
@@ -69,7 +69,7 @@ def main():
     ties = {name: tie_rate(frame, col) for name, col in SYSTEMS.items()}
     md = ["# Effectiveness (official TREC DL rerank pool, up to 1000 per query)", "",
           "Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) from "
-          "a = BM25, b = monoT5-base, c = Qwen3-Reranker-4B.", ""]
+          "a = BM25, b = monoT5-base, c = Qwen3-Reranker-0.6B.", ""]
     for coll in QSETS:
         md += [f"## {coll}", "", "| System | " + " | ".join(MEASURES) + " |",
                "| --- | " + " | ".join("---:" for _ in MEASURES) + " |"]

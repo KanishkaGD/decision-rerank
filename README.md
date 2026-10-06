@@ -6,7 +6,7 @@ typed questions (noul = yes/no, score = rubric, choice) with probabilities in on
 is the open counterpart of TypeSafe's closed Jev. This repo uses it as a pointwise reranker on TREC DL
 2019/2020 and compares it with two rerankers trained on relevance data.
 
-- **RQ1 (effectiveness).** How does zero-shot Laya compare with monoT5-base and Qwen3-Reranker-4B
+- **RQ1 (effectiveness).** How does zero-shot Laya compare with monoT5-base and Qwen3-Reranker-0.6B
   when reranking the official TREC DL passage rerank pool? Do the question type and the rule that
   turns its answer into a score matter?
 - **RQ2 (calibration).** Are Laya's relevance probabilities calibrated against the human DL labels,
@@ -23,7 +23,7 @@ The paper outline is a separate doc; results are below once the runs finish.
 | Decision model | Laya, English root checkpoint (512-token context), bf16 as shipped |
 | Laya questions (`questions.py`) | **noul**: "Does the 'passage' answer the 'query'?" -> P(yes). **score**: UMBRELA's 4 levels -> P(y), y = 0-3. State = `{"query", "passage"}`. Wording fixed before any run |
 | Score ranking rules | E[y] (Bayes-optimal for linear-gain nDCG), E[2^y - 1] (exponential gain), P(y >= 2) |
-| Baselines | BM25; `castorini/monot5-base-msmarco` P(true); `Qwen/Qwen3-Reranker-4B` P(yes) with the model card's prompt and web-search instruction |
+| Baselines | BM25; `castorini/monot5-base-msmarco` P(true); `Qwen/Qwen3-Reranker-0.6B` P(yes) with the model card's prompt and web-search instruction |
 | Effectiveness | nDCG@10 (trec_eval linear gain; primary), nDCG@10 exponential gain, RR@10 and AP@1000 at rel >= 2, Judged@10; paired t-tests over queries, Holm-corrected |
 | Calibration population | Every judged pair (independent of the pool); the judged pairs inside the pool as a second table |
 | Calibration targets | rel >= 2 (primary), rel >= 1; grades 0-3 for the score distribution |
@@ -35,7 +35,7 @@ The paper outline is a separate doc; results are below once the runs finish.
 src/decisionrerank/
   data.py           frozen inputs and the pair set (pool + judged)
   questions.py      the two Laya questions
-  scorers.py        raw logits: Laya (its own encode/forward path), monoT5, Qwen3-Reranker-4B
+  scorers.py        raw logits: Laya (its own encode/forward path), monoT5, Qwen3-Reranker-0.6B
   probs.py          logits -> probabilities per condition; temperatures; ranking scores
   effectiveness.py  ir_measures per-query metrics, tie-breaking, Holm
   calibration.py    ECE / aECE / Brier / NLL / AUROC / RPS, reliability bins, query bootstrap

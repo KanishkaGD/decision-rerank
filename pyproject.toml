@@ -1,7 +1,7 @@
 [project]
 name = "decisionrerank"
 version = "0.1.0"
-description = "Add your description here"
+description = "Zero-shot reranking and calibration of the Laya decision model on TREC DL 2019/2020"
 readme = "README.md"
 authors = [
     { name = "Kanishka", email = "kanishkagd@gmail.com" }

@@ -62,10 +62,21 @@ def test_holm():
 
 def test_ties_broken_by_bm25_rank_and_ndcg():
     f = pd.DataFrame({"query_id": "q", "doc_id": ["a", "b", "c"], "in_pool": True,
-                      "s": [0.5, 0.5, 0.1], "bm25_rank": [2, 1, 3]})
+                      "s": [0.5, 0.5, 0.1], "bm25_rank": [2, 1, 3], "rel": [3, np.nan, 0]})
     run = ranked_run(f, "s")
     assert sorted(run["q"], key=run["q"].get, reverse=True) == ["b", "a", "c"]
     qrels = pd.DataFrame({"query_id": "q", "doc_id": ["a"], "rel": [3]})
     v = per_query(f, "s", qrels).loc["q"]
     assert v["nDCG@10"] == pytest.approx(1 / np.log2(3))  # relevant doc at rank 2, linear gain
     assert v["RR@10"] == pytest.approx(0.5)
+    assert v["nDCG@10 (exp)"] == pytest.approx(1 / np.log2(3))  # one judged relevant doc
+    assert v["nDCG'@10"] == pytest.approx(1.0)  # unjudged b removed, a moves to rank 1
+
+
+def test_ndcg_exp_two_grades():
+    from decisionrerank.effectiveness import ndcg10_exp
+
+    run = {"q": {"x": 3.0, "y": 2.0}}
+    qr = {"q": {"x": 1, "y": 3}}
+    dcg, idcg = 1 + 7 / np.log2(3), 7 + 1 / np.log2(3)
+    assert ndcg10_exp(run, qr)["q"] == pytest.approx(dcg / idcg)

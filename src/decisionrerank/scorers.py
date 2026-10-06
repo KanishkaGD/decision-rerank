@@ -1,13 +1,15 @@
 """Raw per-pair outputs of each model; probabilities are derived later (``probs.py``).
 
 Every scorer takes a pairs frame (``query``, ``passage``) and returns a frame on the same index
-holding raw logits, so temperatures and other transforms can be applied offline.
+holding raw logits, so temperatures and other transforms can be applied offline. All models produce
+fp32 logits (TF32 matmuls, fp32 accumulation and outputs): under bf16, Laya's noul and Qwen3's yes/no logits are coarse enough that 32% and 89% of a
+query's pool scores tie (runs/*_bf16.parquet), which hands the ranking to the tie-break.
 
 - laya:   noul_z0, noul_z1 (false, true) and score_z0..score_z3, the per-option logits that
           Laya's decoder divides by temperature; noul_trunc / score_trunc flag a clipped state.
 - monot5: z_false, z_true, the decoder logits of "false"/"true" (castorini/monot5-base-msmarco).
 - qwen3:  z_no, z_yes, the last-position logits of "no"/"yes" with the model card's prompt
-          and default web-search instruction (Qwen/Qwen3-Reranker-4B).
+          and default web-search instruction (Qwen/Qwen3-Reranker-0.6B).
 """
 
 from __future__ import annotations
@@ -17,11 +19,14 @@ import pandas as pd
 import torch
 from laya.common import _reuse_question_tokens
 
+torch.backends.cuda.matmul.allow_tf32 = True  # fp32 outputs at near-bf16 speed on Ampere
+torch.backends.cudnn.allow_tf32 = True
+
 from .questions import QUESTIONS, state
 
 LAYA_ID = "convaiinnovations/laya"
 MONOT5_ID, MONOT5_TOK = "castorini/monot5-base-msmarco", "t5-base"
-QWEN3_ID = "Qwen/Qwen3-Reranker-4B"
+QWEN3_ID = "Qwen/Qwen3-Reranker-0.6B"
 QWEN3_INSTRUCTION = "Given a web search query, retrieve relevant passages that answer the query"
 QWEN3_PREFIX = (
     "<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and "
@@ -40,7 +45,9 @@ def _length_batches(lengths: np.ndarray, batch_size: int):
 def load_laya(device: str = "cuda"):
     import laya
 
-    return laya.load(LAYA_ID, device=device)
+    agent = laya.load(LAYA_ID, device=device)
+    agent.amp_enabled = False  # fp32 weights; Laya autocasts to bf16 on CUDA by default
+    return agent
 
 
 @torch.no_grad()
@@ -71,12 +78,16 @@ def laya_logits(pairs: pd.DataFrame, agent=None, batch_size: int = 256) -> pd.Da
     return pd.DataFrame({**out, **trunc}, index=pairs.index)
 
 
-@torch.no_grad()
-def monot5_logits(pairs: pd.DataFrame, batch_size: int = 128, device: str = "cuda") -> pd.DataFrame:
+def load_monot5(device: str = "cuda"):
     from transformers import AutoTokenizer, T5ForConditionalGeneration
 
-    tok = AutoTokenizer.from_pretrained(MONOT5_TOK)
-    model = T5ForConditionalGeneration.from_pretrained(MONOT5_ID).to(device).eval()
+    return (AutoTokenizer.from_pretrained(MONOT5_TOK),
+            T5ForConditionalGeneration.from_pretrained(MONOT5_ID).to(device).eval())
+
+
+@torch.no_grad()
+def monot5_logits(pairs: pd.DataFrame, loaded=None, batch_size: int = 128, device: str = "cuda") -> pd.DataFrame:
+    tok, model = loaded or load_monot5(device)
     tf = [tok.encode("false")[0], tok.encode("true")[0]]
     text = [f"Query: {q} Document: {d} Relevant:" for q, d in zip(pairs["query"], pairs["passage"])]
     z = np.empty((len(text), 2), np.float32)
@@ -88,13 +99,17 @@ def monot5_logits(pairs: pd.DataFrame, batch_size: int = 128, device: str = "cud
     return pd.DataFrame({"z_false": z[:, 0], "z_true": z[:, 1]}, index=pairs.index)
 
 
-@torch.no_grad()
-def qwen3_logits(pairs: pd.DataFrame, batch_size: int = 32, device: str = "cuda",
-                 max_tokens: int = 1024) -> pd.DataFrame:
+def load_qwen3(device: str = "cuda"):
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    tok = AutoTokenizer.from_pretrained(QWEN3_ID, padding_side="left")
-    model = AutoModelForCausalLM.from_pretrained(QWEN3_ID, torch_dtype=torch.bfloat16).to(device).eval()
+    return (AutoTokenizer.from_pretrained(QWEN3_ID, padding_side="left"),
+            AutoModelForCausalLM.from_pretrained(QWEN3_ID, dtype=torch.float32).to(device).eval())
+
+
+@torch.no_grad()
+def qwen3_logits(pairs: pd.DataFrame, loaded=None, batch_size: int = 64, device: str = "cuda",
+                 max_tokens: int = 1024) -> pd.DataFrame:
+    tok, model = loaded or load_qwen3(device)
     no, yes = tok.convert_tokens_to_ids("no"), tok.convert_tokens_to_ids("yes")
     pre = tok.encode(QWEN3_PREFIX, add_special_tokens=False)
     suf = tok.encode(QWEN3_SUFFIX, add_special_tokens=False)
@@ -110,4 +125,5 @@ def qwen3_logits(pairs: pd.DataFrame, batch_size: int = 32, device: str = "cuda"
     return pd.DataFrame({"z_no": z[:, 0], "z_yes": z[:, 1]}, index=pairs.index)
 
 
-SCORERS = {"laya": laya_logits, "monot5": monot5_logits, "qwen3": qwen3_logits}
+SCORERS = {"laya": (load_laya, laya_logits), "monot5": (load_monot5, monot5_logits),
+           "qwen3": (load_qwen3, qwen3_logits)}  # name -> (load once, score(pairs, loaded))
