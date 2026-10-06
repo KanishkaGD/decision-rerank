@@ -86,8 +86,8 @@ What the jobs produce:
 | Path (on the cluster) | Content |
 | --- | --- |
 | `runs/<dataset>/bm25-d100/` | first-stage cache: `candidates.jsonl.gz` (with passage texts), `run.trec.gz`, `qrels.tsv`, `manifest.json` |
-| `outputs/<dataset>/<first-stage>/<system>/<phrasing>/` | `scores.jsonl.gz` (score and probability per query and passage), `run.trec.gz`, `perquery.csv`, `manifest.json` |
-| `results/results.csv` | one row per configuration: nDCG@10, R@10, R@100, RR@10, AP, ECE, Brier, latency p50/p95, truncation, provenance |
+| `outputs/<dataset>/<first-stage>/<system>/<phrasing>/` | `scores.jsonl.gz` (score and probability per query and passage), `responses.jsonl.gz` (API systems: every raw response with tokens and latency), `run.trec.gz`, `perquery.csv`, `manifest.json` |
+| `results/results.csv` | one row per configuration: nDCG@10, R@10, R@100, RR@10, AP, ECE, Brier, latency p50/p95, truncation, API requests/tokens/cost (API systems), provenance |
 
 Every manifest records the command, code revision (and whether it had uncommitted changes), package versions,
 hardware and configuration.
@@ -103,9 +103,10 @@ hardware and configuration.
 | `cdm results` | print results.csv as a table |
 | `cdm info` | versions, paths, GPU |
 
-Status of the systems: the three cross-encoders work; **Laya and Jev are stubs** (`src/cdm/rerankers/system_one.py`)
-until WP0 confirms Laya's API and checkpoints and Jev access exists. The phrasings in `src/cdm/phrasings.py` are a
-draft until WP3 freezes them.
+Status of the systems: the three cross-encoders work. Jev runs through the TypeSafe API (`jev`: all candidates in one
+request; `jev-isolated`: one per request), needs `TYPESAFE_AI_API_KEY` in `.env` and runs on the CPU partition.
+**Laya is a stub** (`src/cdm/rerankers/system_one.py`) until its API is available. The phrasings in
+`src/cdm/phrasings.py` are a draft until WP3 freezes them, except `s1rank` (S1Rank's question, for replication).
 
 ## Slurm details
 

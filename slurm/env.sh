@@ -29,17 +29,11 @@ export CDM_RESULTS="${CDM_ROOT}/results"  # results.csv (tracked in git, fetched
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 mkdir -p "${HF_HOME}" "${PYSERINI_CACHE}" "${XDG_CACHE_HOME}" "${CDM_RUNS}" "${CDM_OUTPUTS}" "${CDM_RESULTS}"
 
-# HF_TOKEN etc. from .env (gitignored; cluster/sync.sh copies it up with mode 600).
+# HF_TOKEN, API keys etc. from .env (gitignored; cluster/sync.sh copies it up with mode 600). Passed as a file, not
+# as --env KEY=value arguments, so the secrets don't show up in the process list of a shared compute node.
 ENV_ARGS=()
 if [ -f "${CDM_ROOT}/.env" ]; then
-    while IFS= read -r line || [ -n "${line}" ]; do
-        line="${line%$'\r'}"
-        key="${line%%=*}"
-        value="${line#*=}"
-        [[ "${line}" == *=* && "${key}" =~ ^[A-Z_][A-Z0-9_]*$ ]] || continue
-        value="${value%\"}"; value="${value#\"}"  # KEY="value" -> value
-        ENV_ARGS+=(--env "${key}=${value}")
-    done <"${CDM_ROOT}/.env"
+    ENV_ARGS=(--env-file "${CDM_ROOT}/.env")
 fi
 
 # GPU only when Slurm gave us one; --nv on a CPU node would just print warnings.

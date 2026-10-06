@@ -23,6 +23,7 @@ dependencies = [
     "transformers>=4.48",
     "sentence-transformers>=4.0",
     "huggingface-hub>=0.26",
+    "typesafe-sdk>=0.7.2",
 ]
 
 [project.optional-dependencies]

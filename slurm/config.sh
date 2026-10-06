@@ -40,8 +40,11 @@ SYSTEMS=(
     "bge-m3"
     "mxbai-base"
     "laya"  # stub until WP0 confirms the API
-    "jev"   # stub, needs API access
+    "jev"           # TypeSafe API, all candidates in one request; runs on CPU (API_SYSTEMS)
+    "jev-isolated"  # TypeSafe API, one candidate per request
 )
+# Systems served by an external API: slurm/submit.sh runs them on the general (CPU) partition, no GPU.
+API_SYSTEMS=("jev" "jev-isolated")
 
 # --time budgets. Unvalidated first guesses: replace each with the observed run time plus a margin once a job's
 # log (or `cluster/status.sh <jobid>`) shows it, and say so in a comment. Partition maxima: general 48h, gpu 28h,
@@ -57,6 +60,7 @@ first_stage_time_for() {
 rerank_time_for() {
     local dataset="$1" system="$2"
     case "${dataset}:${system}" in
+        msmarco-dev:jev-isolated) echo "16:00:00" ;; # 100 API requests per query, ~16 in parallel
         msmarco-dev:*) echo "08:00:00" ;; # ~700k query-passage pairs at depth 100
         scidocs:* | fiqa:*) echo "03:00:00" ;; # 1,000 / 648 queries
         *) echo "01:00:00" ;;

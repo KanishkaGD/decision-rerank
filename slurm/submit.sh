@@ -110,7 +110,7 @@ for dataset in "${DATASET_LIST[@]}"; do
             ;;
         rerank)
             RESOURCES=()
-            if [ "${CPU}" -eq 1 ]; then
+            if [ "${CPU}" -eq 1 ] || [[ " ${API_SYSTEMS[*]} " == *" ${SYSTEM} "* ]]; then
                 RESOURCES=(--partition=general)
             elif [ -n "${GRES}" ]; then
                 RESOURCES=(--gres="${GRES}")

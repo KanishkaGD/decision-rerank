@@ -17,7 +17,8 @@ from typing import Any, Dict
 
 from cdm.config import CDM_ROOT
 
-PACKAGES = ["cdm", "torch", "transformers", "sentence-transformers", "pyserini", "ir-measures", "numpy", "pandas"]
+PACKAGES = ["cdm", "torch", "transformers", "sentence-transformers", "pyserini", "ir-measures", "numpy", "pandas",
+            "typesafe-sdk"]
 
 
 # Where the running code came from: the per-submission snapshot of slurm/submit.sh, else the repo root.

@@ -90,8 +90,10 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
         if not no_save:
             os.makedirs(out, exist_ok=True)
         scores_file = gzip.open(os.path.join(out, "scores.jsonl.gz"), "wt") if not no_save else None
-        if queries:  # warm-up (CUDA kernels, caches), so the first query doesn't inflate the latency percentiles
+        responses_file = None
+        if queries and reranker.warmup:  # warm-up (CUDA kernels, caches), so the first query doesn't inflate latency
             reranker.score(queries[0].query, [c.text for c in queries[0].candidates[: depth or None]], phrasing)
+        reranker.reset_stats()
         try:
             for i, q in enumerate(queries, start=1):
                 cands = q.candidates[:depth] if depth else q.candidates
@@ -108,18 +110,26 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
                     if scores_file:
                         scores_file.write(json.dumps({"qid": q.qid, "docid": c.docid, "first_stage_rank": c.rank,
                                                       "score": result.scores[j], "prob": prob}) + "\n")
+                if result.raw is not None and not no_save:
+                    if responses_file is None:
+                        responses_file = gzip.open(os.path.join(out, "responses.jsonl.gz"), "wt")
+                    for record in result.raw:
+                        responses_file.write(json.dumps({"qid": q.qid, **record}) + "\n")
                 if i % 50 == 0 or i == len(queries):
                     click.echo(f"  {phrasing_id}: {i}/{len(queries)} queries")
         finally:
-            if scores_file:
-                scores_file.close()
+            for f in (scores_file, responses_file):
+                if f:
+                    f.close()
 
         means, per_query = evaluate(run, qrels, ds.rel_threshold)
         calib = calibration(*judged_pairs(scored, qrels, ds.rel_threshold)) if scored else {}
         lat = np.asarray(latencies)
         stats = {**means, **calib, "latency_p50_ms": float(np.percentile(lat, 50)),
                  "latency_p95_ms": float(np.percentile(lat, 95)), "truncated_frac": truncated / max(n_pairs, 1),
-                 "n_pairs": n_pairs}
+                 "n_pairs": n_pairs, **reranker.run_stats()}
+        if "api_cost_usd" in stats:
+            stats["api_cost_usd_per_1k_queries"] = stats["api_cost_usd"] / max(len(queries), 1) * 1000
         click.echo(f"{system} on {dataset} [{phrasing_id}]: " + ", ".join(
             f"{k}={v:.4f}" if isinstance(v, float) else f"{k}={v}" for k, v in stats.items()))
         if no_save:

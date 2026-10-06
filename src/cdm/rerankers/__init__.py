@@ -25,9 +25,12 @@ SYSTEMS: Dict[str, SystemSpec] = {
         SystemSpec("minilm-l6", "cross-encoder", "cross-encoder/ms-marco-MiniLM-L6-v2"),
         SystemSpec("bge-m3", "cross-encoder", "BAAI/bge-reranker-v2-m3", {"batch_size": 32}),
         SystemSpec("mxbai-base", "cross-encoder", "mixedbread-ai/mxbai-rerank-base-v1", {"batch_size": 64}),
-        # Placeholders until WP0: the Hugging Face id and primitive of Laya's English checkpoint, Jev's API name.
+        # Placeholder until WP0: the Hugging Face id and primitive of Laya's English checkpoint.
         SystemSpec("laya", "laya", "TODO/laya-english", {"primitive": "noul"}, hf=False),
-        SystemSpec("jev", "jev", "jev-1.13.0", hf=False),
+        # Jev through the TypeSafe API, pinned version (no alias). Joint: all candidates in one request (S1Rank's
+        # "joint pointwise"); isolated: one candidate per request, same state format (RQ4).
+        SystemSpec("jev", "jev", "jev-1.13.0", {"window": 0}, hf=False),
+        SystemSpec("jev-isolated", "jev", "jev-1.13.0", {"window": 1}, hf=False),
         # Later: "laya-multilingual" (MIRACL), "laya-ft-*" (WP4), an open listwise LLM reranker such as RankZephyr
         # (RQ5 quality ceiling).
     ]
