@@ -12,6 +12,11 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-06 -- Jev first; Laya API pending
+
+Owner's answer to open question 3: the TypeSafe AI API key for Jev is in `.env` (`TYPESAFE_AI_API_KEY`); the owner
+is trying to get Laya API access. Work starts with Jev. No API budget stated. See `docs/intent/models.md`.
+
 ## 2026-10-06 -- Venue: arXiv, then WSDM 2027 short paper
 
 Owner's decision on open question 1: an arXiv preprint, then a WSDM 2027 short paper (deadline Nov 17, 2026, 4 pages
