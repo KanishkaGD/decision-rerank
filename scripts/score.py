@@ -25,7 +25,8 @@ def revision(model_id: str) -> str | None:
 
     for repo in scan_cache_dir().repos:
         if repo.repo_id == model_id:
-            return sorted(r.commit_hash for r in repo.revisions)[0]
+            main = [r.commit_hash for r in repo.revisions if "main" in r.refs]
+            return main[0] if main else None
     return None
 
 
@@ -61,7 +62,7 @@ def main():
     assert out.drop(columns=data.KEY).notna().all().all(), "unscored pairs left"
     out.to_parquet(path, index=False)
     meta = {"model": IDS[a.model], "revision": revision(IDS[a.model]), "pairs": len(out),
-            "scored_this_run": len(todo), "seconds_this_run": round(secs, 1), "logits": "fp32 (TF32 matmuls)",
+            "scored_this_run": len(todo), "seconds_this_run": round(secs, 1), "logits": "fp32 outputs, TF32 matmuls" if torch.backends.cuda.matmul.allow_tf32 else "fp32",
             "gpu": torch.cuda.get_device_name() if torch.cuda.is_available() else None}
     (data.RUNS / f"{stem}.json").write_text(json.dumps(meta, indent=2) + "\n")
     print(json.dumps(meta), flush=True)

@@ -70,7 +70,7 @@ def laya_temperatures(run: pd.DataFrame) -> pd.DataFrame:
         out[f"shipped_{q}"] = shipped[q]
         out[f"fitted_{q}"] = np.nan
     judged = run[run["rel"].notna()]
-    for test, train in (("dl19", "dl20"), ("dl20", "dl19")):
+    for test, train in CROSS:
         fitted = fit_temperatures(judged[judged.qset == train])
         for q in ("noul", "score"):
             out.loc[run.qset == test, f"fitted_{q}"] = fitted[q]
@@ -84,6 +84,7 @@ def laya_frame(run: pd.DataFrame) -> pd.DataFrame:
     """
     temps = laya_temperatures(run)
     out = run[data.KEY + ["rel", "in_pool"]].copy()
+    out["laya_noul_z"] = (run["noul_z1"] - run["noul_z0"]).to_numpy()
     gains_lin, gains_exp = np.arange(4.0), 2.0 ** np.arange(4) - 1
     for c in CONDITIONS:
         out[f"noul_p_{c}"] = softmax(run[NOUL_COLS].to_numpy(), temps[f"{c}_noul"].to_numpy())[:, 1]
@@ -93,9 +94,42 @@ def laya_frame(run: pd.DataFrame) -> pd.DataFrame:
         out[f"score_lin_{c}"] = p @ gains_lin
         out[f"score_exp_{c}"] = p @ gains_exp
         out[f"score_ge2_{c}"] = p[:, 2] + p[:, 3]
-    out.attrs["temperatures"] = {c: {q: sorted(set(temps[f"{c}_{q}"].round(4)))
-                                     for q in ("noul", "score")} for c in CONDITIONS}
+    # keyed by the collection a temperature is applied to (fitted ones come from the other collection)
+    out.attrs["temperatures"] = {c: {q: {qs: round(float(temps.loc[run.qset == qs, f"{c}_{q}"].iloc[0]), 4)
+                                         for qs in data.QSETS} for q in ("noul", "score")} for c in CONDITIONS}
     return out
+
+
+CROSS = (("dl19", "dl20"), ("dl20", "dl19"))  # (apply to, fit on)
+
+
+def fit_binary_temperature(z: np.ndarray, y: np.ndarray) -> float:
+    """Unclamped NLL-optimal T for sigmoid(z / T) (Laya's own fitter clamps T to [0.5, 5])."""
+    from scipy.optimize import minimize_scalar
+
+    def nll(lt):
+        p = np.clip(1 / (1 + np.exp(-z / np.exp(lt))), 1e-12, 1 - 1e-12)
+        return -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))
+
+    return float(np.exp(minimize_scalar(nll, bounds=(np.log(0.05), np.log(100)), method="bounded").x))
+
+
+def crossfit_binary(frame: pd.DataFrame, z: np.ndarray) -> tuple[np.ndarray, dict]:
+    """sigmoid(z / T) with T fitted on the other collection's judged pairs (target rel >= 2)."""
+    out, temps = np.empty(len(frame)), {}
+    for test, train in CROSS:
+        m = (frame.qset == train).to_numpy() & frame.rel.notna().to_numpy()
+        t = fit_binary_temperature(z[m], (frame.rel.to_numpy()[m] >= data.REL_MIN).astype(float))
+        sel = (frame.qset == test).to_numpy()
+        out[sel] = 1 / (1 + np.exp(-z[sel] / t))
+        temps[test] = round(t, 4)
+    return out, temps
+
+
+def logit(p: np.ndarray, eps: float = 0.005) -> np.ndarray:
+    """Jev returns probabilities rounded to 0.01; clip 0 and 1 to half a step before the logit."""
+    p = np.clip(p, eps, 1 - eps)
+    return np.log(p / (1 - p))
 
 
 def systems() -> tuple[pd.DataFrame, dict]:
@@ -111,7 +145,33 @@ def systems() -> tuple[pd.DataFrame, dict]:
     qw = data.load_run("qwen3")
     qw["qwen3_p"] = softmax(qw[["z_no", "z_yes"]].to_numpy())[:, 1]
     bm = data.candidates()[data.KEY + ["bm25", "bm25_rank"]]
-    out = (lay.merge(t5[data.KEY + ["monot5_p"]], on=data.KEY, validate="1:1")
-              .merge(qw[data.KEY + ["qwen3_p"]], on=data.KEY, validate="1:1")
+    t5["monot5_z"] = t5.z_true - t5.z_false
+    qw["qwen3_z"] = qw.z_yes - qw.z_no
+    out = (lay.merge(t5[data.KEY + ["monot5_p", "monot5_z"]], on=data.KEY, validate="1:1")
+              .merge(qw[data.KEY + ["qwen3_p", "qwen3_z"]], on=data.KEY, validate="1:1")
               .merge(bm, on=data.KEY, how="left", validate="1:1"))
-    return out, lay.attrs["temperatures"]
+    temps = dict(lay.attrs["temperatures"])
+    zs = {"monot5": out.monot5_z.to_numpy(), "qwen3": out.qwen3_z.to_numpy(),
+          "laya_noul": out.laya_noul_z.to_numpy()}
+    if (data.RUNS / "jev.parquet").exists():
+        out = out.merge(jev_frame(), on=data.KEY, how="left", validate="1:1")
+        if out.jev_noul_p.notna().all():
+            zs["jev_noul"] = logit(out.jev_noul_p.to_numpy())
+    for name, z in zs.items():  # one cross-fitted temperature per model, same fitter for all
+        out[f"{name}_xfit"], temps[f"{name}_xfit"] = crossfit_binary(out, z)
+    return out, temps
+
+
+def jev_frame(jv: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Jev columns: jev_noul_p, jev_score_p{y}, ranking scores jev_{lin,exp,ge2} and jev_noul_lin.
+
+    Jev rounds probabilities to two decimals. jev_noul_lin ranks by P(yes) and breaks its ties by
+    E[y] from the same request (the added term is below the 0.01 rounding step).
+    """
+    jv = pd.read_parquet(data.RUNS / "jev.parquet") if jv is None else jv.copy()
+    P = jv[[f"jev_score_p{y}" for y in range(4)]].to_numpy(float)
+    jv["jev_lin"] = P @ np.arange(4.0)
+    jv["jev_exp"] = P @ (2.0 ** np.arange(4) - 1)
+    jv["jev_ge2"] = P[:, 2] + P[:, 3]
+    jv["jev_noul_lin"] = jv["jev_noul_p"] + 1e-3 * jv["jev_lin"] / 3
+    return jv.drop(columns=["jev_model", "jev_cost"])

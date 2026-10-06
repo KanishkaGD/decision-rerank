@@ -33,9 +33,9 @@ MEASURES = ["nDCG@10", "nDCG@10 (exp)", "nDCG'@10", "RR@10", "AP@1000", "Judged@
 DISCOUNT = 1 / np.log2(np.arange(2, 12))
 
 
-def ranked_run(frame: pd.DataFrame, col: str) -> dict:
-    """{qid: {doc: score}} over the pool pairs, ordered by `col` desc, then BM25 rank."""
-    top = frame[frame.in_pool].sort_values(["query_id", col, "bm25_rank"], ascending=[True, False, True])
+def ranked_run(frame: pd.DataFrame, col: str, tie: str = "bm25_rank") -> dict:
+    """{qid: {doc: score}} over the pool pairs, ordered by `col` desc, then `tie` ascending."""
+    top = frame[frame.in_pool].sort_values(["query_id", col, tie], ascending=[True, False, True])
     top = top.assign(pos=top.groupby("query_id").cumcount())
     run: dict = {}
     for q, d, pos in zip(top.query_id, top.doc_id, top.pos):
@@ -63,15 +63,19 @@ def _irm(run: dict, qr: dict, measures: dict) -> pd.DataFrame:
         index="query_id", columns="measure", values="value")
 
 
-def per_query(frame: pd.DataFrame, col: str, qrels: pd.DataFrame) -> pd.DataFrame:
-    """Rows: query_id; columns: MEASURES. `frame` needs in_pool, rel, bm25_rank and `col`."""
+def per_query(frame: pd.DataFrame, col: str, qrels: pd.DataFrame, tie: str = "bm25_rank") -> pd.DataFrame:
+    """Rows: query_id; columns: MEASURES. `frame` needs in_pool, rel, bm25_rank and `col`.
+
+    Only queries present in `frame` are scored (pytrec_eval would score a qrels-only query as 0).
+    """
+    qrels = qrels[qrels.query_id.isin(set(frame.query_id))]
     qr = {}
     for q, d, r in zip(qrels.query_id, qrels.doc_id, qrels.rel):
         qr.setdefault(q, {})[d] = int(r)
-    run = ranked_run(frame, col)
+    run = ranked_run(frame, col, tie)
     out = _irm(run, qr, IRM)
     out["nDCG@10 (exp)"] = ndcg10_exp(run, qr)
-    condensed = _irm(ranked_run(frame[frame.rel.notna()], col), qr, {"nDCG'@10": nDCG @ 10})
+    condensed = _irm(ranked_run(frame[frame.rel.notna()], col, tie), qr, {"nDCG'@10": nDCG @ 10})
     out["nDCG'@10"] = condensed["nDCG'@10"].reindex(out.index).fillna(0.0)
     return out[MEASURES]
 

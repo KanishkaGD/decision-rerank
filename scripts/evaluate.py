@@ -5,6 +5,7 @@ Significance: paired two-sided t-tests over queries; Holm correction within each
 (collection, measure) family of comparisons.
 """
 
+import numpy as np
 import pandas as pd
 
 from decisionrerank import data
@@ -19,13 +20,21 @@ SYSTEMS = {  # label -> ranking column (Laya rows use the raw condition; see sco
     "Laya score: E[y]": "score_lin_raw",
     "Laya score: E[2^y-1]": "score_exp_raw",
     "Laya score: P(y>=2)": "score_ge2_raw",
+    "Jev noul: P(yes)": "jev_noul_p",
+    "Jev noul, ties by E[y]": "jev_noul_lin",
+    "Jev score: E[y]": "jev_lin",
 }
-BASELINES = {"BM25 (bm25s order of the pool)": "a", "monoT5-base": "b", "Qwen3-Reranker-0.6B": "c"}  # superscript marks
+BASELINES = {"BM25 (bm25s order of the pool)": "a", "monoT5-base": "b", "Qwen3-Reranker-0.6B": "c",
+             "Laya noul: P(yes)": "d"}  # superscript marks
 QSETS = {"DL19": ["dl19"], "DL20": ["dl20"], "DL19+20": ["dl19", "dl20"]}
 
 
 def main():
     frame, temps = systems()
+    for name, col in list(SYSTEMS.items()):  # Jev rows only once every pool pair has an answer
+        if col not in frame or frame.loc[frame.in_pool, col].isna().any():
+            print(f"skipping {name}: no complete run")
+            del SYSTEMS[name]
     qrels = data.qrels()
     pq = {}  # (system, coll) -> per-query frame
     for name, col in SYSTEMS.items():
@@ -67,9 +76,25 @@ def main():
     srows.to_csv(data.RESULTS / "score_rules.csv", index=False)
 
     ties = {name: tie_rate(frame, col) for name, col in SYSTEMS.items()}
+    # tie robustness: the same rankings with ties broken at random instead of by BM25 (mean of 20 draws)
+    rng, trows = np.random.default_rng(0), []
+    for name, col in SYSTEMS.items():
+        if ties[name] < 0.05 or name.startswith("BM25"):
+            continue
+        vals = []
+        for _ in range(20):
+            f = frame.assign(rand_tie=rng.random(len(frame)))
+            vals.append(pd.concat([per_query(f[f.qset == qs], col, qrels[qrels.qset == qs], tie="rand_tie")
+                                   for qs in data.QSETS])[["nDCG@10", "nDCG'@10"]].mean())
+        v = pd.concat(vals, axis=1).mean(axis=1)
+        trows.append({"system": name, "share tied": round(ties[name], 3),
+                      "nDCG@10 (BM25 tie-break)": res[(res.collection == "DL19+20") & (res.system == name) & (res.measure == "nDCG@10")].value.item(),
+                      "nDCG@10 (random tie-break)": v["nDCG@10"], "nDCG'@10 (random tie-break)": v["nDCG'@10"]})
+    trows = pd.DataFrame(trows)
+    trows.to_csv(data.RESULTS / "tie_robustness.csv", index=False)
     md = ["# Effectiveness (official TREC DL rerank pool, up to 1000 per query)", "",
           "Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) from "
-          "a = BM25, b = monoT5-base, c = Qwen3-Reranker-0.6B.", ""]
+          "a = BM25, b = monoT5-base, c = Qwen3-Reranker-0.6B, d = Laya noul.", ""]
     for coll in QSETS:
         md += [f"## {coll}", "", "| System | " + " | ".join(MEASURES) + " |",
                "| --- | " + " | ".join("---:" for _ in MEASURES) + " |"]
@@ -87,7 +112,9 @@ def main():
            .round(4).to_markdown(), "",
            "## Ties among a query's pool scores (broken by BM25 rank)", "",
            pd.Series(ties, name="share of pairs tied").round(4).to_markdown(), "",
-           "## Laya temperatures per condition", "", "```", str(temps), "```", ""]
+           "## Tie robustness (DL19+20): random tie-break, mean of 20 draws", "",
+           trows.round(4).to_markdown(index=False) if len(trows) else "(no system with > 5% ties)", "",
+           "## Temperatures (keyed by the collection they are applied to)", "", "```", str(temps), "```", ""]
     (data.RESULTS / "effectiveness.md").write_text("\n".join(md))
     print("\n".join(md))
 

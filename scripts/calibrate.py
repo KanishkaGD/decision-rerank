@@ -24,7 +24,23 @@ PROB = {  # label -> P(rel >= 2) column
     "Qwen3-Reranker-0.6B": "qwen3_p",
     **{f"Laya noul ({c})": f"noul_p_{c}" for c in CONDITIONS},
     **{f"Laya score P(y>=2) ({c})": f"score_ge2_{c}" for c in CONDITIONS},
+    "Jev noul": "jev_noul_p",
+    "Jev score P(y>=2)": "jev_ge2",
+    # the same unclamped cross-fitted temperature for every model's yes/no logit (probs.crossfit_binary)
+    "monoT5-base (cross-fit T)": "monot5_xfit",
+    "Qwen3-Reranker-0.6B (cross-fit T)": "qwen3_xfit",
+    "Laya noul (cross-fit T, unclamped)": "laya_noul_xfit",
+    "Jev noul (cross-fit T)": "jev_noul_xfit",
 }
+PAIRS = [  # paired query-bootstrap differences (first - second); negative = first is better
+    ("Jev noul", "monoT5-base (cross-fit T)"),
+    ("Jev noul", "Laya noul (shipped)"),
+    ("Laya noul (shipped)", "monoT5-base (cross-fit T)"),
+    ("Laya noul (shipped)", "monoT5-base"),
+    ("Laya noul (fitted)", "Laya noul (shipped)"),
+    ("Jev noul (cross-fit T)", "monoT5-base (cross-fit T)"),
+]
+JEV = "#4a3aa7"
 COLL = {"DL19": ["dl19"], "DL20": ["dl20"], "DL19+20": ["dl19", "dl20"]}
 CI_METRICS = ("ECE", "Brier")
 INK, INK2, GRID = "#0b0b0b", "#52514e", "#e4e3df"
@@ -49,7 +65,10 @@ def binary_table(judged: pd.DataFrame, ci: bool) -> pd.DataFrame:
             preds["Base rate (other collection)"] = base_rate(f, judged, t)
             for name, p in preds.items():
                 row = {"target": f"rel>={t}", "collection": coll, "system": name, "n": len(f),
-                       "pos_rate": y.mean(), "mean_p": p.mean()}
+                       "pos_rate": y.mean(), "mean_p": p.mean(), "AUROC_query": macro_auroc(f, p, y)}
+                if len(members) > 1:  # pooled ECE can hide opposite per-collection errors
+                    row["ECE_wavg"] = sum(cal.ece(p[(f.qset == q).to_numpy()], y[(f.qset == q).to_numpy()])
+                                          * (f.qset == q).mean() for q in members)
                 for m, fn in cal.BINARY.items():
                     row[m] = np.nan if (m == "AUROC" and name.startswith("Base rate")) else fn(p, y)
                 if ci and t == 2:
@@ -57,6 +76,40 @@ def binary_table(judged: pd.DataFrame, ci: bool) -> pd.DataFrame:
                         row[f"{m}_lo"], row[f"{m}_hi"] = cal.bootstrap(
                             lambda i, p=p, fn=cal.BINARY[m]: fn(p[i], y[i]), groups)
                 rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def macro_auroc(f: pd.DataFrame, p: np.ndarray, y: np.ndarray) -> float:
+    """Mean per-query AUROC over queries with both classes (pooled AUROC mixes query base rates)."""
+    vals = []
+    for idx in cal.query_groups(f):
+        if 0 < y[idx].sum() < len(idx):
+            vals.append(cal.auroc(p[idx], y[idx]))
+    return float(np.mean(vals))
+
+
+def paired_table(judged: pd.DataFrame) -> pd.DataFrame:
+    y = (judged.rel >= data.REL_MIN).to_numpy(float)
+    groups, rows = cal.query_groups(judged), []
+    halves = [(judged.qset == q).to_numpy() for q in data.QSETS]
+
+    def ece_wavg(p, idx):
+        out = 0.0
+        for h in halves:
+            m = idx[h[idx]]
+            out += len(m) / len(idx) * cal.ece(p[m], y[m])
+        return out
+
+    metrics = {"Brier": lambda p, i: cal.brier(p[i], y[i]), "NLL": lambda p, i: cal.nll(p[i], y[i]),
+               "ECE (per-collection mean)": ece_wavg}
+    for a, b in PAIRS:
+        if a not in PROB or b not in PROB:
+            continue
+        pa, pb = judged[PROB[a]].to_numpy(float), judged[PROB[b]].to_numpy(float)
+        for m, fn in metrics.items():
+            d = fn(pa, np.arange(len(y))) - fn(pb, np.arange(len(y)))
+            lo, hi = cal.bootstrap(lambda i: fn(pa, i) - fn(pb, i), groups)
+            rows.append({"first": a, "second": b, "metric": m, "diff": d, "lo": lo, "hi": hi})
     return pd.DataFrame(rows)
 
 
@@ -68,6 +121,10 @@ def graded_table(judged: pd.DataFrame) -> pd.DataFrame:
         for c in CONDITIONS:
             P = f[[f"score_p{y}_{c}" for y in range(4)]].to_numpy(float)
             rows.append({"collection": coll, "condition": c, **cal.graded(P, g),
+                         **{f"mean_P{y}": P[:, y].mean() for y in range(4)}})
+        if "jev_score_p0" in f:
+            P = f[[f"jev_score_p{y}" for y in range(4)]].to_numpy(float)
+            rows.append({"collection": coll, "condition": "Jev 1.13", **cal.graded(P, g),
                          **{f"mean_P{y}": P[:, y].mean() for y in range(4)}})
         prior = np.stack([np.bincount(judged[judged.qset != q].rel.astype(int), minlength=4)
                           / (judged.qset != q).sum() for q in f.qset])
@@ -83,11 +140,14 @@ def fmt_ci(r, m):
 
 def reliability_figure(judged: pd.DataFrame):
     y = (judged.rel >= data.REL_MIN).to_numpy(float)
-    panels = [("Trained rerankers", [("monoT5-base", "monot5_p", INK2, "-"),
+    panels = [("Trained rerankers (raw)", [("monoT5-base", "monot5_p", INK2, "-"),
                                      ("Qwen3-Reranker-0.6B", "qwen3_p", INK2, "--")]),
               ("Laya noul: P(yes)", [(c, f"noul_p_{c}", COND_COLOR[c], "-") for c in CONDITIONS]),
-              ("Laya score: P(y ≥ 2)", [(c, f"score_ge2_{c}", COND_COLOR[c], "-") for c in CONDITIONS])]
-    fig, axes = plt.subplots(2, 3, figsize=(10.5, 4.9), height_ratios=[3, 1], sharex=True,
+              ("Laya score: P(y ≥ 2)", [(c, f"score_ge2_{c}", COND_COLOR[c], "-") for c in CONDITIONS]),
+              ("Jev 1.13 (no temperature access)", [("noul P(yes)", "jev_noul_p", JEV, "-"),
+                                                     ("score P(y ≥ 2)", "jev_ge2", JEV, "--")])]
+    panels = [pn for pn in panels if all(col in judged for _, col, _, _ in pn[1])]
+    fig, axes = plt.subplots(2, len(panels), figsize=(3.4 * len(panels), 4.9), height_ratios=[3, 1], sharex=True,
                              gridspec_kw={"hspace": 0.08, "wspace": 0.12})
     rel_rows = []
     for j, (title, series) in enumerate(panels):
@@ -126,11 +186,12 @@ def reliability_figure(judged: pd.DataFrame):
 
 
 def grades_figure(judged: pd.DataFrame, temps: dict):
-    conds = ("raw", "fitted")
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.3), sharey=True, gridspec_kw={"wspace": 0.06})
+    conds = ("raw", "fitted", "jev") if "jev_score_p0" in judged else ("raw", "fitted")
+    fig, axes = plt.subplots(1, len(conds), figsize=(3.55 * len(conds), 3.3), sharey=True,
+                             gridspec_kw={"wspace": 0.06})
     for ax, c in zip(axes, conds):
-        M = np.stack([judged[judged.rel == g][[f"score_p{y}_{c}" for y in range(4)]].mean().to_numpy()
-                      for g in range(4)])
+        cols = [f"jev_score_p{y}" for y in range(4)] if c == "jev" else [f"score_p{y}_{c}" for y in range(4)]
+        M = np.stack([judged[judged.rel == g][cols].mean().to_numpy() for g in range(4)])
         ax.imshow(M, cmap="Blues", vmin=0, vmax=1)
         for g in range(4):
             for k in range(4):
@@ -140,15 +201,16 @@ def grades_figure(judged: pd.DataFrame, temps: dict):
         ax.set_yticks(range(4), [f"{g} (n={n[g]:,})" for g in range(4)], fontsize=7.5, color=INK2)
         ax.tick_params(axis="y", labelleft=ax is axes[0])
         ax.set_xticks(range(4), range(4), fontsize=7.5, color=INK2)
-        ax.set_xlabel("Laya grade y", fontsize=8.5, color=INK2)
-        fitted = "/".join(f"{t:.2f}" for t in temps["fitted"]["score"])
-        ax.set_title({"raw": "raw (T = 1)", "fitted": f"fitted (cross-fit T = {fitted})"}[c],
+        ax.set_xlabel(("Jev" if c == "jev" else "Laya") + " grade y", fontsize=8.5, color=INK2)
+        fitted = " / ".join(f"{t:.2f}" for t in temps["fitted"]["score"].values())  # DL19 / DL20
+        ax.set_title({"raw": "Laya raw (T = 1)", "fitted": f"Laya fitted (T = {fitted})",
+                      "jev": "Jev 1.13"}[c],
                      fontsize=9, color=INK2, loc="left")
         for s in ax.spines.values():
             s.set_visible(False)
         ax.tick_params(length=0)
     axes[0].set_ylabel("human grade", fontsize=8.5, color=INK2)
-    fig.suptitle("Mean P(y) of the Laya score question, by human grade (DL19+20 judged pairs)",
+    fig.suptitle("Mean P(y) of the score question, by human grade (DL19+20 judged pairs)",
                  fontsize=10, color=INK, x=0.02, y=1.04, ha="left")
     for ext in ("png", "pdf"):
         fig.savefig(data.FIGURES / f"grades.{ext}", dpi=200, bbox_inches="tight", facecolor="white")
@@ -158,18 +220,25 @@ def grades_figure(judged: pd.DataFrame, temps: dict):
 def main():
     frame, temps = systems()
     judged = frame[frame.rel.notna()].reset_index(drop=True)
+    if "jev_noul_p" not in judged or judged.jev_noul_p.isna().any():  # Jev only with a complete run
+        print("skipping Jev: no complete run")
+        for k in ("Jev noul", "Jev score P(y>=2)", "Jev noul (cross-fit T)"):
+            PROB.pop(k, None)
+        judged = judged.drop(columns=[c for c in judged if c.startswith("jev_")])
     data.RESULTS.mkdir(exist_ok=True), data.FIGURES.mkdir(exist_ok=True)
 
     main_tab = binary_table(judged, ci=True)
     top_tab = binary_table(judged[judged.in_pool].reset_index(drop=True), ci=False)
     grad_tab = graded_table(judged)
+    pair_tab = paired_table(judged)
+    pair_tab.to_csv(data.RESULTS / "calibration_paired.csv", index=False)
     main_tab.to_csv(data.RESULTS / "calibration.csv", index=False)
     top_tab.to_csv(data.RESULTS / "calibration_pool.csv", index=False)
     grad_tab.to_csv(data.RESULTS / "calibration_graded.csv", index=False)
     reliability_figure(judged).to_csv(data.RESULTS / "reliability.csv", index=False)
     grades_figure(judged, temps)
 
-    cols = ["ECE", "aECE", "Brier", "NLL", "AUROC", "mean_p"]
+    cols = ["ECE", "ECE_wavg", "aECE", "Brier", "NLL", "AUROC", "AUROC_query", "mean_p"]
     md = ["# Calibration of P(relevant)", "",
           f"Laya temperatures: `{json.dumps(temps)}`", ""]
     for name, tab, ci in (("All judged pairs", main_tab, True), ("Judged pairs in the official pool", top_tab, False)):
@@ -179,11 +248,14 @@ def main():
                 md += [f"## {name}, target {t}, {coll} (n = {s.n.iloc[0]:,}, positive rate {s.pos_rate.iloc[0]:.3f})", "",
                        "| System | " + " | ".join(cols) + " |", "| --- | " + " | ".join("---:" for _ in cols) + " |"]
                 for _, r in s.iterrows():
-                    cells = [fmt_ci(r, m) if (ci and m in CI_METRICS) else ("" if pd.isna(r[m]) else f"{r[m]:.3f}")
-                             for m in cols]
+                    cells = [fmt_ci(r, m) if (ci and m in CI_METRICS) else
+                             ("" if m not in r or pd.isna(r[m]) else f"{r[m]:.3f}") for m in cols]
                     md.append(f"| {r.system} | " + " | ".join(cells) + " |")
                 md.append("")
-    md += ["## Laya score question: grade distribution vs human grade", "",
+    md += ["## Paired differences (all judged pairs, rel >= 2, DL19+20; 95% query-bootstrap CI)", "",
+           "Negative = the first system is better.", "",
+           pair_tab.round(4).to_markdown(index=False), ""]
+    md += ["## Score question: grade distribution vs human grade", "",
            grad_tab.round(3).to_markdown(index=False), ""]
     (data.RESULTS / "calibration.md").write_text("\n".join(md))
     print("\n".join(md[:60]))
