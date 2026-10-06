@@ -1,0 +1,37 @@
+[project]
+name = "decisionrerank"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Kanishka", email = "kanishkagd@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "bm25s==0.3.11",
+    "ir-measures>=0.4.3",
+    "laya>=0.3.28",
+    "matplotlib>=3.11.2",
+    "numba>=0.68.0",
+    "numpy>=2.5.3",
+    "pandas>=3.0.6",
+    "protobuf>=7.36.2",
+    "pyarrow>=25.0.1",
+    "pystemmer>=3.1.0",
+    "pytrec-eval-terrier>=0.5.10",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
+    "sentencepiece>=0.2.2",
+    "tabulate>=0.10.0",
+    "torch==2.8.0",
+    "transformers==4.57.6",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.18,<0.9.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
