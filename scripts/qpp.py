@@ -36,8 +36,9 @@ PROB = {  # label -> (column, needs labels?)
     "monoT5 P(true), Platt": ("monot5_platt", True),
     "Qwen3-0.6B P(yes), Platt": ("qwen3_platt", True),
     "Jev P(yes), Platt": ("jev_platt", True),
+    "Qwen3.7-Flash P(yes)": ("qf_noul_p", False),
 }
-GRADES = {"Jev E[grade]": "jev_lin", "Laya E[grade] (shipped T)": "score_lin_shipped", "Kev-0.8B E[grade]": "kev_lin"}
+GRADES = {"Jev E[grade]": "jev_lin", "Qwen3.7-Flash E[grade]": "qf_lin", "Laya E[grade] (shipped T)": "score_lin_shipped", "Kev-0.8B E[grade]": "kev_lin"}
 
 
 def top10(frame: pd.DataFrame, col: str) -> pd.DataFrame:

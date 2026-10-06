@@ -25,6 +25,8 @@ SYSTEMS = {  # label -> ranking column (Laya rows use the raw condition; see sco
     "Jev score: E[y]": "jev_lin",
     "Kev-0.8B noul: P(yes)": "kev_noul_p",
     "Kev-0.8B score: E[y]": "kev_lin",
+    "Qwen3.7-Flash noul: P(yes)": "qf_noul_p",
+    "Qwen3.7-Flash score: E[y]": "qf_lin",
 }
 BASELINES = {"BM25 (bm25s order of the pool)": "a", "monoT5-base": "b", "Qwen3-Reranker-0.6B": "c",
              "Laya noul: P(yes)": "d"}  # superscript marks

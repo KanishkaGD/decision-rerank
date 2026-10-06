@@ -18,6 +18,8 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 | Jev score: E[y] | 0.669<sup>ad</sup> | 0.612<sup>ad</sup> | 0.728<sup>ad</sup> | 0.845 | 0.470<sup>ad</sup> | 0.853 |
 | Kev-0.8B noul: P(yes) | 0.218<sup>abcd</sup> | 0.182<sup>abcd</sup> | 0.474<sup>bcd</sup> | 0.318<sup>abcd</sup> | 0.147<sup>abcd</sup> | 0.360 |
 | Kev-0.8B score: E[y] | 0.258<sup>abcd</sup> | 0.224<sup>abcd</sup> | 0.533<sup>bcd</sup> | 0.350<sup>abcd</sup> | 0.177<sup>abcd</sup> | 0.398 |
+| Qwen3.7-Flash noul: P(yes) | 0.658<sup>ad</sup> | 0.594<sup>ad</sup> | 0.721<sup>ad</sup> | 0.829 | 0.457<sup>ad</sup> | 0.840 |
+| Qwen3.7-Flash score: E[y] | 0.673<sup>ad</sup> | 0.617<sup>ad</sup> | 0.734<sup>ad</sup> | 0.843 | 0.469<sup>ad</sup> | 0.847 |
 
 ## DL20
 
@@ -25,16 +27,18 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | BM25 (bm25s order of the pool) | 0.483 | 0.441 | 0.487 | 0.623 | 0.268 | 0.970 |
 | monoT5-base | 0.714<sup>a</sup> | 0.678<sup>a</sup> | 0.716<sup>a</sup> | 0.866<sup>a</sup> | 0.478<sup>a</sup> | 0.996 |
-| Qwen3-Reranker-0.6B | 0.673<sup>a</sup> | 0.627<sup>a</sup> | 0.688<sup>a</sup> | 0.794<sup>a</sup> | 0.450<sup>a</sup> | 0.963 |
+| Qwen3-Reranker-0.6B | 0.673<sup>a</sup> | 0.627<sup>a</sup> | 0.688<sup>a</sup> | 0.794 | 0.450<sup>a</sup> | 0.963 |
 | Laya noul: P(yes) | 0.442 | 0.413 | 0.588 | 0.625 | 0.276 | 0.669 |
 | Laya score: E[y] | 0.389<sup>bc</sup> | 0.355<sup>bc</sup> | 0.552<sup>bc</sup> | 0.575<sup>bc</sup> | 0.236<sup>bc</sup> | 0.619 |
 | Laya score: E[2^y-1] | 0.383<sup>bc</sup> | 0.351<sup>bc</sup> | 0.550<sup>bc</sup> | 0.568<sup>bc</sup> | 0.229<sup>bc</sup> | 0.617 |
 | Laya score: P(y>=2) | 0.390<sup>bc</sup> | 0.354<sup>bc</sup> | 0.550<sup>bc</sup> | 0.515<sup>bc</sup> | 0.237<sup>bc</sup> | 0.631 |
 | Jev noul: P(yes) | 0.698<sup>ad</sup> | 0.661<sup>ad</sup> | 0.756<sup>ad</sup> | 0.826<sup>ad</sup> | 0.484<sup>ad</sup> | 0.863 |
-| Jev noul, ties by E[y] | 0.689<sup>ad</sup> | 0.650<sup>ad</sup> | 0.752<sup>ad</sup> | 0.813<sup>ad</sup> | 0.482<sup>ad</sup> | 0.852 |
-| Jev score: E[y] | 0.716<sup>ad</sup> | 0.680<sup>ad</sup> | 0.770<sup>acd</sup> | 0.855<sup>ad</sup> | 0.506<sup>ad</sup> | 0.880 |
+| Jev noul, ties by E[y] | 0.689<sup>ad</sup> | 0.650<sup>ad</sup> | 0.752<sup>ad</sup> | 0.813 | 0.482<sup>ad</sup> | 0.852 |
+| Jev score: E[y] | 0.716<sup>ad</sup> | 0.680<sup>ad</sup> | 0.770<sup>ad</sup> | 0.855<sup>ad</sup> | 0.506<sup>ad</sup> | 0.880 |
 | Kev-0.8B noul: P(yes) | 0.212<sup>abcd</sup> | 0.198<sup>abcd</sup> | 0.449<sup>bcd</sup> | 0.325<sup>abcd</sup> | 0.128<sup>abcd</sup> | 0.346 |
 | Kev-0.8B score: E[y] | 0.211<sup>abcd</sup> | 0.197<sup>abcd</sup> | 0.460<sup>bcd</sup> | 0.371<sup>abcd</sup> | 0.134<sup>abcd</sup> | 0.370 |
+| Qwen3.7-Flash noul: P(yes) | 0.686<sup>ad</sup> | 0.650<sup>ad</sup> | 0.743<sup>ad</sup> | 0.807<sup>ad</sup> | 0.469<sup>ad</sup> | 0.859 |
+| Qwen3.7-Flash score: E[y] | 0.706<sup>ad</sup> | 0.667<sup>ad</sup> | 0.749<sup>ad</sup> | 0.826<sup>ad</sup> | 0.494<sup>ad</sup> | 0.889 |
 
 ## DL19+20
 
@@ -52,6 +56,8 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 | Jev score: E[y] | 0.695<sup>ad</sup> | 0.650<sup>ad</sup> | 0.751<sup>acd</sup> | 0.851<sup>ad</sup> | 0.490<sup>ad</sup> | 0.868 |
 | Kev-0.8B noul: P(yes) | 0.214<sup>abcd</sup> | 0.190<sup>abcd</sup> | 0.460<sup>bcd</sup> | 0.322<sup>abcd</sup> | 0.137<sup>abcd</sup> | 0.353 |
 | Kev-0.8B score: E[y] | 0.232<sup>abcd</sup> | 0.209<sup>abcd</sup> | 0.493<sup>bcd</sup> | 0.362<sup>abcd</sup> | 0.153<sup>abcd</sup> | 0.382 |
+| Qwen3.7-Flash noul: P(yes) | 0.673<sup>ad</sup> | 0.625<sup>ad</sup> | 0.733<sup>ad</sup> | 0.817<sup>ad</sup> | 0.464<sup>ad</sup> | 0.851 |
+| Qwen3.7-Flash score: E[y] | 0.691<sup>ad</sup> | 0.645<sup>ad</sup> | 0.743<sup>ad</sup> | 0.833<sup>ad</sup> | 0.483<sup>ad</sup> | 0.870 |
 
 ## Laya score: ranking rule x temperature (nDCG@10)
 
@@ -83,17 +89,20 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 | Jev score: E[y]                |                0.9144 |
 | Kev-0.8B noul: P(yes)          |                0.0008 |
 | Kev-0.8B score: E[y]           |                0      |
+| Qwen3.7-Flash noul: P(yes)     |                0.0927 |
+| Qwen3.7-Flash score: E[y]      |                0.0012 |
 
 ## Tie robustness (DL19+20): random tie-break, mean of 20 draws
 
-| system                 |   share tied |   nDCG@10 (BM25 tie-break) |   nDCG@10 (random tie-break) |   nDCG'@10 (random tie-break) |
-|:-----------------------|-------------:|---------------------------:|-----------------------------:|------------------------------:|
-| Jev noul: P(yes)       |        0.98  |                     0.683  |                       0.6676 |                        0.7318 |
-| Jev noul, ties by E[y] |        0.737 |                     0.6736 |                       0.6725 |                        0.7369 |
-| Jev score: E[y]        |        0.914 |                     0.6953 |                       0.693  |                        0.7501 |
+| system                     |   share tied |   nDCG@10 (BM25 tie-break) |   nDCG@10 (random tie-break) |   nDCG'@10 (random tie-break) |
+|:---------------------------|-------------:|---------------------------:|-----------------------------:|------------------------------:|
+| Jev noul: P(yes)           |        0.98  |                     0.683  |                       0.6679 |                        0.7314 |
+| Jev noul, ties by E[y]     |        0.737 |                     0.6736 |                       0.6727 |                        0.7371 |
+| Jev score: E[y]            |        0.914 |                     0.6953 |                       0.6928 |                        0.7501 |
+| Qwen3.7-Flash noul: P(yes) |        0.093 |                     0.6733 |                       0.6731 |                        0.733  |
 
 ## Temperatures (keyed by the collection they are applied to)
 
 ```
-{'raw': {'noul': {'dl19': 1.0, 'dl20': 1.0}, 'score': {'dl19': 1.0, 'dl20': 1.0}}, 'shipped': {'noul': {'dl19': 1.9834, 'dl20': 1.9834}, 'score': {'dl19': 1.2514, 'dl20': 1.2514}}, 'fitted': {'noul': {'dl19': 2.16, 'dl20': 2.8284}, 'score': {'dl19': 4.6646, 'dl20': 4.4641}}, 'kev_shipped': 2.3511, 'monot5_xfit': {'dl19': 4.539, 'dl20': 6.0456}, 'qwen3_xfit': {'dl19': 5.505, 'dl20': 4.6721}, 'laya_noul_xfit': {'dl19': 2.162, 'dl20': 2.8312}, 'jev_noul_xfit': {'dl19': 1.3184, 'dl20': 1.3867}, 'kev_noul_xfit': {'dl19': 99.9996, 'dl20': 99.9994}}
+{'raw': {'noul': {'dl19': 1.0, 'dl20': 1.0}, 'score': {'dl19': 1.0, 'dl20': 1.0}}, 'shipped': {'noul': {'dl19': 1.9834, 'dl20': 1.9834}, 'score': {'dl19': 1.2514, 'dl20': 1.2514}}, 'fitted': {'noul': {'dl19': 2.16, 'dl20': 2.8284}, 'score': {'dl19': 4.6646, 'dl20': 4.4641}}, 'kev_shipped': 2.3511, 'monot5_xfit': {'dl19': 4.539, 'dl20': 6.0456}, 'qwen3_xfit': {'dl19': 5.505, 'dl20': 4.6721}, 'laya_noul_xfit': {'dl19': 2.162, 'dl20': 2.8312}, 'jev_noul_xfit': {'dl19': 1.3184, 'dl20': 1.3867}, 'qf_noul_xfit': {'dl19': 2.9502, 'dl20': 3.3099}, 'kev_noul_xfit': {'dl19': 99.9996, 'dl20': 99.9994}}
 ```

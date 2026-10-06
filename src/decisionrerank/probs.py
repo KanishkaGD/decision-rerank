@@ -157,6 +157,10 @@ def systems() -> tuple[pd.DataFrame, dict]:
         out = out.merge(jev_frame(), on=data.KEY, how="left", validate="1:1")
         if out.jev_noul_p.notna().all():
             zs["jev_noul"] = logit(out.jev_noul_p.to_numpy())
+    if (data.RUNS / f"{QF}.parquet").exists():
+        out = out.merge(llm_frame(pd.read_parquet(data.RUNS / f"{QF}.parquet"), "qf"), on=data.KEY, how="left", validate="1:1")
+        if out.qf_noul_p.notna().all():
+            zs["qf_noul"] = logit(out.qf_noul_p.to_numpy(), eps=1e-6)
     if (data.RUNS / f"{KEV}.parquet").exists():
         kv, temps["kev_shipped"] = kev_frame()
         out = out.merge(kv, on=data.KEY, how="left", validate="1:1")
@@ -219,3 +223,16 @@ def crossfit_platt(frame: pd.DataFrame, z: np.ndarray) -> tuple[np.ndarray, dict
         out[sel] = lr.predict_proba(z[sel, None])[:, 1]
         params[test] = (round(float(lr.coef_[0, 0]), 4), round(float(lr.intercept_[0]), 4))
     return out, params
+
+
+QF = "qwen37-flash"  # Qwen3.7-Flash through OpenRouter (llm_judge.py)
+
+
+def llm_frame(f: pd.DataFrame, prefix: str) -> pd.DataFrame:
+    """Ranking scores for a decoder judge's probabilities: {prefix}_lin = E[y], _exp, _ge2."""
+    f = f.copy()
+    P = f[[f"{prefix}_score_p{y}" for y in range(4)]].to_numpy(float)
+    f[f"{prefix}_lin"] = P @ np.arange(4.0)
+    f[f"{prefix}_exp"] = P @ (2.0 ** np.arange(4) - 1)
+    f[f"{prefix}_ge2"] = P[:, 2] + P[:, 3]
+    return f.drop(columns=[c for c in (f"{prefix}_model", f"{prefix}_cost") if c in f])

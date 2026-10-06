@@ -2,7 +2,8 @@
 
 Can a decision model rerank passages without retrieval training, and are its relevance probabilities
 calibrated? Decision models answer typed questions (noul = yes/no, score = rubric, choice) with
-probabilities instead of text. This repo tests three of them as pointwise rerankers on TREC DL 2019/2020:
+probabilities instead of text. This repo tests three of them as pointwise rerankers on TREC DL 2019/2020,
+plus a cheap decoder-only LLM judge at a similar API price (Qwen3.7-Flash, read through its log-probabilities):
 TypeSafe's closed **Jev 1.13** (through OpenRouter) and two open Jev-like models, **Laya**
 (`convaiinnovations/laya`, ModernBERT-large, 421M) and **Kev-0.8B** (`jaredpalmer/kev-0.8b`, a LoRA
 adapter on Qwen3.5-0.8B-Base, size-matched to Qwen3-Reranker-0.6B). They are compared with two
@@ -21,6 +22,7 @@ rerankers trained on relevance data.
 | Collections | TREC DL 2019 (43 judged queries, 9,260 judged pairs) and DL 2020 (54, 11,386); MS MARCO v1 passage; grades 0-3 |
 | Candidates | Official rerank-subtask pool, `msmarco-passagetest{2019,2020}-top1000` (up to 1000 per query; 41,042 + 50,024 pairs). The files are unranked, so the BM25 baseline and all tie-breaks use our bm25s scores over the pool (Lucene variant, k1 = 1.2, b = 0.75) |
 | Decision models | **Jev 1.13** (`typesafe/jev-1.13`, resolves to `jev-1.13-20260917`; OpenRouter `/api/alpha/decisions`, one request per pair, 101,414 requests, $2.06). **Laya**, English root checkpoint (fp16 weights, 512-token context), run with autocast off and TF32 matmuls. **Kev-0.8B** (Kev 1.0, in Kev's own environment, transformers 5.17; bf16, Kev's serving default, checked against fp32 on 1,028 pairs: no ties, per-query Spearman >= 0.998; shipped temperature 2.35) |
+| Decoder LLM judge | **Qwen3.7-Flash** (`qwen/qwen3.7-flash`, Alibaba via OpenRouter; `llm_judge.py`): the same two questions as plain prompts, reasoning off, one generated token; P(yes) and P(grade) from the first token's top-5 log-probabilities; $1.01 for 102,992 pairs |
 | Questions (`questions.py`) | Same for both models. **noul**: "Does the 'passage' answer the 'query'?" -> P(yes). **score**: UMBRELA's 4 levels -> P(y), y = 0-3. State = `{"query", "passage"}`. Wording fixed before any run |
 | Score ranking rules | E[y] (Bayes-optimal for linear-gain nDCG), E[2^y - 1] (exponential gain), P(y >= 2) |
 | Baselines | BM25; `castorini/monot5-base-msmarco` P(true); `Qwen/Qwen3-Reranker-0.6B` P(yes) with the model card's prompt and web-search instruction |
@@ -45,6 +47,7 @@ scripts/
   score.py MODEL    runs/MODEL.parquet for laya | monot5 | qwen3 (checkpointed; only unscored pairs run)
   score_jev.py      runs/jev.parquet (whole queries in random order; cached; budget cap)
   score_kev.py      runs/kev-0.8b.parquet, run with Kev's own environment (see its docstring)
+  score_llm.py      runs/qwen37-flash.parquet: a decoder LLM judge via OpenRouter log-probs (llm_judge.py)
   evaluate.py       RQ1 -> results/effectiveness.{md,csv}, per_query.csv, score_rules.csv, tie_robustness.csv
   calibrate.py      RQ2 -> results/calibration*.{md,csv}, figures/{reliability,grades}.{png,pdf}
   prepare_std_bm25.py  freeze the standard Anserini BM25 run (for QPP)
@@ -100,6 +103,8 @@ the size-matched Kev-0.8B falls far below it. Full tables:
 | Laya score: E[2^y-1] | 0.485 | 0.383 | 0.429 | 0.587 | 0.611 | 0.632 |
 | Laya score: P(y>=2) | 0.487 | 0.390 | 0.433 | 0.590 | 0.585 | 0.638 |
 | Kev-0.8B noul: P(yes) | 0.218 | 0.212 | 0.214 | 0.460 | 0.322 | 0.353 |
+| Qwen3.7-Flash noul: P(yes) | 0.658 | 0.686 | 0.673 | 0.733 | 0.817 | 0.851 |
+| Qwen3.7-Flash score: E[y] | 0.673 | 0.706 | 0.691 | 0.743 | 0.833 | 0.870 |
 | Kev-0.8B score: E[y] | 0.258 | 0.211 | 0.232 | 0.493 | 0.362 | 0.382 |
 
 - **Jev matches the trained rerankers.** Pooled nDCG@10 of Jev score E[y] is 0.695, against 0.718 for
@@ -142,6 +147,8 @@ per collection 0.083). Per-query AUROC averages over queries with both classes.
 | Jev noul | 0.084 [0.062, 0.111] | 0.087 | 0.127 | 0.407 | **0.858** | **0.890** |
 | Jev score P(y>=2) | 0.164 [0.137, 0.192] | 0.165 | 0.166 | 1.097 | 0.857 | 0.888 |
 | Kev-0.8B noul (T = 2.35) | 0.362 [0.328, 0.398] | 0.362 | 0.293 | 0.821 | 0.673 | 0.701 |
+| Qwen3.7-Flash noul (log-probs) | 0.131 | 0.132 | 0.148 | 0.673 | 0.844 | 0.884 |
+| Qwen3.7-Flash score P(y>=2) | 0.128 | 0.128 | 0.149 | 0.615 | 0.853 | 0.886 |
 | Kev-0.8B score P(y>=2) | 0.312 [0.283, 0.344] | 0.312 | 0.248 | 0.690 | 0.680 | 0.720 |
 | **Cross-fitted temperature (same fitter for all)** | | | | | | |
 | monoT5-base | 0.064 [0.048, 0.094] | 0.095 | 0.142 | 0.447 | 0.748 | 0.847 |
@@ -149,6 +156,7 @@ per collection 0.083). Per-query AUROC averages over queries with both classes.
 | Laya noul | 0.043 [0.027, 0.076] | 0.083 | 0.145 | 0.454 | 0.731 | 0.811 |
 | Jev noul | 0.095 [0.068, 0.123] | 0.095 | **0.124** | **0.393** | 0.857 | 0.890 |
 | Kev-0.8B noul | 0.300 [0.270, 0.334] | 0.300 | 0.250 | 0.693 | 0.673 | 0.701 |
+| Qwen3.7-Flash noul | 0.095 | 0.099 | 0.128 | 0.408 | 0.841 | 0.884 |
 | **Reference** | | | | | | |
 | Laya noul raw (T = 1) | 0.140 [0.118, 0.161] | 0.141 | 0.166 | 0.619 | 0.753 | 0.811 |
 | Base rate of the other collection | 0.124 [0.096, 0.151] | 0.124 | 0.173 | 0.538 | | 0.500 |
@@ -210,6 +218,8 @@ Full tables: [results/qpp.md](results/qpp.md).
 | QPP-GenRE, fine-tuned LLaMA-7B, 200 passages judged ([Meng et al.](https://arxiv.org/abs/2404.01012), Table 3) | 200 LLM calls | yes | **0.474** | 0.469 | **0.724** | 0.638 |
 | **Jev E[grade] (ours)** | 10 API calls | no | 0.373 | **0.555** | 0.620 | **0.770** |
 | Jev P(yes) (ours) | 10 API calls | no | 0.353 | 0.544 | 0.554 | 0.739 |
+| Qwen3.7-Flash E[grade] (ours) | 10 API calls | no | 0.395 | 0.520 | 0.620 | 0.720 |
+| Qwen3.7-Flash, rubric nDCG with ideal from top 100 (ours) | 100 API calls | no | 0.482 | 0.514 | 0.736 | 0.741 |
 | monoT5 mean log-odds@10 (ours) | 10 local passes | no | 0.360 | 0.507 | 0.498 | 0.712 |
 | Qwen3-0.6B P(yes), Platt (ours) | 10 local passes | yes | 0.373 | 0.468 | 0.559 | 0.684 |
 | Laya P(yes) (ours) | 10 local passes | no | 0.305 | 0.378 | 0.423 | 0.558 |
@@ -242,6 +252,26 @@ Full tables: [results/qpp.md](results/qpp.md).
   has the lowest error (0.165). See results/qpp.md.
 - **The reranked (monoT5) list is harder to predict** (tau <= 0.30 for every predictor), because its
   quality varies less across queries.
+
+### A decoder LLM at the same price: Qwen3.7-Flash
+
+Same questions, zero-shot, read through log-probs (`scripts/score_llm.py`). It cost $1.01 for every pair,
+about half Jev's $2.06, at about 64 pairs/s.
+- **Ranking: level with Jev.** nDCG@10 is 0.673 (yes/no) and 0.691 (rubric), against Jev's 0.683 / 0.695
+  and Qwen3-Reranker-0.6B's 0.682. It is not significantly different from monoT5 or Qwen3-Reranker. On
+  judged passages only, the rubric ranking is 0.743. 9% of its yes/no scores tie, because the provider
+  returns log-probs to 3 decimals; a random tie-break leaves nDCG@10 unchanged.
+- **Calibration as shipped: worse than Jev, better than the trained rerankers.** ECE is 0.131 and Brier
+  0.148, against 0.084 / 0.127 for Jev (paired differences exclude 0) and 0.17-0.28 for monoT5 and
+  Qwen3-Reranker. After one cross-fitted temperature the two are nearly equal: Brier 0.128 vs 0.124, CI
+  includes 0. Their discrimination is similar (per-query AUROC 0.884 vs 0.890).
+- **Graded answers: better than Jev's.** RPS is 0.178 (Jev 0.203), argmax accuracy 0.50 (0.40) and
+  Spearman 0.59 (0.60). It is still not better than a constant prior on RPS (0.160).
+- **QPP: level with Jev and QPP-GenRE.** On the standard run, normalised from the top 100, tau is
+  0.482 / 0.514 and r 0.736 / 0.741 (DL19 / DL20), at half Jev's cost.
+- **So Jev's ranking and QPP results are not unique to decision models.** A cheap modern decoder LLM,
+  read through its log-probs, matches them. What Jev adds is probabilities calibrated out of the box, with
+  no need to read and renormalise log-probs or to switch reasoning off.
 
 ### Takeaway
 
