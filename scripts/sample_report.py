@@ -7,7 +7,6 @@ are still cross-fitted on the full other collection.
 
 import time
 
-import numpy as np
 import pandas as pd
 
 from decisionrerank import calibration as cal

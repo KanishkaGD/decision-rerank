@@ -58,7 +58,8 @@ mkdir -p data/raw && for y in 2019 2020; do curl -sSL -o data/raw/msmarco-passag
   https://msmarco.z22.web.core.windows.net/msmarcoranking/msmarco-passagetest$y-top1000.tsv.gz; done
 uv run scripts/prepare_data.py           # needs the qpp-pruning-study corpus and the rerank-depth bm25s index
 for m in laya monot5 qwen3; do uv run scripts/score.py $m; done
-uv run scripts/score_jev.py              # needs OPENROUTER_API_KEY in .env; about $2
+cp .env.example .env                     # then put your OpenRouter key in .env (git-ignored)
+uv run scripts/score_jev.py              # about $2
 uv run scripts/evaluate.py && uv run scripts/calibrate.py && uv run scripts/check_runs.py
 uv run pytest -q
 ```
