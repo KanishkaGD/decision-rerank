@@ -37,8 +37,11 @@ def evaluate(run: Run, qrels: Qrels, rel_threshold: int) -> Tuple[Dict[str, floa
     measures = effectiveness_measures(rel_threshold)
     by_measure = {m: name for name, m in measures.items()}
     judged_run = {qid: docs for qid, docs in run.items() if qid in qrels}
+    # Only the queries that were ranked: ir_measures scores a judged query missing from the run as 0, which would
+    # drag the mean down whenever the run covers a subset (--max-queries).
+    ranked_qrels = {qid: qrels[qid] for qid in judged_run}
     rows: Dict[str, Dict[str, float]] = {}
-    for metric in ir_measures.iter_calc(list(measures.values()), qrels, judged_run):
+    for metric in ir_measures.iter_calc(list(measures.values()), ranked_qrels, judged_run):
         rows.setdefault(metric.query_id, {})[by_measure[metric.measure]] = metric.value
     per_query = pd.DataFrame.from_dict(rows, orient="index").reindex(columns=list(measures))
     per_query.index.name = "qid"
@@ -66,15 +69,23 @@ def calibration(probs: Sequence[float], labels: Sequence[int], n_bins: int = ECE
 
 
 def judged_pairs(
-    scored: Sequence[Tuple[str, str, float]], qrels: Qrels, rel_threshold: int
+    scored: Sequence[Tuple[str, str, float]], qrels: Qrels, rel_threshold: int, unjudged_as_nonrelevant: bool = False
 ) -> Tuple[List[float], List[int]]:
-    """(qid, docid, prob) triples -> (probs, binary labels) for the pairs that have a judgment."""
+    """
+    (qid, docid, prob) triples -> (probs, binary labels). By default only the pairs that have a judgment; with
+    unjudged_as_nonrelevant, every pair of a judged query, unjudged ones labelled 0 (the BEIR convention, needed where
+    the qrels list only relevant documents). The owner's decision (docs/intent/models.md): main calibration results
+    come from judged pairs on sets that judge non-relevant documents too; the unjudged-as-0 variant is secondary.
+    """
     probs, labels = [], []
     for qid, docid, prob in scored:
-        rel = qrels.get(qid, {}).get(docid)
-        if rel is not None:
-            probs.append(prob)
-            labels.append(int(rel >= rel_threshold))
+        if qid not in qrels:
+            continue
+        rel = qrels[qid].get(docid)
+        if rel is None and not unjudged_as_nonrelevant:
+            continue
+        probs.append(prob)
+        labels.append(int(rel is not None and rel >= rel_threshold))
     return probs, labels
 
 

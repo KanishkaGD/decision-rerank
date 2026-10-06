@@ -123,7 +123,12 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
                     f.close()
 
         means, per_query = evaluate(run, qrels, ds.rel_threshold)
-        calib = calibration(*judged_pairs(scored, qrels, ds.rel_threshold)) if scored else {}
+        calib = {}
+        if scored:
+            probs, labels = judged_pairs(scored, qrels, ds.rel_threshold)
+            calib = {**calibration(probs, labels), "n_judged_nonrel_pairs": len(labels) - sum(labels)}
+            all_pairs = calibration(*judged_pairs(scored, qrels, ds.rel_threshold, unjudged_as_nonrelevant=True))
+            calib.update(ECE_unjudged0=all_pairs["ECE"], Brier_unjudged0=all_pairs["Brier"])
         lat = np.asarray(latencies)
         stats = {**means, **calib, "latency_p50_ms": float(np.percentile(lat, 50)),
                  "latency_p95_ms": float(np.percentile(lat, 95)), "truncated_frac": truncated / max(n_pairs, 1),

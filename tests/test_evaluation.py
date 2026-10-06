@@ -25,6 +25,9 @@ def test_judged_pairs_threshold_and_unjudged():
     qrels = {"q1": {"a": 3, "b": 1}}
     probs, labels = judged_pairs([("q1", "a", 0.9), ("q1", "b", 0.4), ("q1", "c", 0.5)], qrels, rel_threshold=2)
     assert probs == [0.9, 0.4] and labels == [1, 0]
+    scored = [("q1", "a", 0.9), ("q1", "c", 0.5), ("q2", "x", 0.7)]  # q2 has no judgments at all: left out
+    probs, labels = judged_pairs(scored, qrels, rel_threshold=2, unjudged_as_nonrelevant=True)
+    assert probs == [0.9, 0.5] and labels == [1, 0]
 
 
 def test_paired_bootstrap():

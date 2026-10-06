@@ -44,4 +44,5 @@ def test_rerank_end_to_end(tmp_path, monkeypatch):
     assert result.exit_code == 0, result.output
     df = cdm.results_csv.load_results()
     assert float(df["nDCG@10"].iloc[0]) == 1.0
+    assert float(df["n_judged_nonrel_pairs"].iloc[0]) == 1
     assert os.path.exists(tmp_path / "outputs" / "scifact" / "bm25-d100" / "minilm-l6" / "none" / "scores.jsonl.gz")

@@ -12,6 +12,30 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-06 -- Laya and Clef wired up; evaluation fixes
+
+One `SystemOneReranker` with three backends (TypeSafe API, laya, Clef's joint_schema_model.py), commit f96953a.
+Container rebuilt with laya 0.3.28 (transformers 5.18.0 provides Qwen3_5ForConditionalGeneration; Clef's encoder runs
+under it). Prefetched Laya (7b928d82) and Clef-Flash (17f0b0ad, ~19 GB).
+
+- Laya, 2 scifact queries on CPU (`--max-queries 2`, not saved): the code path works; 200 requests, 35 of 200
+  passages (17.5%) cut to the English checkpoint's state budget, 109 s per query on 8 CPU cores (a 20-query CPU run
+  was killed by the client timeout after 28 min). Laya warns that its checkpoint ships an out-of-range temperature for
+  choice questions with 11+ options (clamped); Noul is unaffected.
+- No GPU was free in `short` or `gpu` (expected start 22:43). Queued as batch jobs, 20 scifact queries, s1rank,
+  --no-save: Clef-Flash 4346907, Laya 4346919.
+
+Fixes found on the way:
+
+- **Evaluation over a query subset.** `evaluate` passed all judged queries to ir_measures, which scores a judged query
+  missing from the run as 0, so `--max-queries 2` on a 20-query cache averaged over 20 (nDCG@10 0.0). Now only ranked
+  queries are evaluated. Earlier runs were unaffected (run and cache had the same queries).
+- **Calibration variants** (owner's decision): ECE/Brier on judged pairs as before, plus `ECE_unjudged0` /
+  `Brier_unjudged0` with unjudged candidates as non-relevant, and `n_judged_nonrel_pairs`, so tables can restrict the
+  main calibration results to sets with judged non-relevant documents.
+- SSH: the shared connection dropped three times (after ~90, ~7, ~25 min); keepalives (ServerAliveInterval 60) were
+  added to `~/.ssh/config`. Opening it from a separate terminal has held since 12:51.
+
 ## 2026-10-06 -- Laya and CLEF join; calibration on sets with judged negatives
 
 Owner's decisions: integrate Laya (open weights, `convaiinnovations/laya`) and Cloudflare's CLEF (`Cloudflare/clef`,
