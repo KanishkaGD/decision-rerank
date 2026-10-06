@@ -4,7 +4,8 @@ QPP work such as QPP-GenRE predicts the quality of this run, so our QPP results 
     java -cp anserini-1.0.0-fatjar.jar io.anserini.search.SearchCollection -index msmarco-v1-passage \
          -topics dl{19,20}-passage -output run.dl{19,20}-passage.bm25-default.txt -bm25 -hits 1000
 Writes data/bm25_std.parquet (qset, query_id, doc_id, std_rank, std_score; top 1000 of the judged queries) and
-adds the texts of its top-10 passages to data/passages.parquet; those pairs join the scored pair set.
+adds the texts of its top-100 passages to data/passages.parquet. Its top 10 joins the scored pair set; the top 100
+is judged by Jev only, to estimate each query's ideal DCG (scripts/qpp_depth.py).
 """
 
 import json
@@ -17,6 +18,7 @@ from decisionrerank import data
 
 RUNS = "/root/tools/runs/run.dl{}-passage.bm25-default.txt"
 CORPUS = "/root/qpp-pruning-study/data/prepared/msmarco/corpus.parquet"
+TEXT_DEPTH = 100
 
 
 def main():
@@ -32,7 +34,7 @@ def main():
     run.to_parquet(data.DATA / "bm25_std.parquet", index=False)
 
     have = data.passages()
-    need = sorted(set(run[run.std_rank <= 10].doc_id) - set(have.index))
+    need = sorted(set(run[run.std_rank <= TEXT_DEPTH].doc_id) - set(have.index))
     if need:
         extra = pq.read_table(CORPUS, filters=pc.field("doc_id").isin(need)).to_pandas().drop_duplicates("doc_id")
         assert len(extra) == len(need)
@@ -40,7 +42,7 @@ def main():
             data.DATA / "passages.parquet", index=False)
     m = json.loads((data.DATA / "manifest.json").read_text())
     m["bm25_std"] = {"source": "Anserini 1.0.0 default BM25, prebuilt msmarco-v1-passage", "rows": len(run),
-                     "top10_passages_added": len(need)}
+                     "passages_added": len(need), "text_depth": TEXT_DEPTH}
     (data.DATA / "manifest.json").write_text(json.dumps(m, indent=2) + "\n")
     print(json.dumps(m["bm25_std"]))
 

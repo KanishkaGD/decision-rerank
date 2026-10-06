@@ -49,6 +49,7 @@ scripts/
   calibrate.py      RQ2 -> results/calibration*.{md,csv}, figures/{reliability,grades}.{png,pdf}
   prepare_std_bm25.py  freeze the standard Anserini BM25 run (for QPP)
   qpp.py            query performance prediction -> results/qpp.{md,csv}
+  qpp_depth.py      expected nDCG@10 from Jev judgments of the standard run's top d -> results/qpp_depth.{md,csv}
   sample_report.py  quick comparison on the queries Jev has fully answered (results/sample_report.md)
   check_runs.py     integrity checks -> results/checks.json
 tests/              metric and temperature-fitting checks
@@ -225,6 +226,17 @@ Full tables: [results/qpp.md](results/qpp.md).
 - **These differences are within noise.** With 43 and 54 queries a tau has a CI of roughly +/-0.15. No
   test against QPP-GenRE is possible without its per-query predictions (its released data is no longer
   downloadable).
+- **Judging deeper to estimate the ideal DCG** ([results/qpp_depth.md](results/qpp_depth.md),
+  `scripts/qpp_depth.py`). The top-10 predictor estimates DCG, but the target is nDCG, whose denominator
+  depends on relevant passages below rank 10. This mattered most on DL19 (median 28 relevant passages per
+  query, against 18 on DL20). With Jev also judging the run's top 100 ($0.20 for all 97 queries, about $0.002
+  per query), expected nDCG@10 reaches tau 0.40-0.41 on DL19 (from 0.373) and 0.53-0.57 on DL20. Averaged,
+  that is tau 0.47-0.48 and r 0.72, against QPP-GenRE's 0.471 and 0.681 with 200 judgments by a fine-tuned 7B
+  model. Estimating the ideal DCG from only 10-20 passages is worse than not normalising at all. The
+  sampled estimator also predicts the nDCG@10 value itself (mean absolute error 0.198). DL19 stays
+  below DL20, partly because Jev is more lenient about query intent than the assessors (e.g. "define
+  visceral?" accepting passages on visceral fat) and partly because of inconsistent human labels
+  (near-identical passages graded 1 and 3 for "what is famvir prescribed for").
 - **Calibration matters for the value, not the order.** On the standard run, raw Qwen3 predicts P@10 =
   0.83 against a true 0.38 (per-query error 0.44). Platt cuts the error to 0.21. Jev, with no labels,
   has the lowest error (0.165). See results/qpp.md.
