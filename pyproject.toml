@@ -25,6 +25,7 @@ dependencies = [
     "huggingface-hub>=0.26",
     "typesafe-sdk>=0.7.2",
     "laya>=0.3.28",
+    "accelerate>=1.0",  # transformers needs it for device_map (Clef loads straight onto the GPU)
 ]
 
 [project.optional-dependencies]

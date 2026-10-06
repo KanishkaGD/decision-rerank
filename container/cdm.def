@@ -9,8 +9,9 @@ From: python:3.12-slim-trixie
 %post
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
-    # Java 21: Pyserini drives Anserini/Lucene in a JVM. git: provenance and pip installs from git.
-    apt-get install -y --no-install-recommends openjdk-21-jre-headless git
+    # Java 21: Pyserini drives Anserini/Lucene in a JVM. git: provenance and pip installs from git. gcc/libc6-dev:
+    # Triton compiles a small C helper at run time (ModernBERT's rotary kernel in Laya on GPU failed without it).
+    apt-get install -y --no-install-recommends openjdk-21-jre-headless git gcc libc6-dev
     rm -rf /var/lib/apt/lists/*
 
     pip install --no-cache-dir --upgrade pip
