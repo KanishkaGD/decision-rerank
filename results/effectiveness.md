@@ -4,53 +4,53 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 
 ## DL19
 
-| System | nDCG@10 | nDCG@10 (exp) | RR@10 | AP@1000 | Judged@10 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| BM25 (bm25s order of the pool) | 0.429 | 0.000 | 0.662 | 0.274 | 0.991 |
-| monoT5-base | 0.660<sup>a</sup> | 0.000 | 0.890<sup>a</sup> | 0.457<sup>a</sup> | 0.974 |
-| Qwen3-Reranker-0.6B | 0.631<sup>a</sup> | 0.000 | 0.813 | 0.447<sup>a</sup> | 0.949 |
-| Laya noul: P(yes) | 0.468<sup>bc</sup> | 0.000 | 0.743 | 0.323<sup>bc</sup> | 0.702 |
-| Laya score: E[y] | 0.433<sup>bc</sup> | 0.000 | 0.667<sup>b</sup> | 0.295<sup>bc</sup> | 0.656 |
-| Laya score: E[2^y-1] | 0.427<sup>bc</sup> | 0.000 | 0.662<sup>b</sup> | 0.291<sup>bc</sup> | 0.656 |
-| Laya score: P(y>=2) | 0.437<sup>bc</sup> | 0.000 | 0.672<sup>b</sup> | 0.296<sup>bc</sup> | 0.653 |
+| System | nDCG@10 | nDCG@10 (exp) | nDCG'@10 | RR@10 | AP@1000 | Judged@10 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| BM25 (bm25s order of the pool) | 0.495 | 0.429 | 0.496 | 0.662 | 0.274 | 0.991 |
+| monoT5-base | 0.723<sup>a</sup> | 0.660<sup>a</sup> | 0.729<sup>a</sup> | 0.890<sup>a</sup> | 0.457<sup>a</sup> | 0.974 |
+| Qwen3-Reranker-0.6B | 0.695<sup>a</sup> | 0.630<sup>a</sup> | 0.707<sup>a</sup> | 0.813 | 0.446<sup>a</sup> | 0.949 |
+| Laya noul: P(yes) | 0.518<sup>bc</sup> | 0.469<sup>bc</sup> | 0.646<sup>abc</sup> | 0.748 | 0.323<sup>bc</sup> | 0.700 |
+| Laya score: E[y] | 0.488<sup>bc</sup> | 0.432<sup>bc</sup> | 0.642<sup>abc</sup> | 0.671<sup>b</sup> | 0.296<sup>bc</sup> | 0.653 |
+| Laya score: E[2^y-1] | 0.485<sup>bc</sup> | 0.430<sup>bc</sup> | 0.633<sup>abc</sup> | 0.664<sup>b</sup> | 0.291<sup>bc</sup> | 0.651 |
+| Laya score: P(y>=2) | 0.487<sup>bc</sup> | 0.433<sup>bc</sup> | 0.641<sup>abc</sup> | 0.673<sup>b</sup> | 0.296<sup>bc</sup> | 0.647 |
 
 ## DL20
 
-| System | nDCG@10 | nDCG@10 (exp) | RR@10 | AP@1000 | Judged@10 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| BM25 (bm25s order of the pool) | 0.441 | 0.000 | 0.623 | 0.268 | 0.970 |
-| monoT5-base | 0.678<sup>a</sup> | 0.000 | 0.866<sup>a</sup> | 0.478<sup>a</sup> | 0.996 |
-| Qwen3-Reranker-0.6B | 0.632<sup>a</sup> | 0.000 | 0.806<sup>a</sup> | 0.452<sup>a</sup> | 0.965 |
-| Laya noul: P(yes) | 0.412<sup>bc</sup> | 0.000 | 0.626<sup>bc</sup> | 0.280<sup>bc</sup> | 0.665 |
-| Laya score: E[y] | 0.357<sup>bc</sup> | 0.000 | 0.577<sup>bc</sup> | 0.237<sup>bc</sup> | 0.624 |
-| Laya score: E[2^y-1] | 0.348<sup>bc</sup> | 0.000 | 0.561<sup>bc</sup> | 0.230<sup>bc</sup> | 0.619 |
-| Laya score: P(y>=2) | 0.354<sup>bc</sup> | 0.000 | 0.505<sup>bc</sup> | 0.238<sup>bc</sup> | 0.637 |
+| System | nDCG@10 | nDCG@10 (exp) | nDCG'@10 | RR@10 | AP@1000 | Judged@10 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| BM25 (bm25s order of the pool) | 0.483 | 0.441 | 0.487 | 0.623 | 0.268 | 0.970 |
+| monoT5-base | 0.714<sup>a</sup> | 0.678<sup>a</sup> | 0.716<sup>a</sup> | 0.866<sup>a</sup> | 0.478<sup>a</sup> | 0.996 |
+| Qwen3-Reranker-0.6B | 0.673<sup>a</sup> | 0.627<sup>a</sup> | 0.688<sup>a</sup> | 0.794<sup>a</sup> | 0.450<sup>a</sup> | 0.963 |
+| Laya noul: P(yes) | 0.442<sup>bc</sup> | 0.413<sup>bc</sup> | 0.588<sup>abc</sup> | 0.625<sup>bc</sup> | 0.276<sup>bc</sup> | 0.669 |
+| Laya score: E[y] | 0.389<sup>bc</sup> | 0.355<sup>bc</sup> | 0.552<sup>bc</sup> | 0.575<sup>bc</sup> | 0.236<sup>bc</sup> | 0.619 |
+| Laya score: E[2^y-1] | 0.383<sup>bc</sup> | 0.351<sup>bc</sup> | 0.550<sup>bc</sup> | 0.568<sup>bc</sup> | 0.229<sup>bc</sup> | 0.617 |
+| Laya score: P(y>=2) | 0.390<sup>bc</sup> | 0.354<sup>bc</sup> | 0.550<sup>bc</sup> | 0.515<sup>bc</sup> | 0.237<sup>bc</sup> | 0.631 |
 
 ## DL19+20
 
-| System | nDCG@10 | nDCG@10 (exp) | RR@10 | AP@1000 | Judged@10 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| BM25 (bm25s order of the pool) | 0.436 | 0.000 | 0.640 | 0.271 | 0.979 |
-| monoT5-base | 0.670<sup>a</sup> | 0.000 | 0.877<sup>a</sup> | 0.469<sup>a</sup> | 0.987 |
-| Qwen3-Reranker-0.6B | 0.632<sup>a</sup> | 0.000 | 0.809<sup>a</sup> | 0.450<sup>a</sup> | 0.958 |
-| Laya noul: P(yes) | 0.437<sup>bc</sup> | 0.000 | 0.678<sup>bc</sup> | 0.299<sup>bc</sup> | 0.681 |
-| Laya score: E[y] | 0.391<sup>bc</sup> | 0.000 | 0.617<sup>bc</sup> | 0.262<sup>bc</sup> | 0.638 |
-| Laya score: E[2^y-1] | 0.383<sup>bc</sup> | 0.000 | 0.606<sup>bc</sup> | 0.257<sup>bc</sup> | 0.635 |
-| Laya score: P(y>=2) | 0.391<sup>bc</sup> | 0.000 | 0.579<sup>bc</sup> | 0.263<sup>bc</sup> | 0.644 |
+| System | nDCG@10 | nDCG@10 (exp) | nDCG'@10 | RR@10 | AP@1000 | Judged@10 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| BM25 (bm25s order of the pool) | 0.488 | 0.436 | 0.491 | 0.640 | 0.271 | 0.979 |
+| monoT5-base | 0.718<sup>a</sup> | 0.670<sup>a</sup> | 0.721<sup>a</sup> | 0.877<sup>a</sup> | 0.469<sup>a</sup> | 0.987 |
+| Qwen3-Reranker-0.6B | 0.682<sup>a</sup> | 0.628<sup>a</sup> | 0.696<sup>a</sup> | 0.802<sup>a</sup> | 0.448<sup>a</sup> | 0.957 |
+| Laya noul: P(yes) | 0.476<sup>bc</sup> | 0.438<sup>bc</sup> | 0.614<sup>abc</sup> | 0.679<sup>bc</sup> | 0.297<sup>bc</sup> | 0.682 |
+| Laya score: E[y] | 0.433<sup>bc</sup> | 0.389<sup>bc</sup> | 0.592<sup>abc</sup> | 0.618<sup>bc</sup> | 0.263<sup>bc</sup> | 0.634 |
+| Laya score: E[2^y-1] | 0.429<sup>bc</sup> | 0.386<sup>bc</sup> | 0.587<sup>abc</sup> | 0.611<sup>bc</sup> | 0.257<sup>bc</sup> | 0.632 |
+| Laya score: P(y>=2) | 0.433<sup>bc</sup> | 0.389<sup>bc</sup> | 0.590<sup>abc</sup> | 0.585<sup>bc</sup> | 0.263<sup>bc</sup> | 0.638 |
 
 ## Laya score: ranking rule x temperature (nDCG@10)
 
 |                    |   dl19 |   dl20 |
 |:-------------------|-------:|-------:|
-| ('exp', 'fitted')  | 0.4327 | 0.3555 |
-| ('exp', 'raw')     | 0.4272 | 0.3483 |
-| ('exp', 'shipped') | 0.4307 | 0.3486 |
-| ('ge2', 'fitted')  | 0.4225 | 0.3508 |
-| ('ge2', 'raw')     | 0.4371 | 0.3536 |
-| ('ge2', 'shipped') | 0.4384 | 0.3508 |
-| ('lin', 'fitted')  | 0.4304 | 0.3579 |
-| ('lin', 'raw')     | 0.4329 | 0.3573 |
-| ('lin', 'shipped') | 0.432  | 0.355  |
+| ('exp', 'fitted')  | 0.4938 | 0.3909 |
+| ('exp', 'raw')     | 0.4853 | 0.3835 |
+| ('exp', 'shipped') | 0.487  | 0.3856 |
+| ('ge2', 'fitted')  | 0.4797 | 0.3857 |
+| ('ge2', 'raw')     | 0.4869 | 0.3898 |
+| ('ge2', 'shipped') | 0.4962 | 0.3886 |
+| ('lin', 'fitted')  | 0.4936 | 0.3921 |
+| ('lin', 'raw')     | 0.4883 | 0.3893 |
+| ('lin', 'shipped') | 0.4875 | 0.3977 |
 
 ## Ties among a query's pool scores (broken by BM25 rank)
 
@@ -58,8 +58,8 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 |:-------------------------------|----------------------:|
 | BM25 (bm25s order of the pool) |                0.5802 |
 | monoT5-base                    |                0.0004 |
-| Qwen3-Reranker-0.6B            |                0.8939 |
-| Laya noul: P(yes)              |                0.3203 |
+| Qwen3-Reranker-0.6B            |                0.0002 |
+| Laya noul: P(yes)              |                0      |
 | Laya score: E[y]               |                0      |
 | Laya score: E[2^y-1]           |                0      |
 | Laya score: P(y>=2)            |                0      |
@@ -67,5 +67,5 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 ## Laya temperatures per condition
 
 ```
-{'raw': {'noul': [1.0], 'score': [1.0]}, 'shipped': {'noul': [1.9834], 'score': [1.2514]}, 'fitted': {'noul': [2.1599, 2.8326], 'score': [4.4302, 4.6209]}}
+{'raw': {'noul': [1.0], 'score': [1.0]}, 'shipped': {'noul': [1.9834], 'score': [1.2514]}, 'fitted': {'noul': [2.16, 2.8284], 'score': [4.4641, 4.6646]}}
 ```
