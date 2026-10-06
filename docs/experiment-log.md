@@ -12,6 +12,17 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-06 -- Laya and CLEF join; calibration on sets with judged negatives
+
+Owner's decisions: integrate Laya (open weights, `convaiinnovations/laya`) and Cloudflare's CLEF (`Cloudflare/clef`,
+`Cloudflare/clef-flash`) next to Jev behind one System One reranker. Unjudged documents count as non-relevant, but the
+main calibration results use only sets with judged non-relevant documents. See `docs/intent/models.md`.
+
+First real Jev run (`cdm rerank jev scifact --first-stage bm25-d100-max20 --phrasings s1rank --no-save`, 20 queries,
+not saved): nDCG@10 0.759 (BM25 0.614, MiniLM 0.674), 38 requests for 20 queries (18 split in half because 100 scifact
+abstracts exceed Jev's context), 890k input tokens, $0.037 ($1.87 per 1k queries), latency p50 1.09 s per query.
+Compute nodes reach api.typesafe.ai and huggingface.co directly.
+
 ## 2026-10-06 -- Jev first; Laya API pending
 
 Owner's answer to open question 3: the TypeSafe AI API key for Jev is in `.env` (`TYPESAFE_AI_API_KEY`); the owner
