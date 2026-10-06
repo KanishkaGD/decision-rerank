@@ -117,7 +117,7 @@ draft until WP3 freezes them.
 | first stage | `first-stage [--datasets ...]` | `slurm/first-stage.interactive.sh <dataset>` |
 | rerank | `rerank <system> [--datasets ...] [--cpu \| --gres gpu:a100-sxm:1]` | `slurm/rerank.interactive.sh <system> <dataset>` |
 
-- `slurm/config.sh`: account (`chair-ds`), dataset and system lists, GPU request (`gpumem.40gib` -- verify with
+- `slurm/config.sh`: account (`chair-ds`), dataset and system lists, GPU request (`gpumem.48gib` -- verify with
   `cluster/login.sh sinfo -N -o "%N %G %f"`), `--time` budgets (first guesses; correct them from real runs).
 - `slurm/env.sh`: paths, caches and the container call, shared by all jobs.
 - Partitions (FAITH docs): `general` CPU, 48h max; `gpu`, 28h max; `short`, 1h max with higher priority.

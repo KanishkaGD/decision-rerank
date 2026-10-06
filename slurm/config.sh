@@ -12,9 +12,11 @@ SLURM_ACCOUNT="chair-ds"
 # so a job can land on any GPU with enough memory; it also keeps jobs off the old titanblack and the AMD rx_9060_xt
 # nodes, which current PyTorch/CUDA wheels don't run on. Check the available features with
 #   cluster/login.sh sinfo -N -o "%N %G %f"
+# Memory tiers on FAITH (2026-10-06): 6, 8, 11, 16, 20, 24, 48, 80, 141 GiB. gpumem.48gib selects the A100-SXM,
+# H200, L40 and L40S nodes (in the short partition: L40 and L40S); 24gib selects the same nodes.
 # For latency measurements (plan: one fixed GPU), submit with a fixed type instead: --gres gpu:a100-sxm:1.
 GPU_GRES="gpu:1"
-GPU_CONSTRAINT="gpumem.40gib"
+GPU_CONSTRAINT="gpumem.48gib"
 
 # Dataset names as registered in src/cdm/datasets.py (`cdm datasets` lists them with their Pyserini ids).
 # "all" in `slurm/submit.sh ... --datasets all` means this list. msmarco-dev is the dev split for selecting the
@@ -64,7 +66,7 @@ rerank_time_for() {
 # Prints the --time budget for one job.  Usage: time_for <job> [dataset] [system]
 time_for() {
     case "$1" in
-        hello) echo "00:02:00" ;;
+        hello) echo "00:02:00" ;; # job 4345829: 49 s
         first-stage) first_stage_time_for "$2" ;;
         rerank) rerank_time_for "$2" "$3" ;;
         *)

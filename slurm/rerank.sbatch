@@ -8,7 +8,7 @@
 # No --time/--account here: slurm/submit.sh passes both from slurm/config.sh (see CLAUDE.md). --output is relative
 # to the submission directory, the repo root; start_job_log renames it and moves it to logs/done/ at the end.
 # The GPU itself (--gres, --constraint) comes from GPU_GRES/GPU_CONSTRAINT in slurm/config.sh via slurm/submit.sh;
-# a direct sbatch must pass them, e.g. sbatch --gres=gpu:1 --constraint=gpumem.40gib slurm/rerank.sbatch ...
+# a direct sbatch must pass them, e.g. sbatch --gres=gpu:1 --constraint=gpumem.48gib slurm/rerank.sbatch ...
 
 # Reranks the cached first-stage candidates of ONE dataset with ONE system (cdm rerank), stores the raw score of
 # every (query, passage, phrasing) under outputs/, and appends the metrics to results/results.csv.

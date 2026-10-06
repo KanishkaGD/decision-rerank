@@ -1,10 +1,22 @@
 import os
 
 from cdm.first_stage import doc_text
-from cdm.runs import Candidate, QueryCandidates, read_candidates, read_qrels, read_run, write_candidates, write_qrels, write_run
 
 
 def test_roundtrip(tmp_path):
+    # Imported here, not at module level: test_rerank_cli reloads cdm.runs, which replaces the dataclasses, and
+    # dataclass equality requires the same class.
+    from cdm.runs import (
+        Candidate,
+        QueryCandidates,
+        read_candidates,
+        read_qrels,
+        read_run,
+        write_candidates,
+        write_qrels,
+        write_run,
+    )
+
     qs = [QueryCandidates("1", "what is x", [Candidate("d1", 1, 12.5, "x is ü"), Candidate("d2", 2, 10.0, "y")])]
     path = os.path.join(tmp_path, "candidates.jsonl.gz")
     write_candidates(path, qs)

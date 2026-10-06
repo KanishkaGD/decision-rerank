@@ -4,7 +4,7 @@
 #
 # Usage: slurm/interactive.sh [time_limit] [partition] [extra srun args...]
 #   slurm/interactive.sh                                                  4h on general (CPU)
-#   slurm/interactive.sh 02:00:00 gpu --gres=gpu:1 --constraint=gpumem.40gib
+#   slurm/interactive.sh 02:00:00 gpu --gres=gpu:1 --constraint=gpumem.48gib
 #   slurm/interactive.sh 01:00:00 gpu --gres=gpu:a100-sxm:1
 set -euo pipefail
 CDM_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
