@@ -2,10 +2,11 @@
 
 Can a decision model rerank passages without retrieval training, and are its relevance probabilities
 calibrated? Decision models answer typed questions (noul = yes/no, score = rubric, choice) with
-probabilities instead of text. This repo tests two of them as pointwise rerankers on TREC DL 2019/2020:
-TypeSafe's closed **Jev 1.13** (through OpenRouter) and its open counterpart **Laya**
-(`convaiinnovations/laya`, ModernBERT-large, 421M, Apache-2.0). Both are compared with two rerankers
-trained on relevance data.
+probabilities instead of text. This repo tests three of them as pointwise rerankers on TREC DL 2019/2020:
+TypeSafe's closed **Jev 1.13** (through OpenRouter) and two open Jev-like models, **Laya**
+(`convaiinnovations/laya`, ModernBERT-large, 421M) and **Kev-0.8B** (`jaredpalmer/kev-0.8b`, a LoRA
+adapter on Qwen3.5-0.8B-Base, size-matched to Qwen3-Reranker-0.6B). They are compared with two
+rerankers trained on relevance data.
 
 - **RQ1 (effectiveness).** How do zero-shot decision models compare with monoT5-base and
   Qwen3-Reranker-0.6B when reranking the official TREC DL passage rerank pool? Do the question type and
@@ -19,7 +20,7 @@ trained on relevance data.
 | --- | --- |
 | Collections | TREC DL 2019 (43 judged queries, 9,260 judged pairs) and DL 2020 (54, 11,386); MS MARCO v1 passage; grades 0-3 |
 | Candidates | Official rerank-subtask pool, `msmarco-passagetest{2019,2020}-top1000` (up to 1000 per query; 41,042 + 50,024 pairs). The files are unranked, so the BM25 baseline and all tie-breaks use our bm25s scores over the pool (Lucene variant, k1 = 1.2, b = 0.75) |
-| Decision models | **Jev 1.13** (`typesafe/jev-1.13`, resolves to `jev-1.13-20260917`; OpenRouter `/api/alpha/decisions`, one request per pair, 101,414 requests, $2.06). **Laya**, English root checkpoint (fp16 weights, 512-token context), run with autocast off and TF32 matmuls |
+| Decision models | **Jev 1.13** (`typesafe/jev-1.13`, resolves to `jev-1.13-20260917`; OpenRouter `/api/alpha/decisions`, one request per pair, 101,414 requests, $2.06). **Laya**, English root checkpoint (fp16 weights, 512-token context), run with autocast off and TF32 matmuls. **Kev-0.8B** (Kev 1.0, in Kev's own environment, transformers 5.17; bf16, Kev's serving default, checked against fp32 on 1,028 pairs: no ties, per-query Spearman >= 0.998; shipped temperature 2.35) |
 | Questions (`questions.py`) | Same for both models. **noul**: "Does the 'passage' answer the 'query'?" -> P(yes). **score**: UMBRELA's 4 levels -> P(y), y = 0-3. State = `{"query", "passage"}`. Wording fixed before any run |
 | Score ranking rules | E[y] (Bayes-optimal for linear-gain nDCG), E[2^y - 1] (exponential gain), P(y >= 2) |
 | Baselines | BM25; `castorini/monot5-base-msmarco` P(true); `Qwen/Qwen3-Reranker-0.6B` P(yes) with the model card's prompt and web-search instruction |
@@ -43,6 +44,7 @@ scripts/
   prepare_data.py   freeze data/ (qrels, queries, official pool + BM25 scores, passages)
   score.py MODEL    runs/MODEL.parquet for laya | monot5 | qwen3 (checkpointed; only unscored pairs run)
   score_jev.py      runs/jev.parquet (whole queries in random order; cached; budget cap)
+  score_kev.py      runs/kev-0.8b.parquet, run with Kev's own environment (see its docstring)
   evaluate.py       RQ1 -> results/effectiveness.{md,csv}, per_query.csv, score_rules.csv, tie_robustness.csv
   calibrate.py      RQ2 -> results/calibration*.{md,csv}, figures/{reliability,grades}.{png,pdf}
   sample_report.py  quick comparison on the queries Jev has fully answered (results/sample_report.md)
@@ -60,6 +62,8 @@ uv run scripts/prepare_data.py           # needs the qpp-pruning-study corpus an
 for m in laya monot5 qwen3; do uv run scripts/score.py $m; done
 cp .env.example .env                     # then put your OpenRouter key in .env (git-ignored)
 uv run scripts/score_jev.py              # about $2
+git clone https://github.com/jaredpalmer/kev ../kev && (cd ../kev && uv sync && uv pip install flash-linear-attention==0.5.2)
+PYTHONPATH=src ../kev/.venv/bin/python scripts/score_kev.py   # ~8 min on an A100
 uv run scripts/evaluate.py && uv run scripts/calibrate.py && uv run scripts/check_runs.py
 uv run pytest -q
 ```
@@ -74,7 +78,8 @@ overlapping pairs (asserted in `prepare_data.py`).
 ## Results
 
 Zero-shot Jev reranks on par with the two trained rerankers, and its yes/no probability is the best
-probability estimate of all models. Laya does not improve on BM25. Full tables:
+probability estimate of all models. The open Jev-like models do not rerank: Laya stays at BM25 level and
+the size-matched Kev-0.8B falls far below it. Full tables:
 [results/effectiveness.md](results/effectiveness.md) and [results/calibration.md](results/calibration.md).
 
 ### RQ1: effectiveness (official rerank pool, 43 + 54 queries)
@@ -91,6 +96,8 @@ probability estimate of all models. Laya does not improve on BM25. Full tables:
 | Laya score: E[y] | 0.488 | 0.389 | 0.433 | 0.592 | 0.618 | 0.634 |
 | Laya score: E[2^y-1] | 0.485 | 0.383 | 0.429 | 0.587 | 0.611 | 0.632 |
 | Laya score: P(y>=2) | 0.487 | 0.390 | 0.433 | 0.590 | 0.585 | 0.638 |
+| Kev-0.8B noul: P(yes) | 0.218 | 0.212 | 0.214 | 0.460 | 0.322 | 0.353 |
+| Kev-0.8B score: E[y] | 0.258 | 0.211 | 0.232 | 0.493 | 0.362 | 0.382 |
 
 - **Jev matches the trained rerankers.** Pooled nDCG@10 of Jev score E[y] is 0.695, against 0.718 for
   monoT5-base and 0.682 for Qwen3-Reranker-0.6B. Neither difference is significant (Holm p = 1.0 for both). On
@@ -105,6 +112,12 @@ probability estimate of all models. Laya does not improve on BM25. Full tables:
   Jev variant is significantly above Laya noul (pooled, Holm-corrected). Laya noul does not beat BM25 on nDCG@10 (0.476 vs 0.488, p = 0.66). A third
   of its top 10 has no DL label (Judged@10 0.68). On judged passages only, it does beat BM25 (0.614 vs
   0.491), but it stays well below the other rerankers.
+- **Kev-0.8B, size-matched to Qwen3-Reranker-0.6B, ranks far below BM25** (0.214-0.232 vs 0.488;
+  significantly below every other system). It says yes to anything on topic: mean raw P(yes) is 0.52 for
+  grade-0 pairs and only 0.68-0.74 for grades 1-3, and two thirds of its top 10 are unjudged. Re-scoring
+  64 pairs one at a time reproduces the stored scores (r = 0.9999), so this is the model, not the pipeline;
+  Kev's own documentation calls the 0.8B its weakest size. Same size class, opposite outcome: Qwen3-0.6B
+  trained for this one question (Qwen3-Reranker) reaches 0.682.
 - **The question type matters little.** Laya's score question is no better than its noul (0.433 vs
   0.476; p = 0.017-0.027 unadjusted, 0.22-0.29 after Holm). Jev's is slightly better (0.695 vs 0.683,
   not tested separately). The ranking rule barely matters: E[y], E[2^y-1] and P(y>=2) are within 0.005
@@ -125,11 +138,14 @@ per collection 0.083). Per-query AUROC averages over queries with both classes.
 | Laya score P(y>=2) (T = 1.25) | 0.168 [0.139, 0.199] | 0.169 | 0.179 | 0.540 | 0.731 | 0.793 |
 | Jev noul | 0.084 [0.062, 0.111] | 0.087 | 0.127 | 0.407 | **0.858** | **0.890** |
 | Jev score P(y>=2) | 0.164 [0.137, 0.192] | 0.165 | 0.166 | 1.097 | 0.857 | 0.888 |
+| Kev-0.8B noul (T = 2.35) | 0.362 [0.328, 0.398] | 0.362 | 0.293 | 0.821 | 0.673 | 0.701 |
+| Kev-0.8B score P(y>=2) | 0.312 [0.283, 0.344] | 0.312 | 0.248 | 0.690 | 0.680 | 0.720 |
 | **Cross-fitted temperature (same fitter for all)** | | | | | | |
 | monoT5-base | 0.064 [0.048, 0.094] | 0.095 | 0.142 | 0.447 | 0.748 | 0.847 |
 | Qwen3-Reranker-0.6B | 0.238 [0.207, 0.272] | 0.238 | 0.202 | 0.586 | 0.760 | 0.844 |
 | Laya noul | 0.043 [0.027, 0.076] | 0.083 | 0.145 | 0.454 | 0.731 | 0.811 |
 | Jev noul | 0.095 [0.068, 0.123] | 0.095 | **0.124** | **0.393** | 0.857 | 0.890 |
+| Kev-0.8B noul | 0.300 [0.270, 0.334] | 0.300 | 0.250 | 0.693 | 0.673 | 0.701 |
 | **Reference** | | | | | | |
 | Laya noul raw (T = 1) | 0.140 [0.118, 0.161] | 0.141 | 0.166 | 0.619 | 0.753 | 0.811 |
 | Base rate of the other collection | 0.124 [0.096, 0.151] | 0.124 | 0.173 | 0.538 | | 0.500 |
@@ -147,8 +163,11 @@ Paired query-bootstrap differences, all judged pairs ([results/calibration_paire
 
 ![Reliability diagrams](figures/reliability.png)
 
-- **As shipped, both decision models are far better calibrated than the trained rerankers.** Their ECE
-  is 0.06-0.08 against 0.17-0.28. The trained rerankers push most pairs to P near 0 or 1, and at
+- **As shipped, Jev and Laya are far better calibrated than the trained rerankers.** Their ECE is
+  0.06-0.08 against 0.17-0.28. Kev-0.8B is the exception (ECE 0.36): it over-predicts relevance (mean P
+  0.56 against a positive rate of 0.20), which a temperature cannot fix, because temperature only pulls
+  probabilities towards 0.5; its cross-fitted T runs to the fitter's cap of 100 and still leaves ECE 0.30.
+  Even so its NLL beats Qwen3-0.6B's as shipped (0.821 vs 1.192), though not after both are recalibrated. The trained rerankers push most pairs to P near 0 or 1, and at
   P near 1 only 62% (monoT5) and 42% (Qwen3) of pairs have rel >= 2. monoT5's Brier score is slightly worse
   than predicting the base rate (0.178 vs 0.173), although it ranks best.
 - **Temperature scaling closes most of that gap for monoT5, but not Jev's lead.** After one cross-fitted
@@ -172,8 +191,10 @@ Paired query-bootstrap differences, all judged pairs ([results/calibration_paire
 
 Jev, used zero-shot with one yes/no question per passage, reranks as well as small rerankers trained on
 MS MARCO, which is in-domain for them. Its probabilities are the best relevance estimates in the study:
-calibrated out of the box and the most discriminative. Laya, at 0.4B parameters, gives reasonably
-calibrated probabilities, but they do not rank within a query; it is not a reranker.
+calibrated out of the box and the most discriminative. The open Jev-like models at 0.4-0.8B do not get
+there: Laya gives reasonably calibrated probabilities that do not rank within a query, and Kev-0.8B
+neither ranks nor calibrates. At this size, a model trained for the one relevance question
+(Qwen3-Reranker-0.6B) beats a general decision model by a wide margin.
 
 ### Limitations and notes
 - **In-domain baselines.** monoT5 was trained on MS MARCO; DL19/20 favours it. Whether Jev or Laya saw

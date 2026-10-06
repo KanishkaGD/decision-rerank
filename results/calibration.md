@@ -1,6 +1,6 @@
 # Calibration of P(relevant)
 
-Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19": 1.0, "dl20": 1.0}}, "shipped": {"noul": {"dl19": 1.9834, "dl20": 1.9834}, "score": {"dl19": 1.2514, "dl20": 1.2514}}, "fitted": {"noul": {"dl19": 2.16, "dl20": 2.8284}, "score": {"dl19": 4.6646, "dl20": 4.4641}}, "monot5_xfit": {"dl19": 4.539, "dl20": 6.0456}, "qwen3_xfit": {"dl19": 5.505, "dl20": 4.6721}, "laya_noul_xfit": {"dl19": 2.162, "dl20": 2.8312}, "jev_noul_xfit": {"dl19": 1.3184, "dl20": 1.3867}}`
+Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19": 1.0, "dl20": 1.0}}, "shipped": {"noul": {"dl19": 1.9834, "dl20": 1.9834}, "score": {"dl19": 1.2514, "dl20": 1.2514}}, "fitted": {"noul": {"dl19": 2.16, "dl20": 2.8284}, "score": {"dl19": 4.6646, "dl20": 4.4641}}, "kev_shipped": 2.3511, "monot5_xfit": {"dl19": 4.539, "dl20": 6.0456}, "qwen3_xfit": {"dl19": 5.505, "dl20": 4.6721}, "laya_noul_xfit": {"dl19": 2.162, "dl20": 2.8312}, "jev_noul_xfit": {"dl19": 1.3184, "dl20": 1.3867}, "kev_noul_xfit": {"dl19": 99.9996, "dl20": 99.9994}}`
 
 ## All judged pairs, target rel>=2, DL19 (n = 9,260, positive rate 0.270)
 
@@ -20,6 +20,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.186 [0.138, 0.246] |  | 0.186 | 0.196 [0.179, 0.216] | 0.575 | 0.775 | 0.834 | 0.456 |
 | Laya noul (cross-fit T, unclamped) | 0.060 [0.037, 0.100] |  | 0.055 | 0.167 [0.139, 0.193] | 0.509 | 0.761 | 0.810 | 0.233 |
 | Jev noul (cross-fit T) | 0.054 [0.031, 0.105] |  | 0.059 | 0.134 [0.111, 0.158] | 0.420 | 0.852 | 0.876 | 0.324 |
+| Kev-0.8B noul | 0.333 [0.282, 0.395] |  | 0.333 | 0.303 [0.272, 0.343] | 0.862 | 0.662 | 0.689 | 0.603 |
+| Kev-0.8B noul raw (T = 1) | 0.378 [0.327, 0.443] |  | 0.377 | 0.363 [0.324, 0.410] | 1.323 | 0.662 | 0.689 | 0.647 |
+| Kev-0.8B score P(y>=2) | 0.258 [0.212, 0.315] |  | 0.258 | 0.251 [0.242, 0.260] | 0.695 | 0.663 | 0.715 | 0.528 |
+| Kev-0.8B noul (cross-fit T) | 0.233 [0.188, 0.292] |  | 0.233 | 0.250 [0.250, 0.251] | 0.694 | 0.662 | 0.689 | 0.503 |
 | Base rate (other collection) | 0.124 [0.064, 0.169] |  | 0.125 | 0.212 [0.171, 0.245] | 0.635 |  | 0.500 | 0.146 |
 
 ## All judged pairs, target rel>=2, DL20 (n = 11,386, positive rate 0.146)
@@ -40,6 +44,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.281 [0.248, 0.318] |  | 0.281 | 0.207 [0.186, 0.228] | 0.595 | 0.751 | 0.851 | 0.427 |
 | Laya noul (cross-fit T, unclamped) | 0.102 [0.073, 0.134] |  | 0.102 | 0.127 [0.109, 0.146] | 0.409 | 0.742 | 0.811 | 0.248 |
 | Jev noul (cross-fit T) | 0.128 [0.103, 0.158] |  | 0.128 | 0.116 [0.092, 0.139] | 0.370 | 0.866 | 0.902 | 0.275 |
+| Kev-0.8B noul | 0.386 [0.346, 0.426] |  | 0.386 | 0.284 [0.259, 0.309] | 0.789 | 0.654 | 0.711 | 0.533 |
+| Kev-0.8B noul raw (T = 1) | 0.402 [0.356, 0.453] |  | 0.402 | 0.339 [0.297, 0.379] | 1.107 | 0.654 | 0.711 | 0.542 |
+| Kev-0.8B score P(y>=2) | 0.356 [0.328, 0.384] |  | 0.356 | 0.246 [0.234, 0.258] | 0.686 | 0.681 | 0.724 | 0.502 |
+| Kev-0.8B noul (cross-fit T) | 0.355 [0.327, 0.384] |  | 0.355 | 0.250 [0.249, 0.251] | 0.693 | 0.654 | 0.711 | 0.501 |
 | Base rate (other collection) | 0.124 [0.096, 0.153] |  | 0.126 | 0.140 [0.127, 0.153] | 0.460 |  | 0.500 | 0.270 |
 
 ## All judged pairs, target rel>=2, DL19+20 (n = 20,646, positive rate 0.202)
@@ -60,6 +68,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.238 [0.207, 0.272] | 0.238 | 0.238 | 0.202 [0.187, 0.217] | 0.586 | 0.760 | 0.844 | 0.440 |
 | Laya noul (cross-fit T, unclamped) | 0.043 [0.027, 0.076] | 0.083 | 0.044 | 0.145 [0.128, 0.160] | 0.454 | 0.731 | 0.811 | 0.241 |
 | Jev noul (cross-fit T) | 0.095 [0.068, 0.123] | 0.095 | 0.095 | 0.124 [0.107, 0.141] | 0.393 | 0.857 | 0.890 | 0.297 |
+| Kev-0.8B noul | 0.362 [0.328, 0.398] | 0.362 | 0.362 | 0.293 [0.272, 0.316] | 0.821 | 0.673 | 0.701 | 0.564 |
+| Kev-0.8B noul raw (T = 1) | 0.391 [0.353, 0.432] | 0.391 | 0.392 | 0.350 [0.321, 0.382] | 1.204 | 0.673 | 0.701 | 0.590 |
+| Kev-0.8B score P(y>=2) | 0.312 [0.283, 0.344] | 0.312 | 0.312 | 0.248 [0.240, 0.257] | 0.690 | 0.680 | 0.720 | 0.514 |
+| Kev-0.8B noul (cross-fit T) | 0.300 [0.270, 0.334] | 0.300 | 0.300 | 0.250 [0.250, 0.251] | 0.693 | 0.673 | 0.701 | 0.502 |
 | Base rate (other collection) | 0.124 [0.096, 0.151] | 0.124 | 0.118 | 0.173 [0.152, 0.192] | 0.538 |  | 0.500 | 0.215 |
 
 ## All judged pairs, target rel>=1, DL19 (n = 9,260, positive rate 0.443)
@@ -80,6 +92,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.052 |  | 0.054 | 0.183 | 0.547 | 0.801 | 0.835 | 0.456 |
 | Laya noul (cross-fit T, unclamped) | 0.211 |  | 0.210 | 0.252 | 0.736 | 0.758 | 0.779 | 0.233 |
 | Jev noul (cross-fit T) | 0.119 |  | 0.119 | 0.185 | 0.554 | 0.835 | 0.851 | 0.324 |
+| Kev-0.8B noul | 0.160 |  | 0.160 | 0.258 | 0.747 | 0.658 | 0.673 | 0.603 |
+| Kev-0.8B noul raw (T = 1) | 0.224 |  | 0.224 | 0.294 | 1.053 | 0.658 | 0.673 | 0.647 |
+| Kev-0.8B score P(y>=2) | 0.087 |  | 0.087 | 0.235 | 0.662 | 0.662 | 0.688 | 0.528 |
+| Kev-0.8B noul (cross-fit T) | 0.060 |  | 0.115 | 0.249 | 0.691 | 0.658 | 0.673 | 0.503 |
 | Base rate (other collection) | 0.126 |  | 0.129 | 0.263 | 0.721 |  | 0.500 | 0.317 |
 
 ## All judged pairs, target rel>=1, DL20 (n = 11,386, positive rate 0.317)
@@ -100,6 +116,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.111 |  | 0.110 | 0.195 | 0.570 | 0.751 | 0.828 | 0.427 |
 | Laya noul (cross-fit T, unclamped) | 0.078 |  | 0.077 | 0.198 | 0.586 | 0.710 | 0.758 | 0.248 |
 | Jev noul (cross-fit T) | 0.053 |  | 0.059 | 0.150 | 0.461 | 0.845 | 0.874 | 0.275 |
+| Kev-0.8B noul | 0.216 |  | 0.216 | 0.247 | 0.698 | 0.679 | 0.688 | 0.533 |
+| Kev-0.8B noul raw (T = 1) | 0.250 |  | 0.251 | 0.283 | 0.893 | 0.679 | 0.688 | 0.542 |
+| Kev-0.8B score P(y>=2) | 0.185 |  | 0.185 | 0.232 | 0.656 | 0.689 | 0.691 | 0.502 |
+| Kev-0.8B noul (cross-fit T) | 0.184 |  | 0.203 | 0.249 | 0.691 | 0.679 | 0.688 | 0.501 |
 | Base rate (other collection) | 0.126 |  | 0.142 | 0.232 | 0.658 |  | 0.500 | 0.443 |
 
 ## All judged pairs, target rel>=1, DL19+20 (n = 20,646, positive rate 0.373)
@@ -120,6 +140,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.068 | 0.084 | 0.067 | 0.190 | 0.560 | 0.771 | 0.831 | 0.440 |
 | Laya noul (cross-fit T, unclamped) | 0.133 | 0.137 | 0.132 | 0.222 | 0.653 | 0.711 | 0.767 | 0.241 |
 | Jev noul (cross-fit T) | 0.080 | 0.083 | 0.081 | 0.165 | 0.503 | 0.841 | 0.864 | 0.297 |
+| Kev-0.8B noul | 0.191 | 0.191 | 0.191 | 0.252 | 0.720 | 0.679 | 0.682 | 0.564 |
+| Kev-0.8B noul raw (T = 1) | 0.236 | 0.238 | 0.237 | 0.288 | 0.965 | 0.679 | 0.682 | 0.590 |
+| Kev-0.8B score P(y>=2) | 0.141 | 0.141 | 0.141 | 0.233 | 0.659 | 0.683 | 0.689 | 0.514 |
+| Kev-0.8B noul (cross-fit T) | 0.129 | 0.129 | 0.160 | 0.249 | 0.691 | 0.679 | 0.682 | 0.502 |
 | Base rate (other collection) | 0.126 | 0.126 | 0.121 | 0.246 | 0.686 |  | 0.500 | 0.386 |
 
 ## Judged pairs in the official pool, target rel>=2, DL19 (n = 4,612, positive rate 0.350)
@@ -140,6 +164,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.217 |  | 0.217 | 0.238 | 0.668 | 0.755 | 0.832 | 0.566 |
 | Laya noul (cross-fit T, unclamped) | 0.092 |  | 0.091 | 0.201 | 0.594 | 0.742 | 0.796 | 0.280 |
 | Jev noul (cross-fit T) | 0.046 |  | 0.048 | 0.140 | 0.438 | 0.867 | 0.879 | 0.393 |
+| Kev-0.8B noul | 0.292 |  | 0.291 | 0.299 | 0.862 | 0.670 | 0.681 | 0.641 |
+| Kev-0.8B noul raw (T = 1) | 0.352 |  | 0.350 | 0.357 | 1.369 | 0.670 | 0.681 | 0.698 |
+| Kev-0.8B score P(y>=2) | 0.198 |  | 0.198 | 0.245 | 0.682 | 0.700 | 0.719 | 0.548 |
+| Kev-0.8B noul (cross-fit T) | 0.155 |  | 0.169 | 0.250 | 0.693 | 0.670 | 0.681 | 0.505 |
 | Base rate (other collection) | 0.181 |  | 0.181 | 0.260 | 0.742 |  | 0.500 | 0.169 |
 
 ## Judged pairs in the official pool, target rel>=2, DL20 (n = 5,686, positive rate 0.169)
@@ -160,6 +188,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.379 |  | 0.379 | 0.268 | 0.736 | 0.810 | 0.854 | 0.547 |
 | Laya noul (cross-fit T, unclamped) | 0.120 |  | 0.120 | 0.137 | 0.430 | 0.788 | 0.808 | 0.289 |
 | Jev noul (cross-fit T) | 0.160 |  | 0.160 | 0.127 | 0.404 | 0.888 | 0.902 | 0.328 |
+| Kev-0.8B noul | 0.381 |  | 0.381 | 0.294 | 0.812 | 0.650 | 0.681 | 0.550 |
+| Kev-0.8B noul raw (T = 1) | 0.404 |  | 0.404 | 0.354 | 1.167 | 0.650 | 0.681 | 0.570 |
+| Kev-0.8B score P(y>=2) | 0.343 |  | 0.343 | 0.249 | 0.691 | 0.691 | 0.704 | 0.512 |
+| Kev-0.8B noul (cross-fit T) | 0.333 |  | 0.333 | 0.250 | 0.694 | 0.650 | 0.681 | 0.502 |
 | Base rate (other collection) | 0.181 |  | 0.181 | 0.173 | 0.535 |  | 0.500 | 0.350 |
 
 ## Judged pairs in the official pool, target rel>=2, DL19+20 (n = 10,298, positive rate 0.250)
@@ -180,6 +212,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.306 | 0.306 | 0.306 | 0.255 | 0.706 | 0.766 | 0.844 | 0.556 |
 | Laya noul (cross-fit T, unclamped) | 0.045 | 0.108 | 0.046 | 0.166 | 0.504 | 0.733 | 0.802 | 0.285 |
 | Jev noul (cross-fit T) | 0.108 | 0.109 | 0.108 | 0.133 | 0.419 | 0.873 | 0.892 | 0.357 |
+| Kev-0.8B noul | 0.341 | 0.341 | 0.341 | 0.296 | 0.834 | 0.683 | 0.681 | 0.591 |
+| Kev-0.8B noul raw (T = 1) | 0.380 | 0.380 | 0.381 | 0.355 | 1.257 | 0.683 | 0.681 | 0.627 |
+| Kev-0.8B score P(y>=2) | 0.278 | 0.278 | 0.278 | 0.247 | 0.687 | 0.709 | 0.710 | 0.528 |
+| Kev-0.8B noul (cross-fit T) | 0.253 | 0.253 | 0.253 | 0.250 | 0.693 | 0.683 | 0.681 | 0.503 |
 | Base rate (other collection) | 0.181 | 0.181 | 0.176 | 0.212 | 0.628 |  | 0.500 | 0.269 |
 
 ## Judged pairs in the official pool, target rel>=1, DL19 (n = 4,612, positive rate 0.562)
@@ -200,6 +236,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.061 |  | 0.062 | 0.193 | 0.572 | 0.782 | 0.828 | 0.566 |
 | Laya noul (cross-fit T, unclamped) | 0.282 |  | 0.282 | 0.296 | 0.846 | 0.739 | 0.771 | 0.280 |
 | Jev noul (cross-fit T) | 0.169 |  | 0.169 | 0.200 | 0.592 | 0.843 | 0.850 | 0.393 |
+| Kev-0.8B noul | 0.080 |  | 0.079 | 0.234 | 0.696 | 0.671 | 0.656 | 0.641 |
+| Kev-0.8B noul raw (T = 1) | 0.170 |  | 0.169 | 0.259 | 0.979 | 0.671 | 0.656 | 0.698 |
+| Kev-0.8B score P(y>=2) | 0.063 |  | 0.070 | 0.220 | 0.631 | 0.706 | 0.680 | 0.548 |
+| Kev-0.8B noul (cross-fit T) | 0.057 |  | 0.138 | 0.248 | 0.689 | 0.671 | 0.656 | 0.505 |
 | Base rate (other collection) | 0.188 |  | 0.192 | 0.282 | 0.758 |  | 0.500 | 0.374 |
 
 ## Judged pairs in the official pool, target rel>=1, DL20 (n = 5,686, positive rate 0.374)
@@ -220,6 +260,10 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.175 |  | 0.175 | 0.219 | 0.625 | 0.772 | 0.830 | 0.547 |
 | Laya noul (cross-fit T, unclamped) | 0.088 |  | 0.087 | 0.209 | 0.608 | 0.734 | 0.761 | 0.289 |
 | Jev noul (cross-fit T) | 0.057 |  | 0.060 | 0.158 | 0.484 | 0.844 | 0.865 | 0.328 |
+| Kev-0.8B noul | 0.176 |  | 0.176 | 0.248 | 0.698 | 0.671 | 0.665 | 0.550 |
+| Kev-0.8B noul raw (T = 1) | 0.231 |  | 0.231 | 0.285 | 0.897 | 0.671 | 0.665 | 0.570 |
+| Kev-0.8B score P(y>=2) | 0.138 |  | 0.138 | 0.234 | 0.660 | 0.674 | 0.670 | 0.512 |
+| Kev-0.8B noul (cross-fit T) | 0.128 |  | 0.166 | 0.249 | 0.691 | 0.671 | 0.665 | 0.502 |
 | Base rate (other collection) | 0.188 |  | 0.188 | 0.269 | 0.732 |  | 0.500 | 0.562 |
 
 ## Judged pairs in the official pool, target rel>=1, DL19+20 (n = 10,298, positive rate 0.458)
@@ -240,32 +284,45 @@ Laya temperatures: `{"raw": {"noul": {"dl19": 1.0, "dl20": 1.0}, "score": {"dl19
 | Qwen3-Reranker-0.6B (cross-fit T) | 0.101 | 0.124 | 0.102 | 0.207 | 0.601 | 0.768 | 0.829 | 0.556 |
 | Laya noul (cross-fit T, unclamped) | 0.173 | 0.175 | 0.173 | 0.248 | 0.715 | 0.709 | 0.765 | 0.285 |
 | Jev noul (cross-fit T) | 0.101 | 0.107 | 0.101 | 0.176 | 0.532 | 0.842 | 0.858 | 0.357 |
+| Kev-0.8B noul | 0.133 | 0.133 | 0.133 | 0.242 | 0.697 | 0.688 | 0.661 | 0.591 |
+| Kev-0.8B noul raw (T = 1) | 0.200 | 0.204 | 0.199 | 0.273 | 0.934 | 0.688 | 0.661 | 0.627 |
+| Kev-0.8B score P(y>=2) | 0.081 | 0.105 | 0.082 | 0.228 | 0.647 | 0.700 | 0.675 | 0.528 |
+| Kev-0.8B noul (cross-fit T) | 0.045 | 0.096 | 0.140 | 0.248 | 0.690 | 0.688 | 0.661 | 0.503 |
 | Base rate (other collection) | 0.188 | 0.188 | 0.183 | 0.275 | 0.744 |  | 0.500 | 0.478 |
 
 ## Paired differences (all judged pairs, rel >= 2, DL19+20; 95% query-bootstrap CI)
 
 Negative = the first system is better.
 
-| first                  | second                    | metric                    |    diff |      lo |      hi |
-|:-----------------------|:--------------------------|:--------------------------|--------:|--------:|--------:|
-| Jev noul               | monoT5-base (cross-fit T) | Brier                     | -0.015  | -0.0286 | -0.0008 |
-| Jev noul               | monoT5-base (cross-fit T) | NLL                       | -0.0395 | -0.0824 |  0.0055 |
-| Jev noul               | monoT5-base (cross-fit T) | ECE (per-collection mean) | -0.008  | -0.0323 |  0.0239 |
-| Jev noul               | Laya noul (shipped)       | Brier                     | -0.0188 | -0.0321 | -0.0052 |
-| Jev noul               | Laya noul (shipped)       | NLL                       | -0.0456 | -0.0881 | -0.0047 |
-| Jev noul               | Laya noul (shipped)       | ECE (per-collection mean) |  0.0227 | -0.0051 |  0.046  |
-| Laya noul (shipped)    | monoT5-base (cross-fit T) | Brier                     |  0.0039 | -0.0029 |  0.0115 |
-| Laya noul (shipped)    | monoT5-base (cross-fit T) | NLL                       |  0.0061 | -0.0138 |  0.0277 |
-| Laya noul (shipped)    | monoT5-base (cross-fit T) | ECE (per-collection mean) | -0.0306 | -0.0441 | -0.006  |
-| Laya noul (shipped)    | monoT5-base               | Brier                     | -0.0326 | -0.0454 | -0.0196 |
-| Laya noul (shipped)    | monoT5-base               | NLL                       | -0.6422 | -0.8126 | -0.4589 |
-| Laya noul (shipped)    | monoT5-base               | ECE (per-collection mean) | -0.1092 | -0.1215 | -0.0786 |
-| Laya noul (fitted)     | Laya noul (shipped)       | Brier                     | -0.0006 | -0.0026 |  0.0014 |
-| Laya noul (fitted)     | Laya noul (shipped)       | NLL                       |  0.0008 | -0.0095 |  0.0108 |
-| Laya noul (fitted)     | Laya noul (shipped)       | ECE (per-collection mean) |  0.0189 | -0.0025 |  0.0264 |
-| Jev noul (cross-fit T) | monoT5-base (cross-fit T) | Brier                     | -0.0177 | -0.0304 | -0.005  |
-| Jev noul (cross-fit T) | monoT5-base (cross-fit T) | NLL                       | -0.0542 | -0.0893 | -0.0189 |
-| Jev noul (cross-fit T) | monoT5-base (cross-fit T) | ECE (per-collection mean) |  0.0002 | -0.0285 |  0.0337 |
+| first                       | second                            | metric                    |    diff |      lo |      hi |
+|:----------------------------|:----------------------------------|:--------------------------|--------:|--------:|--------:|
+| Jev noul                    | monoT5-base (cross-fit T)         | Brier                     | -0.015  | -0.0286 | -0.0008 |
+| Jev noul                    | monoT5-base (cross-fit T)         | NLL                       | -0.0395 | -0.0824 |  0.0055 |
+| Jev noul                    | monoT5-base (cross-fit T)         | ECE (per-collection mean) | -0.008  | -0.0323 |  0.0239 |
+| Jev noul                    | Laya noul (shipped)               | Brier                     | -0.0188 | -0.0321 | -0.0052 |
+| Jev noul                    | Laya noul (shipped)               | NLL                       | -0.0456 | -0.0881 | -0.0047 |
+| Jev noul                    | Laya noul (shipped)               | ECE (per-collection mean) |  0.0227 | -0.0051 |  0.046  |
+| Laya noul (shipped)         | monoT5-base (cross-fit T)         | Brier                     |  0.0039 | -0.0029 |  0.0115 |
+| Laya noul (shipped)         | monoT5-base (cross-fit T)         | NLL                       |  0.0061 | -0.0138 |  0.0277 |
+| Laya noul (shipped)         | monoT5-base (cross-fit T)         | ECE (per-collection mean) | -0.0306 | -0.0441 | -0.006  |
+| Laya noul (shipped)         | monoT5-base                       | Brier                     | -0.0326 | -0.0454 | -0.0196 |
+| Laya noul (shipped)         | monoT5-base                       | NLL                       | -0.6422 | -0.8126 | -0.4589 |
+| Laya noul (shipped)         | monoT5-base                       | ECE (per-collection mean) | -0.1092 | -0.1215 | -0.0786 |
+| Laya noul (fitted)          | Laya noul (shipped)               | Brier                     | -0.0006 | -0.0026 |  0.0014 |
+| Laya noul (fitted)          | Laya noul (shipped)               | NLL                       |  0.0008 | -0.0095 |  0.0108 |
+| Laya noul (fitted)          | Laya noul (shipped)               | ECE (per-collection mean) |  0.0189 | -0.0025 |  0.0264 |
+| Jev noul (cross-fit T)      | monoT5-base (cross-fit T)         | Brier                     | -0.0177 | -0.0304 | -0.005  |
+| Jev noul (cross-fit T)      | monoT5-base (cross-fit T)         | NLL                       | -0.0542 | -0.0893 | -0.0189 |
+| Jev noul (cross-fit T)      | monoT5-base (cross-fit T)         | ECE (per-collection mean) |  0.0002 | -0.0285 |  0.0337 |
+| Kev-0.8B noul               | Jev noul                          | Brier                     |  0.1661 |  0.1401 |  0.1922 |
+| Kev-0.8B noul               | Jev noul                          | NLL                       |  0.4141 |  0.3274 |  0.5053 |
+| Kev-0.8B noul               | Jev noul                          | ECE (per-collection mean) |  0.2753 |  0.2323 |  0.3064 |
+| Kev-0.8B noul               | Qwen3-Reranker-0.6B               | Brier                     |  0.0164 | -0.0167 |  0.0522 |
+| Kev-0.8B noul               | Qwen3-Reranker-0.6B               | NLL                       | -0.3709 | -0.5208 | -0.2046 |
+| Kev-0.8B noul               | Qwen3-Reranker-0.6B               | ECE (per-collection mean) |  0.0853 |  0.0405 |  0.1271 |
+| Kev-0.8B noul (cross-fit T) | Qwen3-Reranker-0.6B (cross-fit T) | Brier                     |  0.048  |  0.0331 |  0.0628 |
+| Kev-0.8B noul (cross-fit T) | Qwen3-Reranker-0.6B (cross-fit T) | NLL                       |  0.1074 |  0.0743 |  0.1412 |
+| Kev-0.8B noul (cross-fit T) | Qwen3-Reranker-0.6B (cross-fit T) | ECE (per-collection mean) |  0.0619 |  0.0427 |  0.0808 |
 
 ## Score question: grade distribution vs human grade
 
@@ -275,14 +332,17 @@ Negative = the first system is better.
 | DL19         | shipped                      | 0.208 | 0.297 |      0.415 |     0.204 |     0.412 |     0.232 |     0.151 |
 | DL19         | fitted                       | 0.209 | 0.297 |      0.417 |     0.234 |     0.302 |     0.257 |     0.207 |
 | DL19         | Jev 1.13                     | 0.203 | 0.391 |      0.609 |     0.192 |     0.435 |     0.232 |     0.14  |
+| DL19         | Kev-0.8B (shipped T)         | 0.241 | 0.229 |      0.285 |     0.167 |     0.304 |     0.311 |     0.217 |
 | DL19         | base rate (other collection) | 0.182 | 0.557 |    nan     |     0.683 |     0.17  |     0.09  |     0.057 |
 | DL20         | raw                          | 0.223 | 0.316 |      0.341 |     0.231 |     0.433 |     0.207 |     0.129 |
 | DL20         | shipped                      | 0.218 | 0.316 |      0.341 |     0.235 |     0.407 |     0.22  |     0.138 |
 | DL20         | fitted                       | 0.224 | 0.316 |      0.336 |     0.244 |     0.303 |     0.252 |     0.2   |
 | DL20         | Jev 1.13                     | 0.203 | 0.409 |      0.583 |     0.269 |     0.429 |     0.191 |     0.111 |
+| DL20         | Kev-0.8B (shipped T)         | 0.257 | 0.183 |      0.298 |     0.187 |     0.311 |     0.3   |     0.202 |
 | DL20         | base rate (other collection) | 0.142 | 0.683 |    nan     |     0.557 |     0.173 |     0.195 |     0.075 |
 | DL19+20      | raw                          | 0.219 | 0.308 |      0.38  |     0.216 |     0.436 |     0.212 |     0.136 |
 | DL19+20      | shipped                      | 0.214 | 0.308 |      0.38  |     0.221 |     0.409 |     0.226 |     0.144 |
 | DL19+20      | fitted                       | 0.218 | 0.308 |      0.38  |     0.24  |     0.303 |     0.254 |     0.203 |
 | DL19+20      | Jev 1.13                     | 0.203 | 0.401 |      0.601 |     0.234 |     0.432 |     0.21  |     0.124 |
+| DL19+20      | Kev-0.8B (shipped T)         | 0.25  | 0.204 |      0.303 |     0.178 |     0.308 |     0.305 |     0.209 |
 | DL19+20      | base rate (other collection) | 0.16  | 0.627 |    nan     |     0.614 |     0.172 |     0.148 |     0.067 |

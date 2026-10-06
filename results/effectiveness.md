@@ -16,6 +16,8 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 | Jev noul: P(yes) | 0.664<sup>ad</sup> | 0.606<sup>ad</sup> | 0.722<sup>ad</sup> | 0.852 | 0.465<sup>ad</sup> | 0.849 |
 | Jev noul, ties by E[y] | 0.654<sup>abd</sup> | 0.592<sup>ad</sup> | 0.720<sup>ad</sup> | 0.830 | 0.463<sup>ad</sup> | 0.842 |
 | Jev score: E[y] | 0.669<sup>ad</sup> | 0.612<sup>ad</sup> | 0.728<sup>ad</sup> | 0.845 | 0.470<sup>ad</sup> | 0.853 |
+| Kev-0.8B noul: P(yes) | 0.218<sup>abcd</sup> | 0.182<sup>abcd</sup> | 0.474<sup>bcd</sup> | 0.318<sup>abcd</sup> | 0.147<sup>abcd</sup> | 0.360 |
+| Kev-0.8B score: E[y] | 0.258<sup>abcd</sup> | 0.224<sup>abcd</sup> | 0.533<sup>bcd</sup> | 0.350<sup>abcd</sup> | 0.177<sup>abcd</sup> | 0.398 |
 
 ## DL20
 
@@ -31,6 +33,8 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 | Jev noul: P(yes) | 0.698<sup>ad</sup> | 0.661<sup>ad</sup> | 0.756<sup>ad</sup> | 0.826<sup>ad</sup> | 0.484<sup>ad</sup> | 0.863 |
 | Jev noul, ties by E[y] | 0.689<sup>ad</sup> | 0.650<sup>ad</sup> | 0.752<sup>ad</sup> | 0.813<sup>ad</sup> | 0.482<sup>ad</sup> | 0.852 |
 | Jev score: E[y] | 0.716<sup>ad</sup> | 0.680<sup>ad</sup> | 0.770<sup>acd</sup> | 0.855<sup>ad</sup> | 0.506<sup>ad</sup> | 0.880 |
+| Kev-0.8B noul: P(yes) | 0.212<sup>abcd</sup> | 0.198<sup>abcd</sup> | 0.449<sup>bcd</sup> | 0.325<sup>abcd</sup> | 0.128<sup>abcd</sup> | 0.346 |
+| Kev-0.8B score: E[y] | 0.211<sup>abcd</sup> | 0.197<sup>abcd</sup> | 0.460<sup>bcd</sup> | 0.371<sup>abcd</sup> | 0.134<sup>abcd</sup> | 0.370 |
 
 ## DL19+20
 
@@ -46,6 +50,8 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 | Jev noul: P(yes) | 0.683<sup>ad</sup> | 0.637<sup>ad</sup> | 0.741<sup>ad</sup> | 0.838<sup>ad</sup> | 0.476<sup>ad</sup> | 0.857 |
 | Jev noul, ties by E[y] | 0.674<sup>ad</sup> | 0.624<sup>ad</sup> | 0.738<sup>ad</sup> | 0.821<sup>ad</sup> | 0.474<sup>ad</sup> | 0.847 |
 | Jev score: E[y] | 0.695<sup>ad</sup> | 0.650<sup>ad</sup> | 0.751<sup>acd</sup> | 0.851<sup>ad</sup> | 0.490<sup>ad</sup> | 0.868 |
+| Kev-0.8B noul: P(yes) | 0.214<sup>abcd</sup> | 0.190<sup>abcd</sup> | 0.460<sup>bcd</sup> | 0.322<sup>abcd</sup> | 0.137<sup>abcd</sup> | 0.353 |
+| Kev-0.8B score: E[y] | 0.232<sup>abcd</sup> | 0.209<sup>abcd</sup> | 0.493<sup>bcd</sup> | 0.362<sup>abcd</sup> | 0.153<sup>abcd</sup> | 0.382 |
 
 ## Laya score: ranking rule x temperature (nDCG@10)
 
@@ -75,6 +81,8 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 | Jev noul: P(yes)               |                0.9803 |
 | Jev noul, ties by E[y]         |                0.737  |
 | Jev score: E[y]                |                0.9144 |
+| Kev-0.8B noul: P(yes)          |                0.0008 |
+| Kev-0.8B score: E[y]           |                0      |
 
 ## Tie robustness (DL19+20): random tie-break, mean of 20 draws
 
@@ -87,5 +95,5 @@ Superscripts: significantly different (paired t-test, Holm-corrected p < 0.05) f
 ## Temperatures (keyed by the collection they are applied to)
 
 ```
-{'raw': {'noul': {'dl19': 1.0, 'dl20': 1.0}, 'score': {'dl19': 1.0, 'dl20': 1.0}}, 'shipped': {'noul': {'dl19': 1.9834, 'dl20': 1.9834}, 'score': {'dl19': 1.2514, 'dl20': 1.2514}}, 'fitted': {'noul': {'dl19': 2.16, 'dl20': 2.8284}, 'score': {'dl19': 4.6646, 'dl20': 4.4641}}, 'monot5_xfit': {'dl19': 4.539, 'dl20': 6.0456}, 'qwen3_xfit': {'dl19': 5.505, 'dl20': 4.6721}, 'laya_noul_xfit': {'dl19': 2.162, 'dl20': 2.8312}, 'jev_noul_xfit': {'dl19': 1.3184, 'dl20': 1.3867}}
+{'raw': {'noul': {'dl19': 1.0, 'dl20': 1.0}, 'score': {'dl19': 1.0, 'dl20': 1.0}}, 'shipped': {'noul': {'dl19': 1.9834, 'dl20': 1.9834}, 'score': {'dl19': 1.2514, 'dl20': 1.2514}}, 'fitted': {'noul': {'dl19': 2.16, 'dl20': 2.8284}, 'score': {'dl19': 4.6646, 'dl20': 4.4641}}, 'kev_shipped': 2.3511, 'monot5_xfit': {'dl19': 4.539, 'dl20': 6.0456}, 'qwen3_xfit': {'dl19': 5.505, 'dl20': 4.6721}, 'laya_noul_xfit': {'dl19': 2.162, 'dl20': 2.8312}, 'jev_noul_xfit': {'dl19': 1.3184, 'dl20': 1.3867}, 'kev_noul_xfit': {'dl19': 99.9996, 'dl20': 99.9994}}
 ```

@@ -157,6 +157,11 @@ def systems() -> tuple[pd.DataFrame, dict]:
         out = out.merge(jev_frame(), on=data.KEY, how="left", validate="1:1")
         if out.jev_noul_p.notna().all():
             zs["jev_noul"] = logit(out.jev_noul_p.to_numpy())
+    if (data.RUNS / f"{KEV}.parquet").exists():
+        kv, temps["kev_shipped"] = kev_frame()
+        out = out.merge(kv, on=data.KEY, how="left", validate="1:1")
+        if out.kev_noul_p.notna().all():
+            zs["kev_noul"] = out.kev_noul_z.to_numpy()
     for name, z in zs.items():  # one cross-fitted temperature per model, same fitter for all
         out[f"{name}_xfit"], temps[f"{name}_xfit"] = crossfit_binary(out, z)
     return out, temps
@@ -175,3 +180,26 @@ def jev_frame(jv: pd.DataFrame | None = None) -> pd.DataFrame:
     jv["jev_ge2"] = P[:, 2] + P[:, 3]
     jv["jev_noul_lin"] = jv["jev_noul_p"] + 1e-3 * jv["jev_lin"] / 3
     return jv.drop(columns=["jev_model", "jev_cost"])
+
+
+KEV = "kev-0.8b"
+
+
+def kev_frame() -> tuple[pd.DataFrame, float]:
+    """Kev columns from its raw (T = 1) probabilities: kev_noul_p (as shipped: the checkpoint's temperature),
+    kev_noul_p_raw, kev_noul_z (raw log-odds), kev_score_p{y} (shipped) and ranking scores kev_{lin,exp,ge2}."""
+    import json
+
+    kv = pd.read_parquet(data.RUNS / f"{KEV}.parquet")
+    t = float(json.loads((data.RUNS / f"{KEV}.json").read_text())["shipped_temperature"])
+    pr = np.clip(kv["kev_noul_p_raw"].to_numpy(float), 1e-12, 1 - 1e-12)
+    kv["kev_noul_z"] = np.log(pr / (1 - pr))
+    kv["kev_noul_p"] = 1 / (1 + np.exp(-kv["kev_noul_z"] / t))
+    lp = np.log(np.clip(kv[[f"kev_score_p{y}_raw" for y in range(4)]].to_numpy(float), 1e-12, 1))
+    P = softmax(lp, t)
+    for y in range(4):
+        kv[f"kev_score_p{y}"] = P[:, y]
+    kv["kev_lin"] = P @ np.arange(4.0)
+    kv["kev_exp"] = P @ (2.0 ** np.arange(4) - 1)
+    kv["kev_ge2"] = P[:, 2] + P[:, 3]
+    return kv, round(t, 4)

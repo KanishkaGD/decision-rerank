@@ -31,7 +31,12 @@ PROB = {  # label -> P(rel >= 2) column
     "Qwen3-Reranker-0.6B (cross-fit T)": "qwen3_xfit",
     "Laya noul (cross-fit T, unclamped)": "laya_noul_xfit",
     "Jev noul (cross-fit T)": "jev_noul_xfit",
+    "Kev-0.8B noul": "kev_noul_p",
+    "Kev-0.8B noul raw (T = 1)": "kev_noul_p_raw",
+    "Kev-0.8B score P(y>=2)": "kev_ge2",
+    "Kev-0.8B noul (cross-fit T)": "kev_noul_xfit",
 }
+KEV = "#008300"
 PAIRS = [  # paired query-bootstrap differences (first - second); negative = first is better
     ("Jev noul", "monoT5-base (cross-fit T)"),
     ("Jev noul", "Laya noul (shipped)"),
@@ -39,6 +44,9 @@ PAIRS = [  # paired query-bootstrap differences (first - second); negative = fir
     ("Laya noul (shipped)", "monoT5-base"),
     ("Laya noul (fitted)", "Laya noul (shipped)"),
     ("Jev noul (cross-fit T)", "monoT5-base (cross-fit T)"),
+    ("Kev-0.8B noul", "Jev noul"),
+    ("Kev-0.8B noul", "Qwen3-Reranker-0.6B"),
+    ("Kev-0.8B noul (cross-fit T)", "Qwen3-Reranker-0.6B (cross-fit T)"),
 ]
 JEV = "#4a3aa7"
 COLL = {"DL19": ["dl19"], "DL20": ["dl20"], "DL19+20": ["dl19", "dl20"]}
@@ -122,10 +130,11 @@ def graded_table(judged: pd.DataFrame) -> pd.DataFrame:
             P = f[[f"score_p{y}_{c}" for y in range(4)]].to_numpy(float)
             rows.append({"collection": coll, "condition": c, **cal.graded(P, g),
                          **{f"mean_P{y}": P[:, y].mean() for y in range(4)}})
-        if "jev_score_p0" in f:
-            P = f[[f"jev_score_p{y}" for y in range(4)]].to_numpy(float)
-            rows.append({"collection": coll, "condition": "Jev 1.13", **cal.graded(P, g),
-                         **{f"mean_P{y}": P[:, y].mean() for y in range(4)}})
+        for pre, label in (("jev", "Jev 1.13"), ("kev", "Kev-0.8B (shipped T)")):
+            if f"{pre}_score_p0" in f:
+                P = f[[f"{pre}_score_p{y}" for y in range(4)]].to_numpy(float)
+                rows.append({"collection": coll, "condition": label, **cal.graded(P, g),
+                             **{f"mean_P{y}": P[:, y].mean() for y in range(4)}})
         prior = np.stack([np.bincount(judged[judged.qset != q].rel.astype(int), minlength=4)
                           / (judged.qset != q).sum() for q in f.qset])
         rows.append({"collection": coll, "condition": "base rate (other collection)", **cal.graded(prior, g),
@@ -145,7 +154,9 @@ def reliability_figure(judged: pd.DataFrame):
               ("Laya noul: P(yes)", [(c, f"noul_p_{c}", COND_COLOR[c], "-") for c in CONDITIONS]),
               ("Laya score: P(y ≥ 2)", [(c, f"score_ge2_{c}", COND_COLOR[c], "-") for c in CONDITIONS]),
               ("Jev 1.13 (no temperature access)", [("noul P(yes)", "jev_noul_p", JEV, "-"),
-                                                     ("score P(y ≥ 2)", "jev_ge2", JEV, "--")])]
+                                                     ("score P(y ≥ 2)", "jev_ge2", JEV, "--")]),
+              ("Kev-0.8B (shipped T)", [("noul P(yes)", "kev_noul_p", KEV, "-"),
+                                        ("score P(y ≥ 2)", "kev_ge2", KEV, "--")])]
     panels = [pn for pn in panels if all(col in judged for _, col, _, _ in pn[1])]
     fig, axes = plt.subplots(2, len(panels), figsize=(3.4 * len(panels), 4.9), height_ratios=[3, 1], sharex=True,
                              gridspec_kw={"hspace": 0.08, "wspace": 0.12})
@@ -186,11 +197,11 @@ def reliability_figure(judged: pd.DataFrame):
 
 
 def grades_figure(judged: pd.DataFrame, temps: dict):
-    conds = ("raw", "fitted", "jev") if "jev_score_p0" in judged else ("raw", "fitted")
+    conds = ("raw", "fitted") + tuple(c for c in ("jev", "kev") if f"{c}_score_p0" in judged)
     fig, axes = plt.subplots(1, len(conds), figsize=(3.55 * len(conds), 3.3), sharey=True,
                              gridspec_kw={"wspace": 0.06})
     for ax, c in zip(axes, conds):
-        cols = [f"jev_score_p{y}" for y in range(4)] if c == "jev" else [f"score_p{y}_{c}" for y in range(4)]
+        cols = [f"{c}_score_p{y}" for y in range(4)] if c in ("jev", "kev") else [f"score_p{y}_{c}" for y in range(4)]
         M = np.stack([judged[judged.rel == g][cols].mean().to_numpy() for g in range(4)])
         ax.imshow(M, cmap="Blues", vmin=0, vmax=1)
         for g in range(4):
@@ -201,10 +212,10 @@ def grades_figure(judged: pd.DataFrame, temps: dict):
         ax.set_yticks(range(4), [f"{g} (n={n[g]:,})" for g in range(4)], fontsize=7.5, color=INK2)
         ax.tick_params(axis="y", labelleft=ax is axes[0])
         ax.set_xticks(range(4), range(4), fontsize=7.5, color=INK2)
-        ax.set_xlabel(("Jev" if c == "jev" else "Laya") + " grade y", fontsize=8.5, color=INK2)
+        ax.set_xlabel({"jev": "Jev", "kev": "Kev"}.get(c, "Laya") + " grade y", fontsize=8.5, color=INK2)
         fitted = " / ".join(f"{t:.2f}" for t in temps["fitted"]["score"].values())  # DL19 / DL20
         ax.set_title({"raw": "Laya raw (T = 1)", "fitted": f"Laya fitted (T = {fitted})",
-                      "jev": "Jev 1.13"}[c],
+                      "jev": "Jev 1.13", "kev": "Kev-0.8B (shipped T)"}[c],
                      fontsize=9, color=INK2, loc="left")
         for s in ax.spines.values():
             s.set_visible(False)
@@ -220,11 +231,15 @@ def grades_figure(judged: pd.DataFrame, temps: dict):
 def main():
     frame, temps = systems()
     judged = frame[frame.rel.notna()].reset_index(drop=True)
-    if "jev_noul_p" not in judged or judged.jev_noul_p.isna().any():  # Jev only with a complete run
-        print("skipping Jev: no complete run")
-        for k in ("Jev noul", "Jev score P(y>=2)", "Jev noul (cross-fit T)"):
-            PROB.pop(k, None)
-        judged = judged.drop(columns=[c for c in judged if c.startswith("jev_")])
+    for prefix, keys in (("jev_", ("Jev noul", "Jev score P(y>=2)", "Jev noul (cross-fit T)")),
+                         ("kev_", ("Kev-0.8B noul", "Kev-0.8B noul raw (T = 1)", "Kev-0.8B score P(y>=2)",
+                                   "Kev-0.8B noul (cross-fit T)"))):
+        col = prefix + "noul_p"
+        if col not in judged or judged[col].isna().any():  # a decision model only with a complete run
+            print(f"skipping {prefix}: no complete run")
+            for k in keys:
+                PROB.pop(k, None)
+            judged = judged.drop(columns=[c for c in judged if c.startswith(prefix)])
     data.RESULTS.mkdir(exist_ok=True), data.FIGURES.mkdir(exist_ok=True)
 
     main_tab = binary_table(judged, ci=True)
