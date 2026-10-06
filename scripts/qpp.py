@@ -1,7 +1,8 @@
 """Query performance prediction from relevance probabilities. Writes results/qpp.{md,csv}.
 
-Targets: per-query nDCG@10 and P@10 (rel >= 2) of two rankings of the official pool, the BM25 top 10
-(first stage) and the monoT5 top 10 (reranked). Both are 98-99% judged.
+Targets: per-query nDCG@10 and P@10 (rel >= 2) of three top-10 lists: the standard BM25 run (Anserini default,
+k1=0.9, b=0.4, the run QPP papers such as QPP-GenRE predict; 99.7% judged), our bm25s ordering of the official
+pool, and the monoT5 reranking of that pool (98-99% judged).
 
 Predictors read a model's answers on that top 10, never the labels:
 - expected P@10 = sum of P(relevant) over the top 10 / 10;
@@ -14,8 +15,11 @@ Evaluation: Kendall tau and Pearson r with the true per-query metric, per collec
 and their mean; mean absolute error of expected vs actual P@10 (does the predictor get the value right?).
 """
 
+import ir_measures
 import numpy as np
 import pandas as pd
+from ir_measures import P as Prec
+from ir_measures import nDCG
 from scipy import stats
 
 from decisionrerank import data
@@ -42,6 +46,27 @@ def top10(frame: pd.DataFrame, col: str) -> pd.DataFrame:
     return f[f.pos < 10]
 
 
+def std_top10(frame: pd.DataFrame) -> pd.DataFrame:
+    std = data.bm25_std()
+    t = std[std.std_rank <= 10].merge(frame.drop(columns=["in_pool"]), on=data.KEY, validate="1:1")
+    return t.assign(pos=t.std_rank - 1, in_pool=True)
+
+
+def std_actual(qrels: pd.DataFrame) -> pd.DataFrame:
+    """nDCG@10 and P@10 (rel >= 2) of the full standard run, per query."""
+    std, rows = data.bm25_std(), []
+    for qs in data.QSETS:
+        qr, run = {}, {}
+        for q, d, r in qrels[qrels.qset == qs][["query_id", "doc_id", "rel"]].itertuples(index=False):
+            qr.setdefault(q, {})[d] = int(r)
+        for q, d, sc in std[std.qset == qs][["query_id", "doc_id", "std_score"]].itertuples(index=False):
+            run.setdefault(q, {})[d] = float(sc)
+        names = {repr(nDCG @ 10): "nDCG@10", repr(Prec(rel=data.REL_MIN) @ 10): "P@10"}
+        rows += [(m.query_id, names[repr(m.measure)], m.value)
+                 for m in ir_measures.iter_calc([nDCG @ 10, Prec(rel=data.REL_MIN) @ 10], qr, run)]
+    return pd.DataFrame(rows, columns=["query_id", "m", "v"]).pivot(index="query_id", columns="m", values="v")
+
+
 def predictors(t: pd.DataFrame, pool: pd.DataFrame, which: str) -> pd.DataFrame:
     g = t.groupby("query_id")
     out = pd.DataFrame(index=g.size().index)
@@ -50,7 +75,13 @@ def predictors(t: pd.DataFrame, pool: pd.DataFrame, which: str) -> pd.DataFrame:
     for name, col in GRADES.items():
         out[name] = (t[col] * DISC[t.pos]).groupby(t.query_id).sum()
     pg = pool[pool.in_pool].groupby("query_id")
-    if which == "BM25":
+    if which == "BM25 standard run":
+        std = data.bm25_std()
+        top100 = std[std.std_rank <= 100].groupby("query_id").std_score
+        out["BM25 sigma@100"] = top100.std()
+        out["BM25 NQC-style (sigma@100 / mean@1000)"] = top100.std() / std.groupby("query_id").std_score.mean()
+        out["BM25 top score"] = top100.max()
+    if which == "BM25 (our pool order)":
         top100 = pool[pool.in_pool & (pool.bm25_rank <= 100)].groupby("query_id").bm25
         out["BM25 sigma@100"] = top100.std()
         out["BM25 NQC-style (sigma@100 / pool mean)"] = top100.std() / pg.bm25.mean()
@@ -75,9 +106,13 @@ def main():
                     "Kendall tau / Pearson r with the true per-query metric; per collection and their mean. "
                     "MAE: |expected P@10 - actual P@10| (probability predictors only). "
                     "'Labels' marks predictors that need judged pairs (cross-fitted on the other collection).", ""]
-    for which, col in (("BM25", "bm25"), ("monoT5", "monot5_p")):
-        t = top10(frame, col)
-        P, A = predictors(t, frame, which), actual(t, frame, col, qrels)
+    for which, col in (("BM25 standard run", None), ("BM25 (our pool order)", "bm25"), ("monoT5", "monot5_p")):
+        if col is None:
+            t, A = std_top10(frame), std_actual(qrels)
+        else:
+            t = top10(frame, col)
+            A = actual(t, frame, col, qrels)
+        P = predictors(t, frame, which)
         for name in P:
             row = {"list": which, "predictor": name,
                    "labels": PROB.get(name, ("", False))[1], "kind": "prob" if name in PROB else "grade" if name in GRADES else "score"}

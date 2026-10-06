@@ -15,6 +15,7 @@ import time
 from dataclasses import replace
 
 import numpy as np
+import pandas as pd
 import torch
 from kev.api import SystemOneRequest, to_record
 from kev.checkpoint import Checkpoint, LoadOptions, fused_available
@@ -37,6 +38,15 @@ def main():
     pairs = data.pairs()
     if a.limit:
         pairs = pairs.sample(a.limit, random_state=0)
+    path = data.RUNS / f"{stem}.parquet"
+    old = None
+    if path.exists():  # incremental: score only pairs the stored run lacks
+        old = pd.read_parquet(path).merge(pairs[data.KEY], on=data.KEY)
+        m = pairs.merge(old[data.KEY], on=data.KEY, how="left", indicator=True)["_merge"].eq("left_only").to_numpy()
+        pairs = pairs[m].reset_index(drop=True)
+        print(f"{len(old)} cached, {len(pairs)} to score", flush=True)
+        if not len(pairs):
+            return
     ck = Checkpoint(a.model)
     dtype = {"bf16": torch.bfloat16, "fp32": torch.float32}[a.dtype]
     opts = replace(LoadOptions.from_env(), dtype=dtype, temperature=1.0, cuda_graphs=True, fused=fused_available())
@@ -69,9 +79,10 @@ def main():
     for y in range(4):
         out[f"kev_score_p{y}_raw"] = score[:, y]
     data.RUNS.mkdir(exist_ok=True)
-    out.to_parquet(data.RUNS / f"{stem}.parquet", index=False)
+    out = pd.concat([x for x in (old, out) if x is not None], ignore_index=True)
+    out.to_parquet(path, index=False)
     meta = {"model": a.model, "shipped_temperature": float(ck.meta.temperature), "pairs": len(out),
-            "seconds": round(time.time() - t0, 1), "dtype": a.dtype, "gpu": torch.cuda.get_device_name()}
+            "seconds_last_run": round(time.time() - t0, 1), "dtype": a.dtype, "gpu": torch.cuda.get_device_name()}
     (data.RUNS / f"{stem}.json").write_text(json.dumps(meta, indent=2) + "\n")
     print(json.dumps(meta))
 

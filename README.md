@@ -47,6 +47,7 @@ scripts/
   score_kev.py      runs/kev-0.8b.parquet, run with Kev's own environment (see its docstring)
   evaluate.py       RQ1 -> results/effectiveness.{md,csv}, per_query.csv, score_rules.csv, tie_robustness.csv
   calibrate.py      RQ2 -> results/calibration*.{md,csv}, figures/{reliability,grades}.{png,pdf}
+  prepare_std_bm25.py  freeze the standard Anserini BM25 run (for QPP)
   qpp.py            query performance prediction -> results/qpp.{md,csv}
   sample_report.py  quick comparison on the queries Jev has fully answered (results/sample_report.md)
   check_runs.py     integrity checks -> results/checks.json
@@ -190,38 +191,45 @@ Paired query-bootstrap differences, all judged pairs ([results/calibration_paire
 
 ### Query performance prediction (`scripts/qpp.py`)
 
-Can the probabilities predict how good a query's ranking is, without labels? Each predictor reads one
+Can the probabilities predict, without labels, how good a query's ranking is? Each predictor reads one
 model's answers on a query's top 10. Expected P@10 is the mean P(relevant); expected DCG@10 comes from
-the grade distribution. The target is each query's true nDCG@10 and P@10, for the BM25 top 10 (first
-stage) and the monoT5 top 10 (reranked). Kendall tau is computed per collection and averaged. "Platt"
-needs judged pairs (cross-fitted). Full table: [results/qpp.md](results/qpp.md).
+the grade distribution. Targets are the true nDCG@10 and P@10 of three lists:
+- the **standard BM25 run**: Anserini default, k1 = 0.9, b = 0.4 (`prepare_std_bm25.py`). It
+  reproduces Anserini's regression scores exactly: DL19 nDCG@10 0.5058, AP 0.3013; DL20 0.4796, 0.2856.
+  This is the run QPP papers predict;
+- our bm25s ordering of the official pool;
+- the monoT5 reranking.
 
-| Predictor | Labels | BM25 list: tau | BM25 list: predicted / actual P@10 (MAE) | monoT5 list: tau |
-| --- | :---: | ---: | ---: | ---: |
-| Jev E[grade] | | **0.478** | | **0.300** |
-| Jev P(yes) | | 0.439 | 0.45 / 0.37 (**0.158**) | 0.267 |
-| monoT5 mean log-odds@10 | | 0.432 | | 0.212 |
-| monoT5 P(true), raw | | 0.412 | 0.55 / 0.37 (0.244) | 0.200 |
-| monoT5 P(true), Platt | yes | 0.420 | 0.39 / 0.37 (0.205) | 0.211 |
-| Qwen3-0.6B P(yes), raw | | 0.334 | 0.83 / 0.37 (0.464) | 0.181 |
-| Qwen3-0.6B P(yes), Platt | yes | 0.391 | 0.40 / 0.37 (0.213) | 0.188 |
-| Laya P(yes) (shipped T) | | 0.334 | 0.36 / 0.37 (0.183) | 0.159 |
-| BM25 sigma@100 (classic QPP) | | 0.303 | | |
-| BM25 NQC-style | | 0.232 | | |
-| Kev-0.8B P(yes) | | 0.208 | 0.56 / 0.37 (0.315) | 0.035 |
+Full tables: [results/qpp.md](results/qpp.md).
 
-- **Probability-based predictors rank queries better than classic score-spread QPP.** On the BM25 list,
-  Jev reaches tau 0.44-0.48 and the cross-encoders 0.33-0.43, against 0.23-0.30 for sigma and NQC.
-  With 43 + 54 queries, no pairwise difference is significant: the paired bootstrap CI of Jev P(yes) vs
-  BM25 sigma is [-0.03, +0.32], and vs monoT5 [-0.10, +0.14].
-- **Calibration matters for predicting the value, not the order.** Raw Qwen3 predicts P@10 = 0.83 when
-  the truth is 0.37. Platt brings it to 0.40, but its per-query error stays 0.21. Jev, with no labels,
-  has the lowest per-query error (0.158), although it over-predicts on average (0.45). Laya is unbiased
-  on average (0.36) but noisier per query.
-- **Raw cross-encoder probabilities break linear prediction on a strong list.** On the monoT5 top 10
-  they sit near 1 (mean 0.93-0.97), and their Pearson r with nDCG@10 is 0.01. Platt restores it to about 0.2.
-- **Predicting the reranked list is harder** (tau <= 0.30 for every predictor), because its quality
-  varies less across queries.
+**Standard BM25 run, nDCG@10 target, next to published heavy QPP on the same run** (Kendall tau / Pearson r):
+
+| Predictor | Judgments per query | Labels | tau DL19 | tau DL20 | r DL19 | r DL20 |
+| --- | --- | :---: | ---: | ---: | ---: | ---: |
+| QPP-GenRE, fine-tuned LLaMA-7B, 200 passages judged ([Meng et al.](https://arxiv.org/abs/2404.01012), Table 3) | 200 LLM calls | yes | **0.474** | 0.469 | **0.724** | 0.638 |
+| **Jev E[grade] (ours)** | 10 API calls | no | 0.373 | **0.555** | 0.620 | **0.770** |
+| Jev P(yes) (ours) | 10 API calls | no | 0.353 | 0.544 | 0.554 | 0.739 |
+| monoT5 mean log-odds@10 (ours) | 10 local passes | no | 0.360 | 0.507 | 0.498 | 0.712 |
+| Qwen3-0.6B P(yes), Platt (ours) | 10 local passes | yes | 0.373 | 0.468 | 0.559 | 0.684 |
+| Laya P(yes) (ours) | 10 local passes | no | 0.305 | 0.378 | 0.423 | 0.558 |
+| BM25 sigma@100 (ours) | none | no | 0.322 | 0.412 | 0.499 | 0.489 |
+| n(sigma_x%) (QPP-GenRE, Table 3) | none | no | 0.311 | 0.443 | 0.532 | 0.622 |
+| BERT-QPP (QPP-GenRE, Table 3) | 1 fine-tuned BERT pass | yes | 0.207 | 0.300 | 0.458 | 0.426 |
+| Kev-0.8B E[grade] (ours) | 10 local passes | no | 0.274 | 0.272 | 0.473 | 0.364 |
+
+- **Zero-shot Jev matches the best published LLM-judge QPP.** Averaged over the two years, Jev E[grade]
+  has tau 0.464 and r 0.695, against 0.472 and 0.681 for QPP-GenRE. It is lower on DL19 and higher on
+  DL20. It needs 10 calls (about $0.0002 per query, no fine-tuning), against 200 judgments by a
+  fine-tuned 7B model. Our classic sigma baseline lands next to QPP-GenRE's reported score-spread
+  baseline, which suggests the setups agree.
+- **These differences are within noise.** With 43 and 54 queries a tau has a CI of roughly +/-0.15. No
+  test against QPP-GenRE is possible without its per-query predictions (its released data is no longer
+  downloadable).
+- **Calibration matters for the value, not the order.** On the standard run, raw Qwen3 predicts P@10 =
+  0.83 against a true 0.38 (per-query error 0.44). Platt cuts the error to 0.21. Jev, with no labels,
+  has the lowest error (0.165). See results/qpp.md.
+- **The reranked (monoT5) list is harder to predict** (tau <= 0.30 for every predictor), because its
+  quality varies less across queries.
 
 ### Takeaway
 
