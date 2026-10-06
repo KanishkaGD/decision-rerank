@@ -18,6 +18,8 @@ Owner's decision on open question 1: an arXiv preprint, then a WSDM 2027 short p
 plus references, ACM sigconf, anonymised; arXiv preprints allowed). This replaces the 2026-10-05 decision of no fixed
 deadline. Details and consequences in `docs/intent/venue.md`.
 
+Open question 2: the arXiv preprint goes up before Nov 17, 2026 (owner, 2026-10-06).
+
 ## 2026-10-06 -- Cluster bring-up
 
 Bring-up sequence from `docs/handoff.md` run against FAITH; everything works after two fixes.
