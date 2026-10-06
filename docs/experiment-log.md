@@ -12,6 +12,12 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-06 -- Venue: arXiv, then WSDM 2027 short paper
+
+Owner's decision on open question 1: an arXiv preprint, then a WSDM 2027 short paper (deadline Nov 17, 2026, 4 pages
+plus references, ACM sigconf, anonymised; arXiv preprints allowed). This replaces the 2026-10-05 decision of no fixed
+deadline. Details and consequences in `docs/intent/venue.md`.
+
 ## 2026-10-06 -- Cluster bring-up
 
 Bring-up sequence from `docs/handoff.md` run against FAITH; everything works after two fixes.
