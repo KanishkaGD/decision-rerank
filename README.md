@@ -139,20 +139,15 @@ cd paper && make && make check
 
 ## Working together
 
-The project runs on a shared VM (`docs/vm-setup.md`: one Linux user, a profile per person, Kerberos keytab with
-automatic tickets) where several people and agents work in parallel; start every session with
-`source ~/people/<name>.env`. Every change is a claimed task in its own git worktree, merged back to
-`main` as soon as it works (`docs/collaboration.md`):
-
-```bash
-scripts/task.sh list                                   # who works on what
-scripts/task.sh start jev-dl19-runs "Jev on DL19/20"   # claim + branch task/<id> + worktree
-scripts/task.sh finish                                 # in the worktree: rebase, scripts/check.sh, merge, push
-```
-
-A Claude Code hook (`scripts/agent_guard.py`, `.claude/settings.json`) blocks edits outside claimed task worktrees,
-force-pushes and direct pushes to `main`.
+Two people work in this repository with ordinary git branches: develop on a feature or dev branch, merge into
+`master` regularly in small working steps, run `scripts/check.sh` (shell syntax, Python compile, unit tests) before
+merging, and never rewrite `master`'s history. Each clone syncs to its own `checkouts/<user>-<directory>/` on the
+cluster, so two clones never overwrite each other's code (`cluster/cluster.env`).
 
 ## Next steps
 
-`docs/handoff.md` (state of the project) and `docs/tasks/backlog.md` (open work, in order).
+1. Prefetch the remaining datasets (checks their Pyserini names) and run the first stage on all of them.
+2. WP2: all systems on DL19/DL20 (the calibration sets with judged non-relevant documents), then the BEIR subset;
+   replicate S1Rank's Jev numbers as a sanity check; report the go/no-go decision on Laya before any WP4 work.
+3. WP0 landscape note (S1Rank, the Decision Index, Laya and Clef model cards) in `docs/notes/wp0-landscape.md`.
+4. Move `paper/` to ACM sigconf for the WSDM 2027 short paper (`docs/intent/venue.md`) and add `cdm table`.

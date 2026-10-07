@@ -12,6 +12,15 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-07 -- Back to branch-based collaboration; handoff workflow removed
+
+Owner's decision (`docs/intent/collaboration.md`): no handoff to a shared VM. Michael and his colleague collaborate with
+feature/dev branches merged into `master` regularly. Removed: `docs/handoff.md`, `docs/collaboration.md`,
+`docs/vm-setup.md`, `docs/tasks/backlog.md`, `cluster/vm/`, `scripts/task.sh`, `scripts/agent_guard.py` and its hook
+(`.claude/settings.json`); they remain in the git history (last at commit cdd8ed8). Kept: the per-checkout cluster
+layout (two clones must not overwrite each other's code on `/shared`) and `scripts/check.sh`; the open next steps
+moved to README.md.
+
 ## 2026-10-06 -- Move to a shared VM; collaboration rules; per-checkout cluster layout
 
 Owner's decisions (`docs/intent/collaboration.md`): work continues on a shared VM in the university network with a

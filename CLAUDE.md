@@ -2,34 +2,30 @@
 
 Research project: calibrated System One decision models (Laya, Jev, Clef) as rerankers and retrieval controllers. The
 plan is `docs/research-plan.md` (do not edit it); decisions and failed attempts go to `docs/experiment-log.md`; the
-paper lives in `paper/`. The current state and next steps are in `docs/handoff.md`; open work in
-`docs/tasks/backlog.md`.
+paper lives in `paper/`.
 
-## Working together (read first)
+## Working together
 
-Several people and agents share this repository. Follow `docs/collaboration.md`; in short:
+Two people (and their agents) work in this repository with ordinary git branches:
 
-- Start with `scripts/task.sh list` and `scripts/task.sh status`. Claim before you change anything:
-  `scripts/task.sh start <id> "<description>"`, then work only in the worktree it creates.
-- On the VM, two people share one Linux user; `CDM_WHO` (from `~/people/<name>.env`) says whose session you are.
-  If it isn't set, stop and ask -- never set it yourself. Don't touch tasks claimed by the other person.
-- Never edit in the main checkout or on `main`; never force-push or rewrite history. A PreToolUse hook
-  (`scripts/agent_guard.py`) enforces this -- don't work around it.
-- When the task works, `scripts/task.sh finish`: rebase on `main`, `scripts/check.sh`, fast-forward `main`, push,
-  release. Don't let branches live longer than the task.
-- Don't stop with uncommitted work; commit and update `docs/handoff.md` in your task if you leave it unfinished.
+- Work on a feature or dev branch (`feature/<topic>`, `dev-<name>`), never directly on `master`.
+- Merge your changes into `master` regularly -- small, working steps rather than long-lived branches. Run
+  `scripts/check.sh` (shell syntax, Python compile, unit tests) before merging.
+- Never force-push or rewrite `master` or someone else's branch. Pull/merge `master` into your branch before merging
+  back, so conflicts are resolved on your branch.
 
 ## Where things run
 
-- **You (the agent) run on the shared VM** (`docs/vm-setup.md`) or a user's machine, in a task worktree of this repo.
-  Never on the cluster's login node: the FAITH docs forbid autonomous agents and compute-heavy work there.
+- **You (the agent) run on the user's machine**, in this repo. Never on the cluster's login node: the FAITH docs
+  forbid autonomous agents and compute-heavy work there.
 - The cluster is reached only through `cluster/*.sh`, which send single commands over SSH to the login node and from
-  there to Slurm. They share one SSH connection per VM user, opened automatically with the Kerberos ticket that a
-  cron job keeps fresh from a keytab (VM), or by the user with `cluster/connect.sh` (laptop). If a script fails with
-  "no connection", stop and tell the user (on the VM: check `klist`, docs/vm-setup.md "Maintenance") -- never ask for
-  or handle the password, and never read, copy or print the keytab (`/srv/cdm/secrets/`).
-- Each checkout syncs its code to its own `checkouts/<user>-<worktree>/` on `/shared`; data, caches, outputs,
-  results, logs and the container are shared by all (`cluster/cluster.env`).
+  there to Slurm. They share one SSH connection that the user opens with `cluster/connect.sh` (password), or that
+  opens automatically when the user has a valid Kerberos ticket (`kinit <user>@FIM.UNI-PASSAU.DE`). If a script
+  fails with "no connection", stop and ask the user -- don't try to log in yourself, and never ask for or handle the
+  password.
+- Each clone syncs its code to its own `checkouts/<user>-<directory>/` on `/shared`, so two people's clones don't
+  overwrite each other's code; data, caches, outputs, results, logs and the container are shared
+  (`cluster/cluster.env`).
 - Which wrapper for what:
   - `cluster/exec.sh [--gpu] -- <cmd>` -- one blocking command in the container on a compute node (`short`
     partition): quick checks, `--max-queries 20` trial runs.

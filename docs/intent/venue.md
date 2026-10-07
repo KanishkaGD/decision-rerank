@@ -1,6 +1,6 @@
 # Venue
 
-Decided by the owner on 2026-10-06 (open question 1 in `docs/handoff.md`).
+Decided by the owner on 2026-10-06 (open question 1 of the setup session).
 
 **An arXiv preprint, then a WSDM 2027 short paper.** Call for papers: https://www.wsdm-conference.org/2027/cfsp.html
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The checks a task must pass before scripts/task.sh finish merges it into main (docs/collaboration.md):
+# The checks to run before merging a branch into master:
 #   1. shell syntax of every script, 2. Python byte-compilation of src/ and tests/, 3. the unit tests.
 # The tests run locally when pytest and the dependencies are importable, else in the container on a compute node
 # (cluster/exec.sh, which needs the cluster connection). CDM_SKIP_TESTS=1 skips step 3 -- only for changes that
