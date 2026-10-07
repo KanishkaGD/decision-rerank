@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import click
 
@@ -39,6 +40,32 @@ def systems():
         click.echo(f"{s.name:22} {s.kind:15} {s.model_id}  {s.params or ''}")
 
 
+def _download(repo: str, revision: Optional[str], tries: int = 5) -> str:
+    """
+    snapshot_download with retries: large downloads to /shared fail now and then with transient errors (job 4356461:
+    "File reconstruction error: IO Error: Resource temporarily unavailable (os error 11)" from hf_xet after 140 GB).
+    Files already complete are not fetched again, so a retry resumes.
+    """
+    import time
+
+    from huggingface_hub import snapshot_download
+
+    for attempt in range(1, tries + 1):
+        try:
+            return snapshot_download(repo, revision=revision)
+        except Exception as e:  # noqa: BLE001 -- any download error is worth a retry; the last one is raised
+            if attempt == tries:
+                raise
+            wait = 30 * attempt
+            click.echo(
+                f"  {repo}: download failed ({type(e).__name__}: {str(e)[:200]}); retry {attempt}/{tries - 1} "
+                f"in {wait} s",
+                err=True,
+            )
+            time.sleep(wait)
+    raise AssertionError("unreachable")
+
+
 @click.command("prefetch")
 @click.option("--datasets", "dataset_list", default=",".join(DATASETS), show_default=True)
 @click.option("--systems", "system_list", default=",".join(SYSTEMS), show_default=True)
@@ -48,7 +75,6 @@ def prefetch(dataset_list, system_list):
     models, into the caches (PYSERINI_CACHE, HF_HOME). Run on the login node (slurm/prefetch.sh): compute nodes may
     have no internet.
     """
-    from huggingface_hub import snapshot_download
     from pyserini.search.lucene import LuceneSearcher
 
     from cdm.first_stage import download_pool, load_topics_and_qrels, read_pool
@@ -79,12 +105,12 @@ def prefetch(dataset_list, system_list):
         if spec.params.get("backend") == "kev":  # a LoRA adapter: its base model is named in the checkpoint
             from kev.checkpoint import Checkpoint
 
-            snapshot_download(spec.model_id, revision=spec.revision)
+            _download(spec.model_id, spec.revision)
             meta = Checkpoint(f"{spec.model_id}@{spec.revision}" if spec.revision else spec.model_id).meta
             repos.append((meta.base, meta.base_revision))
         for repo, revision in repos:
             if (repo, revision) not in downloaded:
-                path = snapshot_download(repo, revision=revision)
+                path = _download(repo, revision)
                 downloaded.add((repo, revision))
                 click.echo(f"[{name}] {repo} -> {path}")
 
