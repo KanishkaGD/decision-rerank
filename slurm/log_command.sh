@@ -7,7 +7,7 @@
 #                     sbatch passes the submitting environment on to the job).
 #   "sbatch command": the sbatch command line as Slurm recorded it (sacct's SubmitLine), incl. --time.
 #   "Job script":     this script and its exact arguments.
-#   "Code":           the synced revision (REVISION, written by cluster/sync.sh).
+#   "Code":           the revision of the code snapshot the job runs (REVISION, slurm/snapshot.sh).
 log_job_command() {
     local script_name="$1"
     shift
@@ -19,8 +19,8 @@ log_job_command() {
     [ -n "${CDM_SUBMIT_COMMAND:-}" ] && echo "Submitted with: ${CDM_SUBMIT_COMMAND}"
     [ -n "${submit_line}" ] && echo "sbatch command: ${submit_line}"
     echo "Job script:     slurm/${script_name}$( [ "$#" -gt 0 ] && printf ' %q' "$@" )"
-    if [ -f "${SLURM_SUBMIT_DIR:-.}/REVISION" ]; then
-        echo "Code:           $(sed -n 's/^describe=//p' "${SLURM_SUBMIT_DIR:-.}/REVISION")"
+    if [ -f "${CDM_CODE_DIR:-${SLURM_SUBMIT_DIR:-.}}/REVISION" ]; then
+        echo "Code:           $(sed -n 's/^describe=//p' "${CDM_CODE_DIR:-${SLURM_SUBMIT_DIR:-.}}/REVISION")"
     fi
     echo "Job ${SLURM_JOB_ID:-?} on $(hostname), started $(date '+%Y-%m-%d %H:%M:%S')"
     echo "================================================================================"

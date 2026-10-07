@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Reserves an interactive shell on a compute node, so you queue once instead of once per command. Inside it, run the
-# slurm/*.interactive.sh scripts directly. From your own machine: cluster/interactive.sh (same arguments).
+# slurm/*.interactive.sh scripts directly. Start it from the login node.
 #
 # Usage: slurm/interactive.sh [time_limit] [partition] [extra srun args...]
 #   slurm/interactive.sh                                                  4h on general (CPU)

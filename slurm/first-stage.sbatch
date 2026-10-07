@@ -11,7 +11,7 @@
 # Retrieves and caches the first-stage candidates of ONE dataset (cdm first-stage): the run file, the query and
 # passage texts, and the qrels, under runs/<dataset>/<retriever>/. Every reranker then reads this cache, so all of
 # them see exactly the same candidates. Needs the Pyserini index prefetched (slurm/prefetch.sh).
-#   cluster/submit.sh first-stage --datasets dl19,dl20      |  sbatch slurm/first-stage.sbatch <dataset> [cdm args]
+#   slurm/submit.sh first-stage --datasets dl19,dl20        |  sbatch slurm/first-stage.sbatch <dataset> [cdm args]
 set -euo pipefail
 CDM_ROOT="${SLURM_SUBMIT_DIR}"
 source "${CDM_ROOT}/slurm/log_command.sh"

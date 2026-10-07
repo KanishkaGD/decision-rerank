@@ -9,9 +9,10 @@
 
 : "${CDM_ROOT:?set CDM_ROOT to the repo root before sourcing slurm/env.sh}"
 
-CONTAINER="${CDM_ROOT}/container/cdm.sif"
+# The image: container/cdm.sif unless CDM_CONTAINER names another one (slurm/config.sh container_for: Set-Encoder).
+CONTAINER="${CDM_ROOT}/${CDM_CONTAINER:-container/cdm.sif}"
 [ -f "${CONTAINER}" ] || {
-    echo "slurm/env.sh: ${CONTAINER} is missing -- build it first: cluster/login.sh bash container/build.sh" >&2
+    echo "slurm/env.sh: ${CONTAINER} is missing -- build it first: bash container/build.sh" >&2
     return 1 2>/dev/null || exit 1
 }
 
@@ -23,13 +24,13 @@ export PYSERINI_CACHE="${CDM_DATA}/pyserini"
 export XDG_CACHE_HOME="${CDM_DATA}/cache"
 export CDM_RUNS="${CDM_ROOT}/runs"        # cached first-stage candidates (src/cdm/runs.py)
 export CDM_OUTPUTS="${CDM_ROOT}/outputs"  # raw reranker scores, per-query metrics, manifests
-export CDM_RESULTS="${CDM_ROOT}/results"  # results.csv (tracked in git, fetched with cluster/fetch.sh)
+export CDM_RESULTS="${CDM_ROOT}/results"  # results.csv (tracked in git: review `git diff results/`, then commit)
 # Jobs only read the caches: offline mode makes a model or dataset missing from them fail fast with a clear error,
 # instead of hanging on a download a compute node can't make. slurm/prefetch.sh sets HF_HUB_OFFLINE=0.
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 mkdir -p "${HF_HOME}" "${PYSERINI_CACHE}" "${XDG_CACHE_HOME}" "${CDM_RUNS}" "${CDM_OUTPUTS}" "${CDM_RESULTS}"
 
-# HF_TOKEN, API keys etc. from .env (gitignored; cluster/sync.sh copies it up with mode 600). Passed as a file, not
+# HF_TOKEN, API keys etc. from .env (gitignored; keep it mode 600: chmod 600 .env). Passed as a file, not
 # as --env KEY=value arguments, so the secrets don't show up in the process list of a shared compute node.
 ENV_ARGS=()
 if [ -f "${CDM_ROOT}/.env" ]; then
@@ -44,9 +45,9 @@ fi
 
 # Apptainer passes the host environment through by default; the --env list makes the variables the code depends
 # on explicit. Binding the repo root at the same path keeps every path identical inside and outside.
-# PYTHONPATH puts the repo's src/ ahead of the copy installed in the image: code changes take effect with the next
-# cluster/sync.sh, and the container only needs a rebuild when dependencies (pyproject.toml) change. Batch jobs use
-# the snapshot slurm/submit.sh made at submission time (CDM_CODE_DIR) instead of the live src/.
+# PYTHONPATH puts the repo's src/ ahead of the copy installed in the image: code changes take effect immediately, and
+# the container only needs a rebuild when dependencies (pyproject.toml) change. Batch jobs and slurm/exec.sh use the
+# snapshot taken at submission time (CDM_CODE_DIR, slurm/snapshot.sh) instead of the live src/.
 CDM_CODE_DIR="${CDM_CODE_DIR:-${CDM_ROOT}}"
 CONTAINER_CMD=(
     apptainer exec "${NV_ARGS[@]}"

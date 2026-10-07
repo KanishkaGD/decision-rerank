@@ -12,7 +12,7 @@
 
 # Reranks the cached first-stage candidates of ONE dataset with ONE system (cdm rerank), stores the raw score of
 # every (query, passage, phrasing) under outputs/, and appends the metrics to results/results.csv.
-#   cluster/submit.sh rerank <system> --datasets dl19       |  sbatch slurm/rerank.sbatch <system> <dataset> [cdm args]
+#   slurm/submit.sh rerank <system> --datasets dl19         |  sbatch slurm/rerank.sbatch <system> <dataset> [cdm args]
 set -euo pipefail
 CDM_ROOT="${SLURM_SUBMIT_DIR}"
 source "${CDM_ROOT}/slurm/log_command.sh"
@@ -21,6 +21,8 @@ SYSTEM="${1:?Usage: sbatch slurm/rerank.sbatch <system> <dataset> [extra cdm rer
 DATASET="${2:?Usage: sbatch slurm/rerank.sbatch <system> <dataset> [extra cdm rerank args]}"
 shift 2
 start_job_log rerank "${SYSTEM}_${DATASET}"
+source "${CDM_ROOT}/slurm/config.sh"
+CDM_CONTAINER="$(container_for "${SYSTEM}")"
 source "${CDM_ROOT}/slurm/env.sh"
 
 srun -n 1 --cpus-per-task="${SLURM_CPUS_PER_TASK:-1}" "${CONTAINER_CMD[@]}" cdm rerank "${SYSTEM}" "${DATASET}" "$@"

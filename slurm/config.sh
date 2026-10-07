@@ -11,18 +11,19 @@ SLURM_ACCOUNT="chair-ds"
 # GPU requests of slurm/submit.sh (GPU jobs) and slurm/exec.sh --gpu. A memory-tier feature instead of a GPU type,
 # so a job can land on any GPU with enough memory; it also keeps jobs off the old titanblack and the AMD rx_9060_xt
 # nodes, which current PyTorch/CUDA wheels don't run on. Check the available features with
-#   cluster/login.sh sinfo -N -o "%N %G %f"
+#   sinfo -N -o "%N %G %f"
 # Memory tiers on FAITH (2026-10-06): 6, 8, 11, 16, 20, 24, 48, 80, 141 GiB. gpumem.48gib selects the A100-SXM,
 # H200, L40 and L40S nodes (in the short partition: L40 and L40S); 24gib selects the same nodes.
 # For latency measurements (plan: one fixed GPU), submit with a fixed type instead: --gres gpu:a100-sxm:1.
 GPU_GRES="gpu:1"
 GPU_CONSTRAINT="gpumem.48gib"
 
-# The GPU memory feature for one system; the 27B Clef (~55 GB of bf16 weights) needs the A100-80GB/H200 nodes, which
-# are only in the gpu partition (slurm/exec.sh needs --partition gpu for them).
+# The GPU memory feature for one system. The 27B models (Clef: ~55 GB of bf16 weights; Kev-27B: ~51 GB plus ~15 GB
+# of batching buffers) need the A100-80GB/H200 nodes, which are only in the gpu partition (slurm/exec.sh needs
+# --partition gpu for them). Qwen3-Reranker-8B in fp32 is ~32 GB of weights: 48 GB is enough.
 gpu_constraint_for() {
     case "$1" in
-        clef | clef-isolated) echo "gpumem.80gib" ;;
+        clef-pointwise | clef-listwise | kev-27b-*) echo "gpumem.80gib" ;;
         *) echo "${GPU_CONSTRAINT}" ;;
     esac
 }
@@ -30,9 +31,14 @@ gpu_constraint_for() {
 # Dataset names as registered in src/cdm/datasets.py (`cdm datasets` lists them with their Pyserini ids).
 # "all" in `slurm/submit.sh ... --datasets all` means this list. msmarco-dev is the dev split for selecting the
 # question phrasing (WP3) and is never reported as a test result.
+# Candidates: the official rerank pool where there is one (TREC DL, MS MARCO dev; up to 1000 per query), else our
+# BM25 top-100 (BEIR) -- `cdm datasets` shows which.
 DATASETS=(
-    "dl19"       # TREC DL 2019 passage (in-domain)
-    "dl20"       # TREC DL 2020 passage (in-domain)
+    "dl19"       # TREC DL 2019 passage (in-domain), official pool
+    "dl20"       # TREC DL 2020 passage (in-domain), official pool
+    "dl21"       # TREC DL 2021-2023 passage: MS MARCO v2 (138M passages), official top-100 pools; prefetch the
+    "dl22"       #   39 GB msmarco-v2-passage index with a batch job (slurm/prefetch.sbatch)
+    "dl23"
     "trec-covid" # BEIR
     "nfcorpus"   # BEIR
     "scifact"    # BEIR, small: the sanity-check dataset
@@ -40,33 +46,63 @@ DATASETS=(
     "scidocs"    # BEIR
 )
 DEV_DATASETS=(
-    "msmarco-dev" # MS MARCO passage dev (small), 6,980 queries
+    "msmarco-dev" # MS MARCO passage dev (small), 6,980 queries, official top1000.dev pool
 )
 
 # Reranker names as registered in src/cdm/rerankers/__init__.py (`cdm systems` lists them).
 SYSTEMS=(
+    # pointwise cross-encoders
     "minilm-l6"
     "bge-m3"
     "mxbai-base"
-    "jev"                  # TypeSafe API, all candidates in one request; runs on CPU (API_SYSTEMS)
-    "jev-isolated"         # TypeSafe API, one candidate per request
-    "laya"                 # open weights, English checkpoint, one candidate per request
-    "laya-multilingual"    # open weights, multilingual checkpoint
-    "clef-flash"           # Cloudflare, 9B, all candidates in one request
-    "clef-flash-isolated"
-    "clef"                 # Cloudflare, 27B: needs an 80 GB GPU (gpu_constraint_for)
-    "clef-isolated"
+    "monot5-base"          # Kanishka's baselines, and their larger sizes for the 48/80 GB GPUs
+    "monot5-3b"
+    "qwen3-reranker-0.6b"
+    "qwen3-reranker-4b"
+    "qwen3-reranker-8b"
+    # listwise cross-encoder (own container, container_for; at most 100 candidates: pass --depth 100 on 1000-pools)
+    "set-encoder-base"
+    "set-encoder-large"
+    # pointwise LLM judge via OpenRouter (API_SYSTEMS)
+    "qwen3.7-flash"
+    # System One models: <name>-pointwise (one candidate per request) and <name>-listwise (all in one state)
+    "jev-pointwise"        # TypeSafe API; runs on CPU (API_SYSTEMS)
+    "jev-listwise"
+    "laya"                 # open weights, pointwise only (its context is too short for a list)
+    "laya-multilingual"
+    "clef-flash-pointwise" # Cloudflare, 9B
+    "clef-flash-listwise"
+    "clef-pointwise"       # Cloudflare, 27B: needs an 80 GB GPU (gpu_constraint_for)
+    "clef-listwise"
+    "kev-0.8b-pointwise"   # open weights, Jev-like (github.com/jaredpalmer/kev)
+    "kev-0.8b-listwise"
+    "kev-4b-pointwise"
+    "kev-4b-listwise"
+    "kev-9b-pointwise"
+    "kev-9b-listwise"
+    "kev-27b-pointwise"    # needs an 80 GB GPU (gpu_constraint_for)
+    "kev-27b-listwise"
 )
 # Systems served by an external API: slurm/submit.sh runs them on the general (CPU) partition, no GPU.
-API_SYSTEMS=("jev" "jev-isolated")
+API_SYSTEMS=("jev-pointwise" "jev-listwise" "qwen3.7-flash")
+
+# The container image a system runs in (relative to the repo root). Set-Encoder needs lightning-ir, which needs
+# transformers < 5, while Laya, Clef and Kev need transformers >= 5.17: it gets its own image.
+#   Usage: container_for <system>
+container_for() {
+    case "$1" in
+        set-encoder-*) echo "container/lightning-ir.sif" ;;
+        *) echo "container/cdm.sif" ;;
+    esac
+}
 
 # --time budgets. Unvalidated first guesses: replace each with the observed run time plus a margin once a job's
-# log (or `cluster/status.sh <jobid>`) shows it, and say so in a comment. Partition maxima: general 48h, gpu 28h,
+# log (or `sacct -j <jobid>`) shows it, and say so in a comment. Partition maxima: general 48h, gpu 28h,
 # short 1h.
 first_stage_time_for() {
     local dataset="$1"
     case "${dataset}" in
-        msmarco-dev) echo "02:00:00" ;; # 6,980 queries
+        msmarco-dev) echo "04:00:00" ;; # 6,980 queries; the official pool: ~7M pairs to read and order
         *) echo "01:00:00" ;;
     esac
 }
@@ -74,8 +110,16 @@ first_stage_time_for() {
 rerank_time_for() {
     local dataset="$1" system="$2"
     case "${dataset}:${system}" in
-        msmarco-dev:jev-isolated) echo "16:00:00" ;; # 100 API requests per query, ~16 in parallel
-        msmarco-dev:*) echo "08:00:00" ;; # ~700k query-passage pairs at depth 100
+        msmarco-dev:jev-pointwise) echo "16:00:00" ;; # 100 API requests per query, ~16 in parallel
+        msmarco-dev:*) echo "08:00:00" ;; # ~700k query-passage pairs at depth 100 (pass --max-queries / --depth)
+        # The official DL pools: 41k (DL19) / 50k (DL20) pairs. Kanishka's runs: Kev-0.8B ~8 min for both on an A100;
+        # Qwen3.7-Flash ~64 pairs/s through OpenRouter (~15 min per year); Jev 101k requests.
+        dl19:*-27b* | dl20:*-27b* | dl19:clef* | dl20:clef*) echo "08:00:00" ;;
+        dl19:qwen3-reranker-8b | dl20:qwen3-reranker-8b) echo "08:00:00" ;;
+        dl19:* | dl20:*) echo "04:00:00" ;;
+        # The official DL 2021-2023 pools: top-100 for 53 / 76 / 82 judged queries (5k-8k pairs). Unmeasured.
+        dl2[123]:*-27b* | dl2[123]:clef-pointwise | dl2[123]:clef-listwise) echo "04:00:00" ;;
+        dl2[123]:*) echo "02:00:00" ;;
         scidocs:* | fiqa:*) echo "03:00:00" ;; # 1,000 / 648 queries
         *) echo "01:00:00" ;;
     esac
@@ -85,6 +129,7 @@ rerank_time_for() {
 time_for() {
     case "$1" in
         hello) echo "00:02:00" ;; # job 4345829: 49 s
+        prefetch) echo "06:00:00" ;; # unmeasured; the MS MARCO v2 passage index is 39 GB to download and unpack
         first-stage) first_stage_time_for "$2" ;;
         rerank) rerank_time_for "$2" "$3" ;;
         *)
@@ -92,4 +137,25 @@ time_for() {
             return 1
             ;;
     esac
+}
+
+# The --datasets/--systems arguments of slurm/prefetch.{sbatch,interactive.sh} -> PREFETCH_DATASETS and
+# PREFETCH_SYSTEMS, comma-separated as `cdm prefetch` takes them. all (the default) = DATASETS + DEV_DATASETS and
+# SYSTEMS above; none = nothing.  Usage: prefetch_lists "$@"
+prefetch_lists() {
+    PREFETCH_DATASETS="$(IFS=,; echo "${DATASETS[*]},${DEV_DATASETS[*]}")"
+    PREFETCH_SYSTEMS="$(IFS=,; echo "${SYSTEMS[*]}")"
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --datasets) PREFETCH_DATASETS="$2"; shift ;;
+            --systems) PREFETCH_SYSTEMS="$2"; shift ;;
+            *) echo "prefetch: unknown option $1" >&2; return 2 ;;
+        esac
+        shift
+    done
+    [ "${PREFETCH_DATASETS}" = all ] && PREFETCH_DATASETS="$(IFS=,; echo "${DATASETS[*]},${DEV_DATASETS[*]}")"
+    [ "${PREFETCH_SYSTEMS}" = all ] && PREFETCH_SYSTEMS="$(IFS=,; echo "${SYSTEMS[*]}")"
+    [ "${PREFETCH_DATASETS}" = none ] && PREFETCH_DATASETS=""
+    [ "${PREFETCH_SYSTEMS}" = none ] && PREFETCH_SYSTEMS=""
+    return 0
 }

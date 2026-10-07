@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs ONE command in the container on a compute node via srun and waits for it -- the non-interactive way to try
-# something quickly. Usually called from your machine as cluster/exec.sh (same arguments).
+# something quickly from the login node. The code is snapshotted first (slurm/snapshot.sh), as for batch jobs.
 #
 # Usage: slurm/exec.sh [--gpu] [--time hh:mm:ss] [--partition p] [--gres g] [--constraint c] [--mem m] -- <cmd...>
 #   slurm/exec.sh -- cdm info
@@ -31,6 +31,8 @@ done
 [ "$#" -gt 0 ] || { echo "Usage: slurm/exec.sh [options] -- <command...>" >&2; exit 2; }
 GRES=()
 [ -n "${GRES_VALUE}" ] && GRES+=(--gres="${GRES_VALUE}")
+source "${CDM_ROOT}/slurm/snapshot.sh"
+snapshot_code
 [ -n "${CONSTRAINT}" ] && GRES+=(--constraint="${CONSTRAINT}")
 
 # env.sh is sourced inside the allocation (so it sees the GPU and sets --nv), hence the bash -c.

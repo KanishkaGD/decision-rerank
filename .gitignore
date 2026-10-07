@@ -1,13 +1,7 @@
 # Secrets (HF_TOKEN, API keys) -- see .env.example
 .env
-# Per-machine cluster settings and cache (cluster/cluster.env)
-cluster/cluster.local.env
-cluster/.remote_root
-# Written by cluster/sync.sh for the cluster copy only
-REVISION
-REVISION.patch
 
-# Large artifacts: live on the cluster under /shared, fetched selectively (cluster/fetch.sh --path)
+# Large artifacts on /shared, next to the code; snapshots/ holds the code of each submission (slurm/snapshot.sh)
 container/*.sif
 container/*.sif.new
 data/

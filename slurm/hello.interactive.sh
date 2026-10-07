@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Interactive counterpart of hello.sbatch: run inside a shell from slurm/interactive.sh (or cluster/interactive.sh).
+# Interactive counterpart of hello.sbatch: run inside a shell from slurm/interactive.sh.
 set -euo pipefail
 CDM_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 source "${CDM_ROOT}/slurm/env.sh"

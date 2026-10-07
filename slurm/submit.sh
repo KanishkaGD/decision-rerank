@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # The entry point for batch jobs: one independent `sbatch` call per dataset, each with --account and --time from
 # slurm/config.sh (the only place they are set). No array jobs: every dataset is its own job, queued and
-# time-limited separately. Runs on the login node; from your own machine use cluster/submit.sh (same arguments),
-# which syncs the code first.
+# time-limited separately. Run it on the login node, from the repo root or anywhere else.
 #
 # Usage: slurm/submit.sh hello
+#        slurm/submit.sh prefetch [--datasets ...] [--systems ...]   (downloads on a CPU node: slurm/prefetch.sbatch)
 #        slurm/submit.sh first-stage [--datasets all|ds1,ds2,...] [options] [extra cdm args]
 #        slurm/submit.sh rerank <system> [--datasets all|ds1,ds2,...] [options] [extra cdm args]
 #        slurm/submit.sh --list | --help
@@ -27,7 +27,7 @@ mkdir -p logs/done
 # Printed at the top of every job's log (slurm/log_command.sh): sbatch passes the environment on to the job.
 export CDM_SUBMIT_COMMAND="slurm/submit.sh$( [ "$#" -gt 0 ] && printf ' %q' "$@" )"
 
-usage() { sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; }
 
 case "${1:-}" in
     "" | -h | --help) usage; exit 0 ;;
@@ -43,15 +43,16 @@ JOB="$1"
 shift
 SYSTEM=""
 case "${JOB}" in
-    hello | first-stage) ;;
+    hello | first-stage | prefetch) ;;
     rerank)
         SYSTEM="${1:?Usage: slurm/submit.sh rerank <system> [--datasets ...] (systems: ${SYSTEMS[*]})}"
         shift
         ;;
-    *) echo "slurm/submit.sh: unknown job '${JOB}' (hello, first-stage, rerank)" >&2; exit 2 ;;
+    *) echo "slurm/submit.sh: unknown job '${JOB}' (hello, prefetch, first-stage, rerank)" >&2; exit 2 ;;
 esac
 
 DATASET_LIST=("${DATASETS[@]}")
+DATASETS_ARG=""
 AFTER=""
 CPU=0
 GRES=""
@@ -61,6 +62,7 @@ PASSTHROUGH=()
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --datasets)
+            DATASETS_ARG="$2"
             [ "$2" = "all" ] || IFS=',' read -r -a DATASET_LIST <<<"$2"
             shift
             ;;
@@ -83,15 +85,10 @@ submit() {
     fi
 }
 
-# Freeze the code for these jobs: a queued job starts later, maybe after the next cluster/sync.sh has replaced src/.
-# The jobs put this snapshot first on PYTHONPATH (slurm/env.sh) and record its REVISION (src/cdm/provenance.py).
-# Snapshots are small (src/ only); delete old ones under snapshots/ whenever no job of theirs is queued.
+# Freeze the code for these jobs (slurm/snapshot.sh): a queued job starts later, maybe after src/ has changed again.
 if [ "${DRY_RUN}" -eq 0 ]; then
-    CDM_CODE_DIR="${CDM_ROOT}/snapshots/$(date +%Y-%m-%d_%H-%M-%S)_$$"
-    mkdir -p "${CDM_CODE_DIR}"
-    cp -r src "${CDM_CODE_DIR}/"
-    cp REVISION REVISION.patch "${CDM_CODE_DIR}/" 2>/dev/null || true
-    export CDM_CODE_DIR # sbatch passes the environment on to the job
+    source "${CDM_ROOT}/slurm/snapshot.sh"
+    snapshot_code
 fi
 
 COMMON=(--account="${SLURM_ACCOUNT}")
@@ -99,6 +96,12 @@ COMMON=(--account="${SLURM_ACCOUNT}")
 
 if [ "${JOB}" = "hello" ]; then
     submit "${COMMON[@]}" --time="${TIME_OVERRIDE:-$(time_for hello)}" slurm/hello.sbatch
+    exit 0
+fi
+if [ "${JOB}" = "prefetch" ]; then
+    # One job for all downloads: they share the caches, and the big ones (indexes) dominate anyway.
+    submit "${COMMON[@]}" --time="${TIME_OVERRIDE:-$(time_for prefetch)}" slurm/prefetch.sbatch \
+        ${DATASETS_ARG:+--datasets "${DATASETS_ARG}"} "${PASSTHROUGH[@]}"
     exit 0
 fi
 

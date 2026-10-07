@@ -16,30 +16,31 @@ Two people (and their agents) work in this repository with ordinary git branches
 
 ## Where things run
 
-- **You (the agent) run on the user's machine**, in this repo. Never on the cluster's login node: the FAITH docs
-  forbid autonomous agents and compute-heavy work there.
-- The cluster is reached only through `cluster/*.sh`, which send single commands over SSH to the login node and from
-  there to Slurm. They share one SSH connection that the user opens with `cluster/connect.sh` (password), or that
-  opens automatically when the user has a valid Kerberos ticket (`kinit <user>@FIM.UNI-PASSAU.DE`). If a script
-  fails with "no connection", stop and ask the user -- don't try to log in yourself, and never ask for or handle the
-  password.
-- Which wrapper for what:
-  - `cluster/exec.sh [--gpu] -- <cmd>` -- one blocking command in the container on a compute node (`short`
+- **The repository lives on the cluster**, under `/shared` (Ceph, visible to the login and compute nodes); you work
+  in it on a FAITH login node (`freia`/`frigga`). Data, caches, runs, outputs and logs sit next to the code
+  (gitignored), and `results/results.csv` is written in place.
+- **The login node is not for computation.** The FAITH docs: "Do not use the login nodes to spawn autonomous agents
+  operating without supervision" and "must not be used to run computationally intensive or long-running
+  non-interactive tasks". So an agent works here only in a session the user supervises, and runs only light commands
+  itself: reading and editing files, git, `sbatch`/`squeue`/`sacct`/`sinfo`, a quick `pytest` of the unit tests,
+  small downloads. Never load a model, run a reranker or first stage, or install large packages on the login node,
+  not even "just to check"; that goes to a compute node.
+- Which script for what (all run from the login node, in the repo root):
+  - `slurm/exec.sh [--gpu] -- <cmd>` -- one blocking command in the container on a compute node (`short`
     partition): quick checks, `--max-queries 20` trial runs.
-  - `cluster/submit.sh <job> ...` -- batch jobs (runs `slurm/submit.sh` remotely). `--dry-run` shows the `sbatch`
-    calls without submitting; use it before submitting many jobs.
-  - `cluster/status.sh`, `cluster/logs.sh <jobid>` -- follow jobs. `cluster/fetch.sh` -- copy `results/` back.
-  - `cluster/login.sh <cmd>` -- light login-node commands only: `bash slurm/prefetch.sh ...`,
-    `bash container/build.sh`, `ls`, `sinfo`, `sacct`.
-  - `cluster/interactive.sh` -- for the human only (needs a terminal).
-- Every wrapper that starts work first runs `cluster/sync.sh` (rsync of the working tree, respecting `.gitignore`;
-  `results/` and `paper/` stay local). Jobs therefore run uncommitted code; `REVISION`/`REVISION.patch` record the
-  commit and the uncommitted changes (untracked files included). `slurm/submit.sh` snapshots `src/` with them per
-  submission (`snapshots/`), so queued jobs run the code they were submitted with; every manifest records the
-  revision and copies the patch. Commit before runs whose numbers go into the paper.
-- The container (`container/cdm.sif`) holds only the dependencies; the code comes from the synced `src/` via
-  `PYTHONPATH`. Rebuild (`cluster/login.sh bash container/build.sh`) only after changing `pyproject.toml`.
-- Jobs run with `HF_HUB_OFFLINE=1`: download new models/datasets with `slurm/prefetch.sh` on the login node first.
+  - `slurm/submit.sh <job> ...` -- batch jobs. `--dry-run` shows the `sbatch` calls without submitting; use it before
+    submitting many jobs.
+  - `squeue --me`, `sacct -j <jobid>`, `tail -f logs/<jobid>_*` -- follow jobs (logs move to `logs/done/` at exit).
+  - Login node only: `bash container/build.sh`, `bash slurm/prefetch.interactive.sh ...` for small downloads
+    (big ones, e.g. the MS MARCO v2 index: `slurm/submit.sh prefetch ...`).
+  - `slurm/interactive.sh` -- an interactive shell on a compute node, for the human only (needs a terminal).
+- `slurm/submit.sh` and `slurm/exec.sh` snapshot `src/` per submission (`snapshots/`, `slurm/snapshot.sh`), with
+  `REVISION`/`REVISION.patch` recording the commit and the uncommitted changes (untracked files included), so queued
+  jobs run the code they were submitted with; every manifest records the revision and copies the patch. Commit
+  before runs whose numbers go into the paper.
+- The container (`container/cdm.sif`) holds only the dependencies; the code comes from `src/` (or the snapshot) via
+  `PYTHONPATH`. Rebuild (`bash container/build.sh`) only after changing `pyproject.toml` or `container/cdm.def`.
+- Jobs run with `HF_HUB_OFFLINE=1`: download new models/datasets with the prefetch scripts first.
 
 ## Slurm scripts (`slurm/`)
 
@@ -47,7 +48,8 @@ Two people (and their agents) work in this repository with ordinary git branches
   without `srun` and without `#SBATCH` lines. Change both in the same commit.
 - Environment and container call are defined once, in `slurm/env.sh` (`"${CONTAINER_CMD[@]}" cdm ...`); scripts don't
   set paths or `apptainer` flags themselves.
-- No array jobs. Each `.sbatch` takes exactly one dataset (and one system) as positional arguments;
+- No array jobs. Each `.sbatch` takes exactly one dataset (and one system) as positional arguments (except
+  `prefetch.sbatch`, one download job for everything);
   `slurm/submit.sh` loops and submits one job per dataset.
 - `--time` and `--account` are set only in `slurm/config.sh` (`time_for`, `SLURM_ACCOUNT`) and passed by
   `slurm/submit.sh`; no `#SBATCH --time`/`--account` anywhere. When a job's real run time is known, update its

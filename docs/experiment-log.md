@@ -12,6 +12,72 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-07 -- Pointwise/listwise naming, Set-Encoder, first DL 2021-2023 submission
+
+- **Naming (owner's decision):** IR terms. System One models are `<model>-pointwise` (one candidate per request,
+  formerly `-isolated`) and `<model>-listwise` (all candidates in one state, formerly the plain name); Laya stays
+  `laya` (pointwise only). `Reranker.joint` is now `Reranker.listwise`; the manifest field likewise. RQ4's wording
+  in paper/rq-macros.tex and the Section 6 skeleton use the same terms; RQ4 compares Jev, Clef and Kev.
+- **Set-Encoder** (`set-encoder-base`, `set-encoder-large`, webis, pinned revisions) through lightning-ir 0.0.6, in a
+  second image `container/lightning-ir.sif` (slurm/config.sh `container_for`). The PyPI release of lightning-ir 0.0.6
+  does not pin transformers < 5 (its main branch does); the first build resolved transformers 5.19, so the .def now
+  pins `transformers>=4.50,<5` (rebuilt: transformers 4.57.6, torch 2.14.1). Refuses lists longer than its trained
+  depth (100): use `--depth 100` on the 1000-candidate pools. fp32 (the authors evaluate in bf16-mixed).
+- Containers rebuilt on freia: cdm.sif (torch 2.14.1, transformers 5.19.0, laya 0.3.29, kev 0.1.0 at 5e42a7a,
+  flash-linear-attention 0.5.2), lightning-ir.sif. Import check on a compute node: job 4356457 (cdm.sif).
+- **Submitted** (ids in logs/submitted-dl21-23.txt, not tracked): prefetch 4356461 (MS MARCO v2 passage index + the
+  23 GPU systems, CPU node, 12 h budget), first stage 4356462-4356464 (dl21-23, official top-100 pools), and 69
+  reranks (23 GPU systems x 3 datasets), each after its dataset's first stage. System One models with
+  `--phrasings s1rank` only (frozen; the draft phrasings stay off test sets until WP3). Not run: `jev-*` and
+  `qwen3.7-flash` (no API keys in .env on the cluster yet), `laya-multilingual`. Code: a32d416 plus uncommitted
+  changes (REVISION.patch in every manifest), so these runs are preliminary until rerun from a commit.
+
+## 2026-10-07 -- Working on the login node; TREC DL 2021-2023
+
+Owner's decision: the repository now lives on the cluster (`/shared/dinzinger/GitHub/decision-rerank`) and is used
+from the login node (freia) directly, so the SSH wrappers in `cluster/` are gone. `slurm/submit.sh` and
+`slurm/exec.sh` now write the per-submission code snapshot and its REVISION/REVISION.patch themselves
+(`slurm/snapshot.sh`; formerly `cluster/sync.sh`). Results are written to `results/` in place, nothing is fetched.
+FAITH forbids unsupervised autonomous agents and compute-heavy work on login nodes; CLAUDE.md now spells out that an
+agent works here only in a supervised session and runs nothing heavy.
+
+- Mistake in the previous session: believing it ran on the user's machine, the agent installed PyTorch and ran
+  monoT5-base, Qwen3-Reranker-0.6B and Kev-0.8B on three passages each on the CPU of freia (a few minutes, ~7 GB of
+  downloads in /tmp, which is RAM-backed). Removed afterwards; not to be repeated (CLAUDE.md).
+- **DL 2021-2023 registered** (`dl21`, `dl22`, `dl23`): Pyserini index `msmarco-v2-passage` (39 GB, stores the raw
+  passages), topics `dl2x`, qrels `dl2x-passage` (names from Pyserini's 2CR), relevant from grade 2, official
+  `202x_passage_top100.txt.gz` pools (ranked BM25 runs, kept in their order: `official-d100`). The index is
+  downloaded by a new batch job, `slurm/submit.sh prefetch --datasets dl21,dl22,dl23 --systems none`
+  (slurm/prefetch.sbatch; the login-node variant is slurm/prefetch.interactive.sh, formerly slurm/prefetch.sh).
+  Untested: the first prefetch shows whether compute nodes reach Pyserini's download hosts and whether every judged
+  query has a pool.
+
+## 2026-10-07 -- Official rerank pools; Kanishka's systems added
+
+Owner's decision (docs/intent/models.md): rerank official pools where they exist, and add the systems of Kanishka's
+study (branch `master`, package `decisionrerank`, an unrelated history) with larger sizes for the H200s. Not yet run.
+
+- **Pools.** `cdm first-stage` defaults to the official pool where a dataset has one (`official-d1000`): DL19/DL20
+  (`msmarco-passagetest{2019,2020}-top1000.tsv.gz`) and MS MARCO dev (`top1000.dev`, from the 687 MB
+  `top1000.dev.tar.gz`; whether it covers all 6,980 dev-small queries is printed by `cdm prefetch`). The tsv pools are
+  unranked: they are ordered by Pyserini BM25 (k1 0.9, b 0.4) over the pool, ties by docid. Kanishka orders the same
+  pool by bm25s (Lucene variant, k1 1.2, b 0.75), so BM25 rows and depth cut-offs differ slightly; the full-pool
+  reranking does not. `cdm rerank` defaults to the dataset's default first stage. BEIR stays on our BM25 top-100.
+  DL 2021-2023 also have official (ranked, top-100) pools, checked at msmarco.z22.web.core.windows.net, but their
+  passages are in MS MARCO v2 (138M); not registered.
+- **Systems.** monoT5 (base, 3B-10k) and Qwen3-Reranker (0.6B, 4B, 8B) with Kanishka's prompts and yes/no readout,
+  fp32 + TF32 (his finding: bf16 makes 89% of Qwen3-0.6B's pool scores tie); Kev 0.8B/4B/9B/27B as a fourth
+  SystemOneReranker backend (joint and isolated; Kev's exact path, fp32, shipped temperature); Qwen3.7-Flash via
+  OpenRouter, P(yes) from top-5 log-probs, Kanishka's prompt.
+- **Laya now runs with autocast off** (fp32 weights, TF32 matmuls), as Kanishka does: under the default bf16 autocast
+  32% of its DL pool scores tied within a query. Earlier Laya trial runs (scifact, not saved) used bf16.
+- **Container.** Kev is installed with `--no-deps` from a pinned commit (its `torch<2.9` pin would downgrade torch
+  2.14); flash-linear-attention 0.5.2 added (Qwen3.5 fast path for Kev and Clef, so Clef numbers may shift slightly
+  from the 2026-10-06 trial). Needs a rebuild; Kev on torch 2.14 is unverified until the first run.
+- Differences from Kanishka that remain: our System One state is `{"query", "documents": {"D1": ...}}` with the
+  phrasings of src/cdm/phrasings.py, his `{"query", "passage"}` with "Does the 'passage' answer the 'query'?";
+  Jev through TypeSafe (`jev-1.13.0`) here, OpenRouter (`typesafe/jev-1.13`) there.
+
 ## 2026-10-06 -- First Laya and Clef-Flash runs (scifact, 20 queries)
 
 Container 35af14a adds gcc (Triton's run-time C build; Laya on GPU failed without it, job 4346919) and accelerate
