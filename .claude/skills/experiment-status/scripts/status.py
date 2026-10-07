@@ -164,8 +164,9 @@ def section_jobs(rows):
                   log_file(r["id"]) or "") for r in running]))
     # Failures that have not been superseded by a later attempt of the same thing.
     latest = {}
-    for r in rows:  # newest first
-        latest.setdefault((r["job"], r["system"], r["dataset"], r["extra"]), r)
+    for r in rows:  # newest first; any later prefetch supersedes an earlier one (downloads resume)
+        key = ("prefetch",) if r["job"] == "prefetch" else (r["job"], r["system"], r["dataset"], r["extra"])
+        latest.setdefault(key, r)
     failed = [r for r in latest.values() if r["state"] in BAD]
     print("### Failed (latest attempt)\n")
     print(table(["job id", "state", "job", "system", "dataset", "elapsed / limit", "log", "last error lines"],
