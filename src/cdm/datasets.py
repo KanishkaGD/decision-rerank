@@ -41,8 +41,15 @@ DATASETS: Dict[str, Dataset] = {
     for d in [
         Dataset("dl19", "msmarco-v1-passage", "dl19-passage", "dl19-passage", 2, "test", "trec-dl"),
         Dataset("dl20", "msmarco-v1-passage", "dl20", "dl20-passage", 2, "test", "trec-dl"),
-        Dataset("msmarco-dev", "msmarco-v1-passage", "msmarco-passage-dev-subset", "msmarco-passage-dev-subset", 1,
-                "dev", "msmarco"),
+        Dataset(
+            "msmarco-dev",
+            "msmarco-v1-passage",
+            "msmarco-passage-dev-subset",
+            "msmarco-passage-dev-subset",
+            1,
+            "dev",
+            "msmarco",
+        ),
         _beir("trec-covid"),
         _beir("nfcorpus"),
         _beir("scifact"),

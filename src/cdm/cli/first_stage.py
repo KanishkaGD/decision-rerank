@@ -12,12 +12,21 @@ from cdm.runs import first_stage_name, run_dir, write_candidates, write_qrels, w
 
 @click.command("first-stage")
 @click.argument("dataset", type=click.Choice(list(DATASETS)))
-@click.option("--retriever", type=click.Choice(["bm25"]), default="bm25", show_default=True,
-              help="First-stage retriever. A dense retriever for the robustness check is still to be added.")
+@click.option(
+    "--retriever",
+    type=click.Choice(["bm25"]),
+    default="bm25",
+    show_default=True,
+    help="First-stage retriever. A dense retriever for the robustness check is still to be added.",
+)
 @click.option("--depth", type=int, default=FIRST_STAGE_DEPTH, show_default=True, help="Candidates per query.")
 @click.option("--threads", type=int, default=8, show_default=True, help="Search threads (Slurm: --cpus-per-task).")
-@click.option("--max-queries", type=int, default=None, help="Only the first N queries (quick checks; not saved to "
-                                                              "results.csv unless --save-subset).")
+@click.option(
+    "--max-queries",
+    type=int,
+    default=None,
+    help="Only the first N queries (quick checks; not saved to " "results.csv unless --save-subset).",
+)
 @click.option("--save-subset", is_flag=True, help="Record a --max-queries run in results.csv too.")
 @click.option("--overwrite", is_flag=True, help="Replace an existing cache.")
 def first_stage(dataset, retriever, depth, threads, max_queries, save_subset, overwrite):
@@ -45,14 +54,29 @@ def first_stage(dataset, retriever, depth, threads, max_queries, save_subset, ov
     means, per_query = evaluate(run, qrels, ds.rel_threshold)
     per_query.to_csv(os.path.join(out, "perquery.csv"))
     write_manifest(out, dataset=dataset, **params)
-    click.echo(f"{dataset} {name}: " + ", ".join(f"{k}={v:.4f}" for k, v in means.items() if k != "n_queries")
-               + f" over {means['n_queries']} queries -> {out}")
+    click.echo(
+        f"{dataset} {name}: "
+        + ", ".join(f"{k}={v:.4f}" for k, v in means.items() if k != "n_queries")
+        + f" over {means['n_queries']} queries -> {out}"
+    )
 
     if not max_queries or save_subset:
         save_result(
-            {"job": "first-stage", "system": retriever, "model": ds.index, "dataset": dataset,
-             "first_stage": "", "phrasing": "", "variant": f"d{depth}",
-             "subset": f"max{max_queries}" if max_queries else ""},
-            {**means, "rel_threshold": ds.rel_threshold, "split": ds.split, "output": out,
-             "slurm_job_id": os.environ.get("SLURM_JOB_ID", "")},
+            {
+                "job": "first-stage",
+                "system": retriever,
+                "model": ds.index,
+                "dataset": dataset,
+                "first_stage": "",
+                "phrasing": "",
+                "variant": f"d{depth}",
+                "subset": f"max{max_queries}" if max_queries else "",
+            },
+            {
+                **means,
+                "rel_threshold": ds.rel_threshold,
+                "split": ds.split,
+                "output": out,
+                "slurm_job_id": os.environ.get("SLURM_JOB_ID", ""),
+            },
         )

@@ -13,6 +13,13 @@ def main():
     """
 
 
-for command in [misc.info, misc.datasets, misc.systems, misc.prefetch, first_stage.first_stage, rerank.rerank,
-                misc.results]:
+for command in [
+    misc.info,
+    misc.datasets,
+    misc.systems,
+    misc.prefetch,
+    first_stage.first_stage,
+    rerank.rerank,
+    misc.results,
+]:
     main.add_command(command)

@@ -35,9 +35,12 @@ def test_rerank_end_to_end(tmp_path, monkeypatch):
     monkeypatch.setattr(rr, "load_reranker", lambda name, **kw: Fake())
     cache = tmp_path / "runs" / "scifact" / "bm25-d100"
     cache.mkdir(parents=True)
-    write_candidates(str(cache / "candidates.jsonl.gz"), [
-        QueryCandidates("q1", "query", [Candidate("bad", 1, 2.0, "bad"), Candidate("good", 2, 1.0, "good")]),
-    ])
+    write_candidates(
+        str(cache / "candidates.jsonl.gz"),
+        [
+            QueryCandidates("q1", "query", [Candidate("bad", 1, 2.0, "bad"), Candidate("good", 2, 1.0, "good")]),
+        ],
+    )
     write_qrels(str(cache / "qrels.tsv"), {"q1": {"good": 1, "bad": 0}})
 
     result = CliRunner().invoke(rr.rerank, ["minilm-l6", "scifact"], catch_exceptions=False)

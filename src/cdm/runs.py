@@ -48,11 +48,17 @@ def write_candidates(path: str, queries: Iterable[QueryCandidates]) -> None:
     tmp = f"{path}.tmp"
     with gzip.open(tmp, "wt", encoding="utf-8") as f:
         for q in queries:
-            f.write(json.dumps({
-                "qid": q.qid,
-                "query": q.query,
-                "candidates": [c.__dict__ for c in q.candidates],
-            }, ensure_ascii=False) + "\n")
+            f.write(
+                json.dumps(
+                    {
+                        "qid": q.qid,
+                        "query": q.query,
+                        "candidates": [c.__dict__ for c in q.candidates],
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
     os.replace(tmp, path)
 
 

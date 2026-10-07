@@ -17,8 +17,18 @@ from typing import Any, Dict
 
 from cdm.config import CDM_ROOT
 
-PACKAGES = ["cdm", "torch", "transformers", "sentence-transformers", "pyserini", "ir-measures", "numpy", "pandas",
-            "typesafe-sdk", "laya"]
+PACKAGES = [
+    "cdm",
+    "torch",
+    "transformers",
+    "sentence-transformers",
+    "pyserini",
+    "ir-measures",
+    "numpy",
+    "pandas",
+    "typesafe-sdk",
+    "laya",
+]
 
 
 # Where the running code came from: the per-submission snapshot of slurm/submit.sh, else the repo root.
@@ -40,7 +50,9 @@ def code_revision() -> Dict[str, str]:
             ["git", "rev-parse", "HEAD"], cwd=CDM_ROOT, text=True, stderr=subprocess.DEVNULL
         ).strip()
         status = subprocess.check_output(
-            ["git", "status", "--porcelain", "--untracked-files=no"], cwd=CDM_ROOT, text=True,
+            ["git", "status", "--porcelain", "--untracked-files=no"],
+            cwd=CDM_ROOT,
+            text=True,
             stderr=subprocess.DEVNULL,
         )
         return {"commit": commit, "dirty": str(bool(status.strip())).lower()}

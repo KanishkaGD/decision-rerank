@@ -60,9 +60,22 @@ def retrieve_bm25(
         cands = []
         for rank, hit in enumerate(hits.get(qid, []), start=1):
             doc = searcher.doc(hit.docid)
-            cands.append(Candidate(docid=hit.docid, rank=rank, score=float(hit.score),
-                                   text=doc_text(doc.raw()) if doc is not None else ""))
+            cands.append(
+                Candidate(
+                    docid=hit.docid,
+                    rank=rank,
+                    score=float(hit.score),
+                    text=doc_text(doc.raw()) if doc is not None else "",
+                )
+            )
         results.append(QueryCandidates(qid=qid, query=queries[qid], candidates=cands))
-    params = {"retriever": "bm25", "index": dataset.index, "topics": dataset.topics, "qrels": dataset.qrels,
-              "depth": depth, **BM25_PARAMS, "n_queries": len(qids)}
+    params = {
+        "retriever": "bm25",
+        "index": dataset.index,
+        "topics": dataset.topics,
+        "qrels": dataset.qrels,
+        "depth": depth,
+        **BM25_PARAMS,
+        "n_queries": len(qids),
+    }
     return results, {q: qrels[q] for q in qids}, params

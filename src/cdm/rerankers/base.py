@@ -33,8 +33,7 @@ class Reranker(ABC):
     warmup: bool = True  # whether the rerank CLI scores one query untimed first (CUDA kernels, caches)
 
     @abstractmethod
-    def score(self, query: str, passages: List[str], phrasing: Phrasing) -> Scores:
-        ...
+    def score(self, query: str, passages: List[str], phrasing: Phrasing) -> Scores: ...
 
     def count_truncated(self, query: str, passages: List[str]) -> int:
         """How many (query, passage) inputs exceed the model's input length. Called outside the latency timing."""

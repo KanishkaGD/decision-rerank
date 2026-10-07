@@ -83,8 +83,11 @@ def results(job, metric, subsets):
         df = df[df["subset"] == ""]
     if metric not in df.columns:
         raise click.ClickException(f"No column {metric}. Columns: {', '.join(df.columns)}")
-    df = df.assign(value=pd.to_numeric(df[metric], errors="coerce"),
-                   row=df["system"] + df["variant"].map(lambda v: f" [{v}]" if v else "")
-                   + df["phrasing"].map(lambda p: f" ({p})" if p not in ("", "none") else ""))
+    df = df.assign(
+        value=pd.to_numeric(df[metric], errors="coerce"),
+        row=df["system"]
+        + df["variant"].map(lambda v: f" [{v}]" if v else "")
+        + df["phrasing"].map(lambda p: f" ({p})" if p not in ("", "none") else ""),
+    )
     table = df.pivot_table(index="row", columns="dataset", values="value", aggfunc="first")
     click.echo(table.round(4).to_string())

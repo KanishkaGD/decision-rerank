@@ -32,8 +32,12 @@ PHRASINGS: Dict[str, Phrasing] = {
         # S1Rank's Noul question, verbatim (github.com/zaesho/S1Rank, s1rank/methods.py, NOUL_INSTRUCTIONS), for
         # replicating its numbers (WP2). Frozen because it is fixed by that paper, not chosen by us; it is not a
         # candidate in the WP3 selection.
-        Phrasing("s1rank", "Is document `{doc}` relevant to the `query`? Relevant means it answers the query or "
-                           "contains information that directly addresses it.", frozen=True),
+        Phrasing(
+            "s1rank",
+            "Is document `{doc}` relevant to the `query`? Relevant means it answers the query or "
+            "contains information that directly addresses it.",
+            frozen=True,
+        ),
         # DRAFT -- to be fixed before any test-set run (WP3).
         Phrasing("p1-relevant", "Is document `{doc}` relevant to the search query `query`?"),
         Phrasing("p2-answers", "Does document `{doc}` answer the question in `query`?"),

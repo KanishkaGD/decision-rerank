@@ -33,20 +33,49 @@ SYSTEMS: Dict[str, SystemSpec] = {
         SystemSpec("jev-isolated", "system-one", "jev-1.13.0", {"backend": "typesafe", "window": 1}, hf=False),
         # Laya (open weights). Each question gets its own sequence with the state cut to ~320 tokens (English) or
         # ~768 (multilingual), so joint scoring doesn't fit: isolated only.
-        SystemSpec("laya", "system-one", "convaiinnovations/laya", {"backend": "laya", "window": 1},
-                   revision="7b928d828b7b0e022f929d9bd2e44165aa270148"),
-        SystemSpec("laya-multilingual", "system-one", "convaiinnovations/laya",
-                   {"backend": "laya", "window": 1, "subfolder": "multilingual"},
-                   revision="7b928d828b7b0e022f929d9bd2e44165aa270148"),
+        SystemSpec(
+            "laya",
+            "system-one",
+            "convaiinnovations/laya",
+            {"backend": "laya", "window": 1},
+            revision="7b928d828b7b0e022f929d9bd2e44165aa270148",
+        ),
+        SystemSpec(
+            "laya-multilingual",
+            "system-one",
+            "convaiinnovations/laya",
+            {"backend": "laya", "window": 1, "subfolder": "multilingual"},
+            revision="7b928d828b7b0e022f929d9bd2e44165aa270148",
+        ),
         # Cloudflare's Clef (open weights, Jev-compatible): Flash 9B fits a 48 GB GPU, the 27B model needs 80 GB.
-        SystemSpec("clef-flash", "system-one", "Cloudflare/clef-flash", {"backend": "clef", "window": 0},
-                   revision="17f0b0ad64efb65d273590632833508766b2aae6"),
-        SystemSpec("clef-flash-isolated", "system-one", "Cloudflare/clef-flash", {"backend": "clef", "window": 1},
-                   revision="17f0b0ad64efb65d273590632833508766b2aae6"),
-        SystemSpec("clef", "system-one", "Cloudflare/clef", {"backend": "clef", "window": 0},
-                   revision="2f3de3dd85f379784083b0814d997ab627200f0c"),
-        SystemSpec("clef-isolated", "system-one", "Cloudflare/clef", {"backend": "clef", "window": 1},
-                   revision="2f3de3dd85f379784083b0814d997ab627200f0c"),
+        SystemSpec(
+            "clef-flash",
+            "system-one",
+            "Cloudflare/clef-flash",
+            {"backend": "clef", "window": 0},
+            revision="17f0b0ad64efb65d273590632833508766b2aae6",
+        ),
+        SystemSpec(
+            "clef-flash-isolated",
+            "system-one",
+            "Cloudflare/clef-flash",
+            {"backend": "clef", "window": 1},
+            revision="17f0b0ad64efb65d273590632833508766b2aae6",
+        ),
+        SystemSpec(
+            "clef",
+            "system-one",
+            "Cloudflare/clef",
+            {"backend": "clef", "window": 0},
+            revision="2f3de3dd85f379784083b0814d997ab627200f0c",
+        ),
+        SystemSpec(
+            "clef-isolated",
+            "system-one",
+            "Cloudflare/clef",
+            {"backend": "clef", "window": 1},
+            revision="2f3de3dd85f379784083b0814d997ab627200f0c",
+        ),
         # Later: "laya-multilingual" (MIRACL), "laya-ft-*" (WP4), an open listwise LLM reranker such as RankZephyr
         # (RQ5 quality ceiling).
     ]

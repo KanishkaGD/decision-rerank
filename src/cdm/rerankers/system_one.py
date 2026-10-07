@@ -96,8 +96,12 @@ class TypeSafeBackend:
             return list(pool.map(self._one, requests))
 
     def describe(self) -> Dict[str, Any]:
-        return {"backend": "typesafe-api", "sdk_version": _version("typesafe-sdk"), "max_workers": self.max_workers,
-                "price_per_m_input_usd": self.price_per_m_input}
+        return {
+            "backend": "typesafe-api",
+            "sdk_version": _version("typesafe-sdk"),
+            "max_workers": self.max_workers,
+            "price_per_m_input_usd": self.price_per_m_input,
+        }
 
 
 class LayaBackend:
@@ -109,8 +113,15 @@ class LayaBackend:
 
     price_per_m_input = 0.0
 
-    def __init__(self, model_id: str, subfolder: Optional[str] = None, revision: Optional[str] = None,
-                 batch_size: int = 64, device: Optional[str] = None, **_: Any):
+    def __init__(
+        self,
+        model_id: str,
+        subfolder: Optional[str] = None,
+        revision: Optional[str] = None,
+        batch_size: int = 64,
+        device: Optional[str] = None,
+        **_: Any,
+    ):
         import laya
 
         self.model_id = model_id
@@ -127,22 +138,31 @@ class LayaBackend:
         for indices in groups.values():
             questions = requests[indices[0]][1]
             start = time.perf_counter()
-            results = self.agent.predict_batch([requests[i][0] for i in indices], questions,
-                                               batch_size=self.batch_size)
+            results = self.agent.predict_batch([requests[i][0] for i in indices], questions, batch_size=self.batch_size)
             latency = (time.perf_counter() - start) / len(indices)
             for i, result in zip(indices, results):
                 if result["usage"].get("truncated") and not truncate[i]:
                     out[i] = TOO_LONG
                 else:
-                    out[i] = {**result, "model": self.model_id + (f"/{self.subfolder}" if self.subfolder else ""),
-                              "latency_s": round(latency, 4)}
+                    out[i] = {
+                        **result,
+                        "model": self.model_id + (f"/{self.subfolder}" if self.subfolder else ""),
+                        "latency_s": round(latency, 4),
+                    }
         return out
 
     def describe(self) -> Dict[str, Any]:
-        return {"backend": "laya", "laya_version": _version("laya"), "subfolder": self.subfolder,
-                "revision": self.revision, "batch_size": self.batch_size, "max_len": self.agent.cfg.get("max_len"),
-                "head_max_len": self.agent.cfg.get("head_max_len"), "temperature": self.agent.cfg.get("temperature"),
-                "device": str(getattr(self.agent, "device", ""))}
+        return {
+            "backend": "laya",
+            "laya_version": _version("laya"),
+            "subfolder": self.subfolder,
+            "revision": self.revision,
+            "batch_size": self.batch_size,
+            "max_len": self.agent.cfg.get("max_len"),
+            "head_max_len": self.agent.cfg.get("head_max_len"),
+            "temperature": self.agent.cfg.get("temperature"),
+            "device": str(getattr(self.agent, "device", "")),
+        }
 
 
 class ClefBackend:
@@ -155,8 +175,15 @@ class ClefBackend:
 
     price_per_m_input = 0.0
 
-    def __init__(self, model_id: str, revision: Optional[str] = None, max_length: int = 16384, batch_size: int = 8,
-                 device: str = "cuda", **_: Any):
+    def __init__(
+        self,
+        model_id: str,
+        revision: Optional[str] = None,
+        max_length: int = 16384,
+        batch_size: int = 8,
+        device: str = "cuda",
+        **_: Any,
+    ):
         import torch
         from huggingface_hub import snapshot_download
         from safetensors.torch import load_file
@@ -171,8 +198,9 @@ class ClefBackend:
         import joint_schema_model as jsm
 
         self.jsm = jsm
-        backbone = Qwen3_5ForConditionalGeneration.from_pretrained(self.path, dtype=torch.bfloat16,
-                                                                   device_map={"": device})
+        backbone = Qwen3_5ForConditionalGeneration.from_pretrained(
+            self.path, dtype=torch.bfloat16, device_map={"": device}
+        )
         backbone.config.use_cache = False
         with open(os.path.join(self.path, "joint_head_config.json")) as f:
             head = jsm.JointSchemaHead(**json.load(f))
@@ -193,33 +221,52 @@ class ClefBackend:
             if len(full.input_ids) > self.max_length and not truncate[i]:
                 out[i] = TOO_LONG
                 continue
-            enc = full if len(full.input_ids) <= self.max_length else self.jsm.encode_record(
-                self.tokenizer, record, max_length=self.max_length)
+            enc = (
+                full
+                if len(full.input_ids) <= self.max_length
+                else self.jsm.encode_record(self.tokenizer, record, max_length=self.max_length)
+            )
             encoded.append((i, enc, len(full.input_ids) - len(enc.input_ids)))
         # Longest first, so a batch holds sequences of similar length (less padding).
         encoded.sort(key=lambda x: -len(x[1].input_ids))
         for b in range(0, len(encoded), self.batch_size):
-            batch = encoded[b:b + self.batch_size]
+            batch = encoded[b : b + self.batch_size]
             start = time.perf_counter()
             with torch.inference_mode():
-                logits = self.model(self.jsm.collate_records([e for _, e, _ in batch], self.tokenizer.pad_token_id,
-                                                             self.device))
+                logits = self.model(
+                    self.jsm.collate_records([e for _, e, _ in batch], self.tokenizer.pad_token_id, self.device)
+                )
             latency = (time.perf_counter() - start) / len(batch)
             for (i, enc, dropped), record_logits in zip(batch, logits):
                 questions = requests[i][1]
                 answers = {
                     q.question_id: self.jsm.systemone_answer(
-                        questions[q.question_id], dict(zip(q.option_ids, ql.float().softmax(-1).tolist())))
+                        questions[q.question_id], dict(zip(q.option_ids, ql.float().softmax(-1).tolist()))
+                    )
                     for q, ql in zip(enc.questions, record_logits)
                 }
-                out[i] = {"model": self.model_id, "answers": answers, "latency_s": round(latency, 4),
-                          "usage": {"input_tokens": len(enc.input_ids), "output_tokens": 0,
-                                    "state_tokens_dropped": dropped, "truncated": dropped > 0}}
+                out[i] = {
+                    "model": self.model_id,
+                    "answers": answers,
+                    "latency_s": round(latency, 4),
+                    "usage": {
+                        "input_tokens": len(enc.input_ids),
+                        "output_tokens": 0,
+                        "state_tokens_dropped": dropped,
+                        "truncated": dropped > 0,
+                    },
+                }
         return out
 
     def describe(self) -> Dict[str, Any]:
-        return {"backend": "clef", "revision": self.revision, "max_length": self.max_length,
-                "batch_size": self.batch_size, "dtype": "bfloat16", "device": str(self.device)}
+        return {
+            "backend": "clef",
+            "revision": self.revision,
+            "max_length": self.max_length,
+            "batch_size": self.batch_size,
+            "dtype": "bfloat16",
+            "device": str(self.device),
+        }
 
 
 BACKENDS = {"typesafe": TypeSafeBackend, "laya": LayaBackend, "clef": ClefBackend}
@@ -231,8 +278,16 @@ class SystemOneReranker(Reranker):
     prob_kind = "model"
     uses_phrasing = True
 
-    def __init__(self, name: str, model_id: str, backend: str, window: int = 0, primitive: str = "noul",
-                 batch_size: Optional[int] = None, **backend_params: Any):
+    def __init__(
+        self,
+        name: str,
+        model_id: str,
+        backend: str,
+        window: int = 0,
+        primitive: str = "noul",
+        batch_size: Optional[int] = None,
+        **backend_params: Any,
+    ):
         if primitive != "noul":
             raise ValueError(f"SystemOneReranker supports primitive 'noul' only so far, not '{primitive}' (WP3)")
         self.name = name
@@ -261,19 +316,23 @@ class SystemOneReranker(Reranker):
     def _request(query: str, passages: List[str], phrasing: Phrasing) -> Request:
         labels = [f"D{i + 1}" for i in range(len(passages))]
         state = {"query": query, "documents": dict(zip(labels, passages))}
-        questions = {label: {"type": "noul", "instructions": phrasing.question.format(doc=f"documents.{label}")}
-                     for label in labels}
+        questions = {
+            label: {"type": "noul", "instructions": phrasing.question.format(doc=f"documents.{label}")}
+            for label in labels
+        }
         return state, questions
 
     def score(self, query: str, passages: List[str], phrasing: Phrasing) -> Scores:
         size = self.window or len(passages)
-        pending = [(i, passages[i:i + size]) for i in range(0, len(passages), size)]
+        pending = [(i, passages[i : i + size]) for i in range(0, len(passages), size)]
         records: List[Dict[str, Any]] = []
         truncated = 0
         while pending:
             # Only a single passage may be cut; a longer request that doesn't fit is split in half instead.
-            bodies = self.backend.answer([self._request(query, chunk, phrasing) for _, chunk in pending],
-                                         truncate=[len(chunk) == 1 for _, chunk in pending])
+            bodies = self.backend.answer(
+                [self._request(query, chunk, phrasing) for _, chunk in pending],
+                truncate=[len(chunk) == 1 for _, chunk in pending],
+            )
             split = []
             for (offset, chunk), body in zip(pending, bodies):
                 if body == TOO_LONG:
@@ -288,7 +347,7 @@ class SystemOneReranker(Reranker):
             pending = split
         probs: List[float] = [float("nan")] * len(passages)
         for r in records:
-            probs[r["offset"]:r["offset"] + r["n"]] = r["nouls"]
+            probs[r["offset"] : r["offset"] + r["n"]] = r["nouls"]
             self._stats["requests"] += 1
             self._stats["input_tokens"] += r["usage"].get("input_tokens") or 0
         self._stats["truncated_passages"] += truncated
@@ -300,9 +359,15 @@ class SystemOneReranker(Reranker):
     @staticmethod
     def _record(offset: int, chunk: List[str], body: Dict[str, Any]) -> Dict[str, Any]:
         labels = [f"D{i + 1}" for i in range(len(chunk))]
-        return {"offset": offset, "n": len(chunk), "model": body.get("model"),
-                "nouls": [body["answers"][label]["noul"] for label in labels], "usage": body.get("usage") or {},
-                "latency_s": body.get("latency_s"), "request_id": body.get("request_id")}
+        return {
+            "offset": offset,
+            "n": len(chunk),
+            "model": body.get("model"),
+            "nouls": [body["answers"][label]["noul"] for label in labels],
+            "usage": body.get("usage") or {},
+            "latency_s": body.get("latency_s"),
+            "request_id": body.get("request_id"),
+        }
 
     def count_truncated(self, query: str, passages: List[str]) -> int:
         """Passages the model had to cut in the last score() call (the rerank CLI calls this right after it)."""
@@ -310,6 +375,10 @@ class SystemOneReranker(Reranker):
 
     def describe(self) -> Dict[str, Any]:
         d = super().describe()
-        d.update(window=self.window, primitive=self.primitive, **self.backend.describe(),
-                 state_format='{"query": q, "documents": {"D1": d1, ...}}')
+        d.update(
+            window=self.window,
+            primitive=self.primitive,
+            **self.backend.describe(),
+            state_format='{"query": q, "documents": {"D1": d1, ...}}',
+        )
         return d

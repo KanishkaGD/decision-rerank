@@ -10,8 +10,15 @@ from cdm.rerankers.base import Reranker, Scores
 class CrossEncoderReranker(Reranker):
     prob_kind = "sigmoid(logit)"
 
-    def __init__(self, name: str, model_id: str, max_length: int = 512, batch_size: int = 128,
-                 revision: Optional[str] = None, device: Optional[str] = None):
+    def __init__(
+        self,
+        name: str,
+        model_id: str,
+        max_length: int = 512,
+        batch_size: int = 128,
+        revision: Optional[str] = None,
+        device: Optional[str] = None,
+    ):
         from sentence_transformers import CrossEncoder
 
         self.name = name
@@ -27,8 +34,13 @@ class CrossEncoderReranker(Reranker):
         # Raw logits, whatever activation the model's config declares, so scores are comparable across models and
         # the probability is always sigmoid(logit). activation_fn is the sentence-transformers >= 4 argument name;
         # no fallback on purpose: a model default (often Sigmoid) would silently turn the logits into probabilities.
-        out = self.model.predict(pairs, batch_size=self.batch_size, activation_fn=torch.nn.Identity(),
-                                 show_progress_bar=False, convert_to_numpy=True)
+        out = self.model.predict(
+            pairs,
+            batch_size=self.batch_size,
+            activation_fn=torch.nn.Identity(),
+            show_progress_bar=False,
+            convert_to_numpy=True,
+        )
         return [float(x) for x in out.reshape(len(pairs), -1)[:, 0]]
 
     def score(self, query: str, passages: List[str], phrasing: Phrasing) -> Scores:
