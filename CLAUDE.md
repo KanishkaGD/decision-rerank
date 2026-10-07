@@ -1,8 +1,9 @@
 # Project conventions
 
-Research project: calibrated System One decision models (Laya, Jev, Clef) as rerankers and retrieval controllers. The
-plan is `docs/research-plan.md` (do not edit it); decisions and failed attempts go to `docs/experiment-log.md`; the
-paper lives in `paper/`.
+Research project: calibrated System One decision models (Jev, Clef, Kev, Laya) as rerankers. The plan of record is
+`docs/roadmap.md` (research questions, setup, order of work); the owner's decisions are in `docs/intent/`; what was
+tried, including failures, goes to `docs/experiment-log.md` (append-only); the paper lives in `paper/`.
+`docs/research-plan.md` is the owner's original proposal (read-only); where it differs, `docs/roadmap.md` holds.
 
 ## Working together
 
@@ -65,23 +66,29 @@ Two people (and their agents) work in this repository with ordinary git branches
 - Datasets are registered in `src/cdm/datasets.py`, rerankers in `src/cdm/rerankers/__init__.py`, phrasings in
   `src/cdm/phrasings.py`. A new dataset or system also goes into `slurm/config.sh`.
 - All metrics go through `cdm.results_csv.save_result` (locked read-modify-write; many jobs write concurrently).
-  Never edit `results/results.csv` by hand. Its key columns are `RESULT_KEY_COLUMNS`; anything that changes a result
+  Never edit `results/results.csv` by hand; to rename a system use `cdm rename-system` and log it. Its key columns are `RESULT_KEY_COLUMNS`; anything that changes a result
   and isn't one of them belongs in `variant`.
 - Every output directory gets a `manifest.json` (`cdm.provenance.write_manifest`).
 - Tests: `pytest` (tests/). Formatting: `black` and `isort` (line length 120).
 
-## Experiment rules (from the research plan)
+## Experiment rules
 
-- Never tune anything on test splits. Phrasing and primitive are selected on `msmarco-dev` only (WP3); a phrasing is
-  frozen (`frozen=True`) before any test-set run and never edited afterwards -- add a new id instead.
-- Store raw model outputs (score and probability per query, passage and phrasing), not just rankings.
+- One setup (`docs/roadmap.md`, "Setup"): BM25 top-100 candidates, S1Rank's question (`s1rank`) for all System One
+  models. Never tune anything on test splits; a different question would be chosen on `msmarco-dev` only and get a
+  new phrasing id (never edit a frozen one).
+- Don't recompute what is published on the same candidates: such cells come from `results/literature.csv`
+  (`from_literature` in `slurm/config.sh`). Literature numbers are labelled as such in the paper.
+- System One modes are named in S1Rank's terms: `<model>-joint` / `<model>-isolated`, both pointwise. "Listwise" means
+  a reranker that outputs a ranking (RankGPT, RankZephyr).
+- Store raw model outputs (score and probability per query and passage), not just rankings.
 - Fix seeds; record library, model and checkpoint versions (the manifests do this -- keep it that way).
-- Numbers from prior work are unverified until replicated; label them as such in the paper.
-- Report back to the user after WP2 with the go/no-go decision before starting WP4.
+- Phase 2 of the roadmap (control signal, fine-tuning, BRIGHT) starts after the WSDM submission.
 
 ## Paper (`paper/`)
 
-- LNCS for now (venue undecided). One file per section in `paper/sections/`; RQ wording only in
-  `paper/rq-macros.tex`; build and check with `make` / `make check` in `paper/`.
-- Numbers in the paper come from `results/results.csv` via generated tables in `paper/tables/`, never typed by hand.
+- Target: WSDM 2027 short paper (ACM sigconf, 4 pages); the sources are still LNCS until the move (roadmap step 5).
+  One file per section in `paper/sections/`; RQ wording only in `paper/rq-macros.tex`; build and check with `make` /
+  `make check` in `paper/`.
+- Numbers in the paper come from `results/results.csv` and `results/literature.csv` via generated tables in
+  `paper/tables/`, never typed by hand.
 - Draft markers: `\TODO{}`, `\PENDING{}` (waits for a result), `\FLAG{}` (claim to verify).

@@ -16,8 +16,8 @@ from cdm.runs import first_stage_name, run_dir, write_candidates, write_qrels, w
     "--retriever",
     type=click.Choice(["official", "bm25"]),
     default=None,
-    help="'official': the track's rerank pool (needs `cdm prefetch`); 'bm25': our own BM25 top-N. Default: "
-    "official where the dataset has a pool, else bm25. A dense retriever is still to be added.",
+    help="'official': the track's top-100 file (DL 2021-2023; needs `cdm prefetch`); 'bm25': a Pyserini BM25 search. "
+    "Default: official where the dataset has one, else bm25 -- both give the BM25 top-100.",
 )
 @click.option(
     "--depth",
@@ -31,7 +31,7 @@ from cdm.runs import first_stage_name, run_dir, write_candidates, write_qrels, w
     "--max-queries",
     type=int,
     default=None,
-    help="Only the first N queries (quick checks; not saved to " "results.csv unless --save-subset).",
+    help="Only the first N queries (quick checks; not saved to results.csv unless --save-subset).",
 )
 @click.option("--save-subset", is_flag=True, help="Record a --max-queries run in results.csv too.")
 @click.option("--overwrite", is_flag=True, help="Replace an existing cache.")
@@ -56,8 +56,8 @@ def first_stage(dataset, retriever, depth, threads, max_queries, save_subset, ov
     os.makedirs(out, exist_ok=True)
 
     if retriever == "official":
-        click.echo(f"Reading the official pool of {dataset} ({ds.pool.url}), ordered by BM25 on {ds.index}...")
-        candidates, qrels, params = official_pool(ds, threads=threads, max_queries=max_queries)
+        click.echo(f"Reading the official pool of {dataset} ({ds.pool.url}), texts from {ds.index}...")
+        candidates, qrels, params = official_pool(ds, max_queries=max_queries)
     else:
         click.echo(f"Retrieving top-{depth} with {retriever} for {dataset} ({ds.index}, {ds.topics})...")
         candidates, qrels, params = retrieve_bm25(ds, depth=depth, threads=threads, max_queries=max_queries)

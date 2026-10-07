@@ -23,68 +23,66 @@ GPU_CONSTRAINT="gpumem.48gib"
 # --partition gpu for them). Qwen3-Reranker-8B in fp32 is ~32 GB of weights: 48 GB is enough.
 gpu_constraint_for() {
     case "$1" in
-        clef-pointwise | clef-listwise | kev-27b-*) echo "gpumem.80gib" ;;
+        clef-isolated | clef-joint | kev-27b-*) echo "gpumem.80gib" ;;
         *) echo "${GPU_CONSTRAINT}" ;;
     esac
 }
 
-# Dataset names as registered in src/cdm/datasets.py (`cdm datasets` lists them with their Pyserini ids).
-# "all" in `slurm/submit.sh ... --datasets all` means this list. msmarco-dev is the dev split for selecting the
-# question phrasing (WP3) and is never reported as a test result.
-# Candidates: the official rerank pool where there is one (TREC DL, MS MARCO dev; up to 1000 per query), else our
-# BM25 top-100 (BEIR) -- `cdm datasets` shows which.
+# Dataset names as registered in src/cdm/datasets.py (`cdm datasets` lists them with their Pyserini ids). "all" in
+# `slurm/submit.sh ... --datasets all` means this list. Every dataset is reranked on the BM25 top-100
+# (docs/roadmap.md, "Setup").
 DATASETS=(
-    "dl19"       # TREC DL 2019 passage (in-domain), official pool
-    "dl20"       # TREC DL 2020 passage (in-domain), official pool
-    "dl21"       # TREC DL 2021-2023 passage: MS MARCO v2 (138M passages), official top-100 pools; prefetch the
-    "dl22"       #   39 GB msmarco-v2-passage index with a batch job (slurm/prefetch.sbatch)
+    "dl19"       # TREC DL 2019 passage, MS MARCO v1
+    "dl20"       # TREC DL 2020 passage, MS MARCO v1
+    "dl21"       # TREC DL 2021-2023 passage, MS MARCO v2 (138M passages); official top-100 files = BM25 top-100
+    "dl22"
     "dl23"
     "trec-covid" # BEIR
-    "nfcorpus"   # BEIR
-    "scifact"    # BEIR, small: the sanity-check dataset
-    "fiqa"       # BEIR
-    "scidocs"    # BEIR
+    "nfcorpus"
+    "scifact"
+    "touche"     # BEIR webis-touche2020
+    "dbpedia"    # BEIR dbpedia-entity
 )
 DEV_DATASETS=(
-    "msmarco-dev" # MS MARCO passage dev (small), 6,980 queries, official top1000.dev pool
+    "msmarco-dev" # MS MARCO passage dev (small), 6,980 queries: fine-tuning (docs/roadmap.md); never reported
 )
 
 # Reranker names as registered in src/cdm/rerankers/__init__.py (`cdm systems` lists them).
 SYSTEMS=(
-    # pointwise cross-encoders
-    "minilm-l6"
-    "bge-m3"
-    "mxbai-base"
-    "monot5-base"          # Kanishka's baselines, and their larger sizes for the 48/80 GB GPUs
+    "bge-m3"             # cross-encoders: S1Rank's two baselines and Qwen3-Reranker-8B
     "monot5-3b"
-    "qwen3-reranker-0.6b"
-    "qwen3-reranker-4b"
     "qwen3-reranker-8b"
-    # listwise cross-encoder (own container, container_for; at most 100 candidates: pass --depth 100 on 1000-pools)
-    "set-encoder-base"
-    "set-encoder-large"
-    # pointwise LLM judge via OpenRouter (API_SYSTEMS)
-    "qwen3.7-flash"
-    # System One models: <name>-pointwise (one candidate per request) and <name>-listwise (all in one state)
-    "jev-pointwise"        # TypeSafe API; runs on CPU (API_SYSTEMS)
-    "jev-listwise"
-    "laya"                 # open weights, pointwise only (its context is too short for a list)
-    "laya-multilingual"
-    "clef-flash-pointwise" # Cloudflare, 9B
-    "clef-flash-listwise"
-    "clef-pointwise"       # Cloudflare, 27B: needs an 80 GB GPU (gpu_constraint_for)
-    "clef-listwise"
-    "kev-0.8b-pointwise"   # open weights, Jev-like (github.com/jaredpalmer/kev)
-    "kev-0.8b-listwise"
-    "kev-4b-pointwise"
-    "kev-4b-listwise"
-    "kev-9b-pointwise"
-    "kev-9b-listwise"
-    "kev-27b-pointwise"    # needs an 80 GB GPU (gpu_constraint_for)
-    "kev-27b-listwise"
+    "set-encoder-large"  # cross-encoder that scores the candidates jointly (own container, container_for)
+    "qwen3.7-flash"      # LLM judge via OpenRouter (API_SYSTEMS)
+    # System One models: <name>-isolated (one candidate per request), <name>-joint (all candidates in one state)
+    "jev-isolated"       # TypeSafe API; runs on CPU (API_SYSTEMS)
+    "jev-joint"
+    "laya"               # open weights, isolated only (its context is too short for a list)
+    "clef-flash-isolated" # Cloudflare, 9B
+    "clef-flash-joint"
+    "clef-isolated"      # Cloudflare, 27B: needs an 80 GB GPU (gpu_constraint_for)
+    "clef-joint"
+    "kev-4b-isolated"    # open weights, Jev-like (github.com/jaredpalmer/kev)
+    "kev-4b-joint"
+    "kev-27b-isolated"   # needs an 80 GB GPU (gpu_constraint_for)
+    "kev-27b-joint"
 )
 # Systems served by an external API: slurm/submit.sh runs them on the general (CPU) partition, no GPU.
-API_SYSTEMS=("jev-pointwise" "jev-listwise" "qwen3.7-flash")
+API_SYSTEMS=("jev-isolated" "jev-joint" "qwen3.7-flash")
+
+# Grid cells we take from published papers instead of computing (results/literature.csv; docs/roadmap.md):
+# slurm/submit.sh skips them unless --include-literature. monoT5-3B is still computed on DL19/20, as the check that
+# our candidate sets reproduce the published numbers, and for its probabilities (calibration, RQ3).
+#   Usage: from_literature <system> <dataset>   (exit status 0 = taken from the literature)
+from_literature() {
+    case "$1:$2" in
+        bge-m3:dl19 | bge-m3:dl20 | bge-m3:trec-covid | bge-m3:nfcorpus | bge-m3:scifact | bge-m3:touche | \
+            bge-m3:dbpedia) return 0 ;;
+        monot5-3b:trec-covid | monot5-3b:nfcorpus | monot5-3b:scifact | monot5-3b:touche | monot5-3b:dbpedia) return 0 ;;
+        set-encoder-large:dl19 | set-encoder-large:dl20) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
 # The container image a system runs in (relative to the repo root). Set-Encoder needs lightning-ir, which needs
 # transformers < 5, while Laya, Clef and Kev need transformers >= 5.17: it gets its own image.
@@ -96,35 +94,28 @@ container_for() {
     esac
 }
 
-# --time budgets. Unvalidated first guesses: replace each with the observed run time plus a margin once a job's
-# log (or `sacct -j <jobid>`) shows it, and say so in a comment. Partition maxima: general 48h, gpu 28h,
-# short 1h.
+# --time budgets, from measured run times plus a margin; update them with a comment citing the job id.
+# Partition maxima: general and gpu 48h, short 1h.
 first_stage_time_for() {
     local dataset="$1"
     case "${dataset}" in
-        msmarco-dev) echo "04:00:00" ;; # 6,980 queries; the official pool: ~7M pairs to read and order
-        *) echo "01:00:00" ;;
+        msmarco-dev) echo "02:00:00" ;; # 6,980 queries
+        *) echo "01:00:00" ;; # DL 2021-2023 official pools: 4-5 min (jobs 4357123-4357125)
     esac
 }
 
 rerank_time_for() {
     local dataset="$1" system="$2"
     case "${dataset}:${system}" in
-        msmarco-dev:jev-pointwise) echo "16:00:00" ;; # 100 API requests per query, ~16 in parallel
-        msmarco-dev:*) echo "08:00:00" ;; # ~700k query-passage pairs at depth 100 (pass --max-queries / --depth)
-        # The official DL pools: 41k (DL19) / 50k (DL20) pairs. Kanishka's runs: Kev-0.8B ~8 min for both on an A100;
-        # Qwen3.7-Flash ~64 pairs/s through OpenRouter (~15 min per year); Jev 101k requests.
-        # 27B models on all 41k/50k pairs: unmeasured, generous (gpu partition max 48h).
-        dl19:*-27b* | dl20:*-27b* | dl19:clef-pointwise | dl20:clef-pointwise | dl19:clef-listwise | \
-            dl20:clef-listwise) echo "16:00:00" ;;
-        dl19:clef-flash* | dl20:clef-flash*) echo "08:00:00" ;;
-        dl19:qwen3-reranker-8b | dl20:qwen3-reranker-8b) echo "08:00:00" ;;
-        dl19:* | dl20:*) echo "04:00:00" ;;
-        # The official DL 2021-2023 pools: top-100 for 53 / 76 / 82 judged queries (5k-8k pairs). Unmeasured.
-        dl2[123]:*-27b* | dl2[123]:clef-pointwise | dl2[123]:clef-listwise) echo "04:00:00" ;;
-        dl2[123]:*) echo "02:00:00" ;;
-        scidocs:* | fiqa:*) echo "03:00:00" ;; # 1,000 / 648 queries
-        *) echo "01:00:00" ;;
+        # 100 candidates for <= 82 queries (DL19-23, TREC-COVID, Touche). Measured on DL21-23: Kev-27B isolated
+        # 29-44 min (4357189-4357191), Clef 27B 7-18 min (4357165-4357170), everything else under 10 min.
+        dl*:clef-isolated | dl*:clef-joint | dl*:kev-27b-* | trec-covid:clef-* | trec-covid:kev-27b-* | \
+            touche:clef-* | touche:kev-27b-*) echo "01:30:00" ;;
+        dl* | trec-covid:* | touche:*) echo "00:45:00" ;;
+        # 300-400 queries (NFCorpus, SciFact, DBPedia): about 5x, unmeasured.
+        *:clef-isolated | *:clef-joint | *:kev-27b-*) echo "06:00:00" ;;
+        msmarco-dev:*) echo "08:00:00" ;; # ~700k query-passage pairs at depth 100 (pass --max-queries)
+        *) echo "03:00:00" ;;
     esac
 }
 
@@ -132,7 +123,7 @@ rerank_time_for() {
 time_for() {
     case "$1" in
         hello) echo "00:02:00" ;; # job 4345829: 49 s
-        prefetch) echo "06:00:00" ;; # unmeasured; the MS MARCO v2 passage index is 39 GB to download and unpack
+        prefetch) echo "06:00:00" ;; # MS MARCO v2 index and 23 models: 52 min until a failure (4356461)
         first-stage) first_stage_time_for "$2" ;;
         rerank) rerank_time_for "$2" "$3" ;;
         *)

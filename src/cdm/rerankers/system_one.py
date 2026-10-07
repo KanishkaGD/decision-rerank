@@ -11,13 +11,13 @@ models is not confounded by prompt formatting:
   questions {"D1": <noul>, ..., "Dn": <noul>}                      instructions = phrasing with {doc} = documents.Di
 
 This is S1Rank's format (github.com/zaesho/S1Rank, s1rank/methods.py), so its Jev numbers can be replicated.
-`window` sets how many candidates share one request: 1 = one per request (pointwise), 0 = all of them (listwise; S1Rank's
-"joint pointwise"), k = listwise in chunks of k. Either way the model returns one probability per candidate; pointwise
-and listwise differ only in what else is in the state (RQ4).
+`window` sets how many candidates share one request: 1 = one per request (isolated), 0 = all of them (joint), k = chunks
+of k. Both are pointwise in S1Rank's sense -- one probability per candidate, ranked by it -- and differ only in what
+else is in the state (RQ2).
 
 A request that is too long for the model is split in half, recursively (counted as window_splits). A single passage
 that is still too long is truncated by the model and counted (count_truncated). Laya builds one sequence per question
-and cuts the state to its budget (about 320 tokens on the English checkpoint), so it runs pointwise only.
+and cuts the state to its budget (about 320 tokens on the English checkpoint), so it runs isolated only.
 
 Scores.probs are the model's own probabilities (the noul, i.e. P(yes)) as returned -- Laya's include the temperatures
 its checkpoint ships with. Scores.scores subtracts 1e-6 per first-stage position, which breaks ties (Jev rounds to two
@@ -108,7 +108,7 @@ class TypeSafeBackend:
 
 class LayaBackend:
     """
-    Laya on a local GPU (pip package `laya`). Requests that share their questions -- every pointwise request does --
+    Laya on a local GPU (pip package `laya`). Requests that share their questions -- every isolated request does --
     go through Agent.predict_batch together. Laya never rejects a long state, it cuts it; with truncate=False a cut
     request is reported as TOO_LONG so it gets split.
     """
@@ -284,7 +284,7 @@ class KevBackend:
     Kev on a local GPU, in-process through the `kev` package (github.com/jaredpalmer/kev; installed in the container
     without its dependencies, see container/cdm.def). A request is encoded with Kev's own serving path (to_record,
     admit) and scored with DecisionModel.probs_batch; the state is shared and every question reads it in its own row,
-    so a listwise request costs one state pass. Probabilities include the temperature the checkpoint ships with, as
+    so a joint request costs one state pass. Probabilities include the temperature the checkpoint ships with, as
     Kev's server returns them. A state over Kev's 64k-token serving limit is TOO_LONG (or cut, if allowed).
 
     dtype None is Kev's exact path (fp32; bf16 for a checkpoint trained on a bf16 backbone, i.e. Kev-27B); Kanishka
@@ -390,11 +390,11 @@ class SystemOneReranker(Reranker):
         **backend_params: Any,
     ):
         if primitive != "noul":
-            raise ValueError(f"SystemOneReranker supports primitive 'noul' only so far, not '{primitive}' (WP3)")
+            raise ValueError(f"SystemOneReranker supports the primitive 'noul' only, not '{primitive}'")
         self.name = name
         self.model_id = model_id
         self.window = window
-        self.listwise = window != 1
+        self.joint = window != 1
         self.primitive = primitive
         if batch_size is not None:
             backend_params["batch_size"] = batch_size

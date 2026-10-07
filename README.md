@@ -1,7 +1,7 @@
 # calibrated-decision-models-for-ir
 
-Experiments and paper for *Decide, then Rank: Calibrated System One Models as Rerankers and Retrieval Controllers*
-(working title). The plan, research questions and work packages are in [docs/research-plan.md](docs/research-plan.md).
+Experiments and paper for *Decide, then Rank: Calibrated System One Models as Rerankers* (working title). The plan
+-- research questions, setup and order of work -- is [docs/roadmap.md](docs/roadmap.md).
 
 ## Layout
 
@@ -35,7 +35,7 @@ changes):
 cp .env.example .env && chmod 600 .env             # HF_TOKEN, TYPESAFE_AI_API_KEY, OPENROUTER_API_KEY
 bash container/build.sh                           # container/cdm.sif (fakeroot, ~15 min)
 bash container/build.sh lightning-ir              # container/lightning-ir.sif, for the Set-Encoder only
-bash slurm/prefetch.interactive.sh --datasets dl19,dl20,scifact --systems minilm-l6,monot5-base
+bash slurm/prefetch.interactive.sh --datasets dl19,dl20,scifact --systems bge-m3,monot5-3b
                                                   # indexes, topics/qrels, official pools, models -> data/
 slurm/submit.sh prefetch --datasets dl21,dl22,dl23 --systems none
                                                   # the 39 GB MS MARCO v2 passage index: a CPU batch job
@@ -56,12 +56,12 @@ editing while jobs wait in the queue.
 # Quick, blocking check on a compute node (short partition, <= 1h):
 slurm/exec.sh -- cdm info
 slurm/exec.sh -- cdm first-stage scifact --max-queries 20
-slurm/exec.sh --gpu -- cdm rerank minilm-l6 scifact --first-stage bm25-d100-max20 --no-save
+slurm/exec.sh --gpu -- cdm rerank bge-m3 scifact --first-stage bm25-d100-max20 --no-save
 
 # Batch jobs: one job per dataset, --time and --account from slurm/config.sh
 slurm/submit.sh first-stage --datasets all                       # -> Submitted batch job 101 ... 110
-slurm/submit.sh rerank monot5-base --datasets dl19,dl20 --after 101,102
-slurm/submit.sh rerank kev-27b-listwise --datasets dl21,dl22,dl23 --dry-run   # print the sbatch calls only
+slurm/submit.sh rerank monot5-3b --datasets dl19,dl20 --after 101,102
+slurm/submit.sh rerank kev-27b-joint --datasets dl21,dl22,dl23 --phrasings s1rank --dry-run   # print only
 
 # Follow them
 squeue --me
@@ -77,7 +77,7 @@ What the jobs produce:
 
 | Path | Content |
 | --- | --- |
-| `runs/<dataset>/official-d1000/`, `official-d100/`, `bm25-d100/` | first-stage cache (official pool or our BM25): `candidates.jsonl.gz` (with passage texts), `run.trec.gz`, `qrels.tsv`, `manifest.json` |
+| `runs/<dataset>/bm25-d100/`, `official-d100/` (DL21-23) | first-stage cache, the BM25 top-100: `candidates.jsonl.gz` (with passage texts), `run.trec.gz`, `qrels.tsv`, `manifest.json` |
 | `outputs/<dataset>/<first-stage>/<system>/<phrasing>/` | `scores.jsonl.gz` (score and probability per query and passage), `responses.jsonl.gz` (API systems: every raw response with tokens and latency), `run.trec.gz`, `perquery.csv`, `manifest.json` |
 | `results/results.csv` | one row per configuration: nDCG@10, R@10, R@100, RR@10, AP, ECE, Brier, latency p50/p95, truncation, API requests/tokens/cost (API systems), provenance |
 
@@ -90,40 +90,28 @@ versions, hardware and configuration.
 | --- | --- |
 | `cdm datasets` / `cdm systems` | registered datasets (`src/cdm/datasets.py`) and rerankers (`src/cdm/rerankers/`) |
 | `cdm prefetch` | download indexes, topics, qrels and models into the caches |
-| `cdm first-stage <dataset>` | the official rerank pool, or BM25 top-100 with Pyserini, cached for all rerankers |
+| `cdm first-stage <dataset>` | the BM25 top-100 (Pyserini search, or DL21-23's official file), cached for all rerankers |
 | `cdm rerank <system> <dataset>` | rerank the cache, store raw scores, evaluate, write results.csv |
 | `cdm results` | print results.csv as a table |
 | `cdm info` | versions, paths, GPU |
 
-**Candidates.** Every dataset's default first stage is its official rerank pool where the track published one, else
-our BM25 top-100 (owner's decision, 2026-10-07; `cdm datasets` shows which): TREC DL 2019/2020 use the official
-`msmarco-passagetest{2019,2020}-top1000` pools (up to 1000 per query, unranked, so ordered by our BM25 score;
-`--depth 100` then reranks the BM25 top 100 of the pool), TREC DL 2021-2023 the official `202x_passage_top100`
-pools (ranked BM25 runs on MS MARCO v2; texts from the `msmarco-v2-passage` index), MS MARCO dev `top1000.dev`, and
-BEIR, which publishes
-no pools, uses Pyserini's BM25 flat top-100 (the de-facto standard). `cdm first-stage dl19` builds
-`runs/dl19/official-d1000/` from the pool `cdm prefetch` downloaded; `--retriever bm25` forces our own BM25.
+**Candidates and systems** are fixed in [docs/roadmap.md](docs/roadmap.md), "Setup": the BM25 top-100 everywhere (for
+DL21-23 read from the official top-100 files, which are exactly that set), so that published numbers on the same
+candidates can stand in for runs; those are in `results/literature.csv`, and `slurm/submit.sh` skips their cells.
+`cdm datasets` and `cdm systems` list what is registered.
 
-**Systems.** `cdm systems` lists them. Kanishka's selection (branch `master`) is included, with larger sizes for the
-48/80 GB GPUs. Every system outputs one score per candidate; IR terms for what it sees: **pointwise** = one
-(query, passage) pair at a time, **listwise** = the whole candidate list of the query at once (here: still one score
-per candidate, as in S1Rank's "joint pointwise" and the Set-Encoder; not a generated permutation as in RankGPT).
+| Group | Systems | Notes |
+| --- | --- | --- |
+| Cross-encoders | `bge-m3`, `monot5-3b`, `qwen3-reranker-8b` | fp32 + TF32 (`src/cdm/rerankers/cross_encoder.py`, `pointwise_lm.py`) |
+| Cross-encoder scoring the candidates jointly | `set-encoder-large` | lightning-ir, own container (`container/lightning-ir.def`); at most 100 candidates |
+| LLM judge | `qwen3.7-flash` | OpenRouter, P(yes) from log-probs; needs `OPENROUTER_API_KEY` |
+| System One | `jev-*`, `clef-flash-*`, `clef-*`, `kev-4b-*`, `kev-27b-*` | each `-joint` (all candidates in one state) and `-isolated` (one per request), both pointwise |
+| System One | `laya` | isolated only (context too short for a list) |
 
-| Group | Systems | Mode | Notes |
-| --- | --- | --- | --- |
-| Cross-encoders | `minilm-l6`, `bge-m3`, `mxbai-base` | pointwise | sentence-transformers |
-| Trained yes/no LMs | `monot5-base`, `monot5-3b`, `qwen3-reranker-0.6b`, `-4b`, `-8b` | pointwise | Kanishka's prompts and readout; fp32 + TF32 (`src/cdm/rerankers/pointwise_lm.py`) |
-| Set-Encoder | `set-encoder-base`, `set-encoder-large` | listwise | lightning-ir, own container; at most 100 candidates (`--depth 100` on the 1000-candidate pools) |
-| LLM judge | `qwen3.7-flash` | pointwise | OpenRouter, P(yes) from log-probs, Kanishka's prompt; needs `OPENROUTER_API_KEY` |
-| System One | `jev-*`, `clef-flash-*`, `clef-*`, `kev-0.8b-*`, `kev-4b-*`, `kev-9b-*`, `kev-27b-*` | `-pointwise` and `-listwise` | the RQ4 comparison |
-| System One | `laya`, `laya-multilingual` | pointwise only | context too short for a list |
-
-Status: the cross-encoders work; the monoT5, Qwen3-Reranker, Set-Encoder, Kev and Qwen3.7-Flash rerankers are new
-and not yet run on the cluster. The System One models share one reranker (`src/cdm/rerankers/system_one.py`) and get
-identical requests: Jev through the TypeSafe API (needs `TYPESAFE_AI_API_KEY` in `.env`, runs on the CPU partition),
-Laya, Clef and Kev on a GPU (the 27B models, `clef-pointwise`/`-listwise` and `kev-27b-*`, need an 80 GB GPU). A listwise request that is too long for the
-model is split in halves. The phrasings in `src/cdm/phrasings.py` are a draft until WP3 freezes them, except
-`s1rank` (S1Rank's question, for replication).
+The System One models share one reranker (`src/cdm/rerankers/system_one.py`) and get identical requests with
+S1Rank's question (`--phrasings s1rank`): Jev through the TypeSafe API (`TYPESAFE_AI_API_KEY`, runs on the CPU
+partition), Laya, Clef and Kev on a GPU (the 27B models need an 80 GB GPU). A joint request that is too long for the
+model is split in halves.
 
 ## Slurm details
 
@@ -162,11 +150,5 @@ merging, and never rewrite `master`'s history.
 
 ## Next steps
 
-1. Rebuild the container (Kev, flash-linear-attention), prefetch the official pools and the new models, build the
-   DL19/20 official-pool caches, and run all systems on them; compare with Kanishka's numbers on the same pool.
-   Then prefetch the MS MARCO v2 index (batch job) for DL21-23 and the remaining datasets, and run the first stage
-   on all of them.
-2. WP2: all systems on DL19/DL20 (the calibration sets with judged non-relevant documents), then the BEIR subset;
-   replicate S1Rank's Jev numbers as a sanity check; report the go/no-go decision on Laya before any WP4 work.
-3. WP0 landscape note (S1Rank, the Decision Index, Laya and Clef model cards) in `docs/notes/wp0-landscape.md`.
-4. Move `paper/` to ACM sigconf for the WSDM 2027 short paper (`docs/intent/venue.md`) and add `cdm table`.
+See [docs/roadmap.md](docs/roadmap.md), "Order of work"; the `experiment-status` skill (or
+`python3 .claude/skills/experiment-status/scripts/status.py`) shows what is done, running and missing.

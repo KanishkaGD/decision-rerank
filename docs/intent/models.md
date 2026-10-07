@@ -1,49 +1,30 @@
-# System One models
+# Models, candidates and evaluation
 
-## Jev and Laya access
+The owner's current decisions; `docs/roadmap.md` turns them into the setup.
 
-Decided by the owner on 2026-10-06 (open question 3):
+## One setup, aligned with S1Rank and the literature (2026-10-07)
 
-- **Jev: API access exists.** The TypeSafe AI API key is in `.env` as `TYPESAFE_AI_API_KEY`. No API budget was
-  given; ask before large runs.
-- **Laya: the owner is trying to get access to a Laya API.** Not available yet.
-- **Start with Jev**: implement and run Jev first, Laya when its API arrives.
+- **Candidates: BM25 top-100** (Pyserini default) for every dataset, so that published numbers on the same
+  candidates can be used instead of recomputing them. For DL21-23 the official top-100 files are exactly this set.
+- **Datasets:** DL19-DL23; BEIR TREC-COVID, NFCorpus, SciFact, Touché, DBPedia (the public sets with published
+  RankGPT/RankZephyr/monoT5 numbers).
+- **Take published numbers where they exist** -- mainly from Abdallah et al. (2025), "How Good are LLM-based
+  Rerankers?" -- for RankGPT-4, RankZephyr-7B (not run by us), bge-reranker-v2-m3 and monoT5-3B; compute the rest.
+- **System One models:** Jev (closed), Clef-Flash and Clef, Kev in two sizes (4B, 27B), Laya. Every one joint and
+  isolated, except Laya (isolated only).
+- **Baselines computed:** monoT5-3B, bge-reranker-v2-m3 (where no published number exists), Qwen3-Reranker-8B,
+  Set-Encoder-large, Qwen3.7-Flash.
+- **Terminology:** S1Rank's -- joint pointwise and isolated pointwise; "listwise" only for rerankers that output a
+  ranking.
 
-## Laya and CLEF in the setup
+## Access
 
-Decided by the owner on 2026-10-06:
+- **Jev:** TypeSafe API, key in `.env` (`TYPESAFE_AI_API_KEY`). No fixed API budget; runs cost a few dollars, ask
+  before anything larger.
+- **Qwen3.7-Flash:** OpenRouter, needs `OPENROUTER_API_KEY` in `.env`.
+- **Open models** (Clef, Kev, Laya, the cross-encoders): Hugging Face, pinned revisions, prefetched to `data/`.
 
-- **Integrate Laya and Cloudflare's CLEF as well**, alongside Jev. Laya is open weights on Hugging Face
-  (`convaiinnovations/laya`, Apache 2.0), so no Laya API is needed; CLEF is `Cloudflare/clef` (27B) and
-  `Cloudflare/clef-flash` (9B), Apache 2.0, Jev-compatible request format. CLEF is not in the research plan.
-- **One System One reranker** for all three, so every model gets the same state and questions.
+## Calibration
 
-## Calibration on sparsely judged sets
-
-Decided by the owner on 2026-10-06:
-
-- Unjudged documents count as non-relevant (the usual BEIR convention), stated in the paper.
-- **The main calibration results come only from sets with judged non-relevant documents** (TREC DL, TREC-COVID,
-  and others that have them); calibration on sets judged only for relevance is secondary.
-
-## Candidates and systems aligned with Kanishka's study
-
-Decided by the owner on 2026-10-07:
-
-- **Official rerank pools where they exist.** Rerank the track's own pool (TREC DL 2019/2020:
-  `msmarco-passagetest{2019,2020}-top1000`, as on Kanishka's branch); build our own BM25 pool only where none exists,
-  and avoid that where possible. This may influence which datasets are evaluated. BEIR publishes no pools (its
-  convention is Pyserini BM25 flat top-100); TREC DL 2021-2023 have official top-100 pools, but on MS MARCO v2.
-- **Kanishka's systems join ours**: monoT5-base, Qwen3-Reranker-0.6B, Kev-0.8B and Qwen3.7-Flash (OpenRouter), next to
-  Jev and Laya. Kanishka has one A100; we have H200s through Slurm, so we also run larger sizes (monoT5-3B,
-  Qwen3-Reranker-4B/8B, Kev-4B/9B/27B).
-
-## Pointwise vs. listwise (RQ4)
-
-Decided by the owner on 2026-10-07:
-
-- **IR terminology.** "Pointwise" (one query-passage pair per model call) and "listwise" (the whole candidate list
-  in view, one score per candidate) replace "isolated" and "joint" in code, system names and paper.
-- **RQ4 compares pointwise and listwise for Jev, Clef and Kev** (`<model>-pointwise` / `<model>-listwise`).
-- **Set-Encoder joins as a baseline** (webis/set-encoder-base and -large): the listwise counterpart among trained
-  cross-encoders.
+- Unjudged documents count as non-relevant (the BEIR convention), stated in the paper.
+- The calibration results (RQ3) come only from the sets with judged non-relevant documents: DL19-DL23.

@@ -12,13 +12,13 @@ from cdm.rerankers.llm_judge import OpenRouterJudge, yes_probability
 
 
 def test_registry():
-    for name in ["monot5-base", "qwen3-reranker-0.6b", "kev-0.8b-pointwise", "qwen3.7-flash", "set-encoder-base"]:
+    for name in ["monot5-3b", "qwen3-reranker-8b", "kev-4b-isolated", "qwen3.7-flash", "set-encoder-large"]:
         assert name in SYSTEMS
-    assert SYSTEMS["kev-0.8b-pointwise"].params == {"backend": "kev", "window": 1}
-    assert SYSTEMS["kev-27b-listwise"].params["window"] == 0
-    for base in ["jev", "clef-flash", "clef", "kev-0.8b", "kev-4b", "kev-9b", "kev-27b"]:
-        assert SYSTEMS[f"{base}-pointwise"].params["window"] == 1 and SYSTEMS[f"{base}-listwise"].params["window"] == 0
-    assert not SYSTEMS["jev-listwise"].hf and SYSTEMS["kev-4b-listwise"].revision
+    assert SYSTEMS["kev-4b-isolated"].params == {"backend": "kev", "window": 1}
+    assert SYSTEMS["kev-27b-joint"].params["window"] == 0
+    for base in ["jev", "clef-flash", "clef", "kev-4b", "kev-27b"]:
+        assert SYSTEMS[f"{base}-isolated"].params["window"] == 1 and SYSTEMS[f"{base}-joint"].params["window"] == 0
+    assert not SYSTEMS["jev-joint"].hf and SYSTEMS["kev-4b-joint"].revision
     new = [s for s in SYSTEMS.values() if s.kind in ("monot5", "qwen3-reranker", "set-encoder") or "kev-" in s.name]
     assert all(s.revision for s in new), "the new Hugging Face models are pinned"
     for spec in SYSTEMS.values():
@@ -88,11 +88,9 @@ def test_kev_backend_maps_noul_answers(monkeypatch):
         monkeypatch.setitem(sys.modules, name, module)
     pytest.importorskip("torch")
 
-    r = system_one.SystemOneReranker(
-        "kev-0.8b-listwise", "jaredpalmer/kev-0.8b", backend="kev", window=0, revision="abc"
-    )
+    r = system_one.SystemOneReranker("kev-4b-joint", "jaredpalmer/kev-4b", backend="kev", window=0, revision="abc")
     out = r.score("q", ["a", "b", "long"], get_phrasing("s1rank"))
     assert out.probs == [0.7, 0.7, 0.7]
     assert r.run_stats()["window_splits"] == 2  # 3 -> (1, 2) -> (1, 1): the long passage alone is cut
     assert r.count_truncated("q", []) == 1
-    assert r.backend.describe()["checkpoint"] == "jaredpalmer/kev-0.8b@abc"
+    assert r.backend.describe()["checkpoint"] == "jaredpalmer/kev-4b@abc"

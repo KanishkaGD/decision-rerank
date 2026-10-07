@@ -16,6 +16,7 @@
 #   --cpu                    rerank on the general (CPU) partition, no GPU
 #   --gres <spec>            rerank on a specific GPU instead of GPU_CONSTRAINT, e.g. gpu:a100-sxm:1 (latency runs)
 #   --time <hh:mm:ss>        override config.sh's budget (then fix config.sh if the budget was wrong)
+#   --include-literature     also submit reranks of cells taken from published papers (from_literature in config.sh)
 #   --dry-run                print the sbatch commands instead of running them
 set -euo pipefail
 
@@ -58,6 +59,7 @@ CPU=0
 GRES=""
 TIME_OVERRIDE=""
 DRY_RUN=0
+INCLUDE_LITERATURE=0
 PASSTHROUGH=()
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -71,6 +73,7 @@ while [ "$#" -gt 0 ]; do
         --gres) GRES="$2"; shift ;;
         --time) TIME_OVERRIDE="$2"; shift ;;
         --dry-run) DRY_RUN=1 ;;
+        --include-literature) INCLUDE_LITERATURE=1 ;;
         *) PASSTHROUGH+=("$1") ;;
     esac
     shift
@@ -112,6 +115,10 @@ for dataset in "${DATASET_LIST[@]}"; do
                 slurm/first-stage.sbatch "${dataset}" "${PASSTHROUGH[@]}"
             ;;
         rerank)
+            if [ "${INCLUDE_LITERATURE}" -eq 0 ] && from_literature "${SYSTEM}" "${dataset}"; then
+                echo "Skipping ${SYSTEM} on ${dataset}: taken from the literature (results/literature.csv)"
+                continue
+            fi
             RESOURCES=()
             if [ "${CPU}" -eq 1 ] || [[ " ${API_SYSTEMS[*]} " == *" ${SYSTEM} "* ]]; then
                 RESOURCES=(--partition=general)

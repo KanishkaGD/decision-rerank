@@ -1,7 +1,7 @@
 % =====================================================================================
-% Decide, then Rank: Calibrated System One Models as Rerankers and Retrieval Controllers
-% Working title (docs/research-plan.md). Venue still open: LNCS (llncs v2.24) for now,
-% which fits ECIR/CLEF; switch the class and bibliography style if the venue changes.
+% Decide, then Rank: Calibrated System One Models as Rerankers
+% Working title (docs/roadmap.md). Target: WSDM 2027 short paper (ACM sigconf, 4 pages); still
+% LNCS (llncs v2.24) until the move (roadmap step 5).
 %
 % Build:  make          (or: latexmk)       Checks: make check
 % Layout: one file per section in sections/, generated tables in tables/ (from
@@ -46,7 +46,7 @@
 
 \begin{document}
 
-\title{Decide, then Rank:\\Calibrated System One Models as Rerankers\\and Retrieval Controllers}
+\title{Decide, then Rank:\\Calibrated System One Models as Rerankers}
 \titlerunning{Decide, then Rank}
 
 % TODO: authors and affiliations (anonymize for review if the CfP requires it).
@@ -57,23 +57,20 @@
 \maketitle
 
 \begin{abstract}
-\TODO{Abstract, once the WP2 go/no-go decision is made. Planned contributions:
-(1) fine-tuned \laya{} versus cross-encoders at matched latency and hardware;
-(2) calibrated probabilities as a control signal for adaptive rerank depth,
-``nothing relevant'' detection and query performance prediction;
-(3) why scoring all candidates in one state beats scoring each pair alone;
-(4) where fast, non-reasoning judges fail on reasoning-intensive retrieval.}
-\keywords{Reranking \and Calibration \and System One Models \and Query Performance Prediction}
+\TODO{Abstract, once the results are in. Contributions:
+(1) System One models, closed and open, against strong trained rerankers on ten datasets;
+(2) joint vs.\ isolated pointwise scoring across five System One models;
+(3) calibration of their relevance probabilities.}
+\keywords{Reranking \and Calibration \and System One Models}
 \end{abstract}
 
 \input{sections/01_introduction}
 \input{sections/02_related_work}
 \input{sections/03_setup}
 \input{sections/04_reranking}
-\input{sections/05_control}
-\input{sections/06_joint_scoring}
-\input{sections/07_limits}
-\input{sections/08_conclusion}
+\input{sections/05_joint_scoring}
+\input{sections/06_calibration}
+\input{sections/07_conclusion}
 
 \begin{credits}
 \subsubsection{\ackname}

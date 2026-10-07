@@ -1,5 +1,5 @@
 % =====================================================================================
-% rq-macros.tex -- colour code and boxes for the research questions (RQ1--RQ5)
+% rq-macros.tex -- colour code and boxes for the research questions (RQ1--RQ3)
 % Load in the preamble:   \input{rq-macros}
 % Requires: xcolor, tcolorbox (both in every TeX Live).
 %
@@ -11,21 +11,17 @@
 %                                      plain "RQ3" so that the badges stay rare and salient
 %
 % Colour code: each RQ keeps its colour in the boxes, badges, and figures.
-%   RQ1 purple  -- zero-shot reranking quality (Laya vs. Jev vs. cross-encoders)
-%   RQ2 rose    -- fine-tuning and calibration
-%   RQ3 amber   -- calibrated probabilities as a control signal
-%   RQ4 teal    -- listwise vs. pointwise scoring
-%   RQ5 olive   -- limits on reasoning-intensive retrieval (stretch goal)
-% Keep the data colours of the figures apart from these five; figures carry no RQ badges.
-% Wording of the questions: docs/research-plan.md, "Research questions and hypotheses".
+%   RQ1 purple  -- reranking effectiveness of System One models vs. trained rerankers
+%   RQ2 rose    -- joint vs. isolated pointwise scoring
+%   RQ3 amber   -- calibration of the relevance probabilities
+% Keep the data colours of the figures apart from these three; figures carry no RQ badges.
+% Wording of the questions: docs/roadmap.md, "Research questions (paper)".
 % =====================================================================================
 \makeatletter
 
 \definecolor{rq1}{HTML}{6B4C9A}
 \definecolor{rq2}{HTML}{B03A55}
 \definecolor{rq3}{HTML}{A5620C}
-\definecolor{rq4}{HTML}{1B7F7A}
-\definecolor{rq5}{HTML}{5C6B1F}
 
 % ---- inline badge --------------------------------------------------------------------
 \newtcbox{\rq@badge}[1]{on line, nobeforeafter, colback=rq#1, colframe=rq#1,
@@ -54,11 +50,9 @@
 \makeatother
 
 % ---- the research questions (edit wording here only) -----------------------------------
-\defineRQ{1}{How does zero-shot Laya rerank compared with Jev and off-the-shelf
-  cross-encoders?}
-\defineRQ{2}{Does fine-tuning Laya on MS~MARCO make it competitive with cross-encoders of
-  similar latency, and does fine-tuning destroy its calibration?}
-\defineRQ{3}{Are the calibrated probabilities useful as a control signal in retrieval?}
-\defineRQ{4}{Why does listwise scoring, with all candidates in one state, beat pointwise scoring of each
-  query--passage pair?}
-\defineRQ{5}{Where do fast, non-reasoning System One judges fail?}
+\defineRQ{1}{Do System One models, closed and open, rerank BM25 candidates as well as strong trained
+  rerankers?}
+\defineRQ{2}{Does joint pointwise scoring, with all candidates in one state, beat isolated pointwise scoring of
+  each query--passage pair, and does that hold beyond \jev{}?}
+\defineRQ{3}{Are the relevance probabilities of System One models calibrated, and does joint scoring change
+  that?}

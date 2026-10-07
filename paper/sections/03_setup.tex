@@ -1,30 +1,33 @@
 % =====================================================================================
 % Section 3 -- Experimental Setup
-% Source of truth for systems, datasets and metrics: src/cdm/{datasets,rerankers}/,
-% slurm/config.sh; numbers come from results/results.csv.
+% Source of truth: docs/roadmap.md ("Setup"), src/cdm/{datasets,rerankers}/, slurm/config.sh;
+% numbers come from results/results.csv and results/literature.csv.
 % =====================================================================================
 \section{Experimental Setup}
 \label{sec:setup}
 
 \paragraph{Collections.}
-TREC DL 2019 and 2020~\cite{Craswell2020DL19,Craswell2021DL20} on the MS~MARCO passage
-corpus~\cite{Nguyen2016MSMARCO} (in-domain), and TREC-COVID, NFCorpus, SciFact, FiQA and SciDocs
-from BEIR~\cite{Thakur2021BEIR} (zero-shot).
-\TODO{MIRACL~\cite{Zhang2023MIRACL} for the multilingual checkpoint (open decision), BRIGHT~\cite{Su2024BRIGHT} for RQ5.}
+TREC DL 2019--2023~\cite{Craswell2020DL19,Craswell2021DL20} on the MS~MARCO v1 and v2 passage
+corpora~\cite{Nguyen2016MSMARCO}, and TREC-COVID, NFCorpus, SciFact, Touch\'e and DBPedia from
+BEIR~\cite{Thakur2021BEIR}.
 
-\paragraph{First stage.}
-Every reranker sees the same cached BM25 top-100 candidates from Pyserini~\cite{Lin2021Pyserini}
-($k_1=0.9$, $b=0.4$), so differences come from reranking alone.
-\TODO{Dense first stage for robustness.}
+\paragraph{Candidates.}
+Every reranker sees the BM25 top-100 of Pyserini~\cite{Lin2021Pyserini} ($k_1=0.9$, $b=0.4$; for
+DL 2021--2023 the official top-100 files, which are the same set) -- the candidates of
+S1Rank~\cite{S1Rank}, RankGPT~\cite{Sun2023RankGPT}, RankZephyr~\cite{Pradeep2023RankZephyr} and
+the comparison of Abdallah et al.~\cite{Abdallah2025HowGood}, whose numbers we report where we do
+not recompute them (marked in the tables).
 
 \paragraph{Rerankers.}
-\TODO{Table: \laya{} (zero-shot, fine-tuned), \jev{} (if access), three cross-encoders, one
-listwise LLM reranker; parameters, context length, latency on one fixed GPU.}
+\TODO{Table: System One models (\jev{}, Clef-Flash, Clef, Kev-4B, Kev-27B, \laya{}), each joint and
+isolated (\laya{} isolated only); bge-reranker-v2-m3, monoT5-3B, Qwen3-Reranker-8B,
+Set-Encoder-large~\cite{Schlatt2025SetEncoder}, Qwen3.7-Flash; RankGPT-4 and RankZephyr from the
+literature. Parameters, context length, cost.}
 
-\paragraph{Question phrasing.}
-\TODO{3--5 phrasings fixed in advance, selected on MS~MARCO dev only, all reported.}
+\paragraph{Question.}
+All System One models are asked S1Rank's yes/no question~\cite{S1Rank}, fixed in advance.
 
 \paragraph{Metrics.}
-nDCG@10 and Recall@10 with ir\_measures~\cite{MacAvaney2022irmeasures}; ECE and Brier score
-against binarised judgments; latency p50/p95; paired bootstrap per query with Holm correction
-across datasets.
+nDCG@10 with ir\_measures~\cite{MacAvaney2022irmeasures}; ECE and Brier score~\cite{Guo2017Calibration}
+on the judged pairs of DL 2019--2023 (relevant from grade 2); cost and latency. Joint vs.\ isolated:
+paired $t$-tests over queries, Holm-corrected across datasets.

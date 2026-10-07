@@ -35,8 +35,8 @@ def _seed_everything(seed: int) -> None:
     "--first-stage",
     "first_stage",
     default=None,
-    help="Which cached candidate set to rerank (a directory under runs/<dataset>/). Default: the official "
-    "pool where the dataset has one (official-d1000), else bm25-d100.",
+    help="Which cached candidate set to rerank (a directory under runs/<dataset>/). Default: the dataset's BM25 "
+    "top-100 (official-d100 for DL21-23, else bm25-d100).",
 )
 @click.option(
     "--depth",
@@ -95,8 +95,8 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
         phrasing = get_phrasing(phrasing_id)
         if reranker.uses_phrasing and not phrasing.frozen and ds.split == "test" and not max_queries:
             click.echo(
-                f"WARNING: phrasing '{phrasing_id}' is not frozen yet, but {dataset} is a test set. The plan "
-                f"selects phrasings on dev only (WP3).",
+                f"WARNING: phrasing '{phrasing_id}' is not frozen, but {dataset} is a test set. Questions are "
+                f"chosen on msmarco-dev only (docs/roadmap.md).",
                 err=True,
             )
         key = {

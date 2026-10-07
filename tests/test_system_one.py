@@ -1,4 +1,4 @@
-"""SystemOneReranker: request format, pointwise vs listwise, splitting, truncation; the TypeSafe backend with a fake SDK."""
+"""SystemOneReranker: request format, joint vs isolated, splitting, truncation; the TypeSafe backend with a fake SDK."""
 
 import sys
 import types
@@ -49,7 +49,7 @@ def fake(monkeypatch):
     return lambda window: system_one.SystemOneReranker("s", "m", backend="fake", window=window)
 
 
-def test_listwise_request_is_s1rank_format(fake):
+def test_joint_request_is_s1rank_format(fake):
     r = fake(0)
     out = r.score("what is x", ["a", "b", "c"], get_phrasing("s1rank"))
     ((state, questions),), truncate = r.backend.calls[0]
@@ -62,17 +62,17 @@ def test_listwise_request_is_s1rank_format(fake):
     assert truncate == [False]
     assert out.probs == [0.01, 0.02, 0.03]
     assert r.run_stats() == {"requests": 1, "input_tokens": 30, "window_splits": 0, "truncated_passages": 0}
-    assert r.listwise and r.describe()["window"] == 0
+    assert r.joint and r.describe()["window"] == 0
 
 
-def test_pointwise_one_request_per_passage(fake):
+def test_isolated_one_request_per_passage(fake):
     r = fake(1)
-    out = r.score("q", ["a", "b", "c"], get_phrasing("p1-relevant"))
+    out = r.score("q", ["a", "b", "c"], get_phrasing("s1rank"))
     requests, truncate = r.backend.calls[0]
     assert [list(state["documents"]) for state, _ in requests] == [["D1"]] * 3
     assert truncate == [True, True, True]  # a single passage may be cut
     assert out.probs == [0.01, 0.01, 0.01]
-    assert not r.listwise
+    assert not r.joint
 
 
 def test_ties_broken_by_first_stage_rank(fake):
@@ -142,7 +142,7 @@ def jev(monkeypatch):
 
 
 def test_jev_cost_and_no_warmup(jev):
-    r = jev("jev-listwise")
+    r = jev("jev-joint")
     out = r.score("q", ["a", "b"], get_phrasing("s1rank"))
     assert out.probs == [0.5, 0.5] and out.raw[0]["request_id"] == "req-1"
     assert r.run_stats()["api_cost_usd"] == pytest.approx(200 / 1e6 * 0.042)
@@ -151,7 +151,7 @@ def test_jev_cost_and_no_warmup(jev):
 
 def test_jev_context_error_splits(jev):
     FakeClient.max_docs = 1
-    r = jev("jev-listwise")
+    r = jev("jev-joint")
     r.score("q", ["a", "b"], get_phrasing("s1rank"))
     assert r.run_stats()["window_splits"] == 1 and r.run_stats()["requests"] == 2
 
@@ -159,10 +159,10 @@ def test_jev_context_error_splits(jev):
 def test_jev_model_drift_is_an_error(jev):
     FakeClient.answer_model = "jev-1.14.0"
     with pytest.raises(RuntimeError, match="jev-1.14.0"):
-        jev("jev-listwise").score("q", ["a"], get_phrasing("s1rank"))
+        jev("jev-joint").score("q", ["a"], get_phrasing("s1rank"))
 
 
 def test_jev_missing_key(jev, monkeypatch):
     monkeypatch.delenv("TYPESAFE_AI_API_KEY")
     with pytest.raises(RuntimeError, match="API key"):
-        jev("jev-listwise")
+        jev("jev-joint")

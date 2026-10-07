@@ -8,7 +8,7 @@ only (no pandas, no container), so it works with the system python3.
 
 Usage (from anywhere inside the repo):
   python3 .claude/skills/experiment-status/scripts/status.py [--days 7] [--no-fetch] [--section jobs,results,...]
-Sections: jobs, results, coverage, others (default: all).
+Sections: jobs, results, coverage, next, others (default: all).
 """
 
 import argparse
@@ -22,19 +22,17 @@ import sys
 from collections import Counter, defaultdict
 
 ROOT = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True).stdout.strip() or "."
-SECTIONS = ["jobs", "results", "coverage", "others"]
+SECTIONS = ["jobs", "results", "coverage", "next", "others"]
 ACTIVE = {"PENDING", "RUNNING", "REQUEUED", "SUSPENDED", "CONFIGURING", "COMPLETING"}
 BAD = {"FAILED", "TIMEOUT", "OUT_OF_MEMORY", "NODE_FAIL", "CANCELLED", "BOOT_FAIL", "DEADLINE", "PREEMPTED"}
-# Kanishka's system labels (branch master, results/effectiveness.csv) -> our closest system name. "~" = same model,
-# different question wording or state format, so the numbers are related but not identical.
+# Kanishka's system labels (branch master, results/effectiveness.csv) -> our closest system. His runs rerank the
+# official 1000-candidate DL19/20 pools, ours the BM25 top-100 (docs/roadmap.md), so no number is directly comparable;
+# the mapping only says which of our systems is the same model.
 KANISHKA_TO_OURS = {
-    "BM25 (bm25s order of the pool)": ("official (BM25 order)", "~ bm25s k1=1.2 b=0.75 vs Pyserini k1=0.9 b=0.4"),
-    "monoT5-base": ("monot5-base", "same prompt and readout"),
-    "Qwen3-Reranker-0.6B": ("qwen3-reranker-0.6b", "same prompt and readout"),
-    "Laya noul: P(yes)": ("laya", "~ other question wording and state"),
-    "Jev noul: P(yes)": ("jev-pointwise", "~ other question wording and state"),
-    "Kev-0.8B noul: P(yes)": ("kev-0.8b-pointwise", "~ other question wording and state"),
-    "Qwen3.7-Flash noul: P(yes)": ("qwen3.7-flash", "same prompt"),
+    "BM25 (bm25s order of the pool)": ("bm25", "other candidates; bm25s k1=1.2 b=0.75"),
+    "Laya noul: P(yes)": ("laya", "other candidates, question and state"),
+    "Jev noul: P(yes)": ("jev-isolated", "other candidates, question and state"),
+    "Qwen3.7-Flash noul: P(yes)": ("qwen3.7-flash", "other candidates; same prompt"),
 }
 
 
@@ -234,22 +232,47 @@ def section_results(results):
 
 
 # ------------------------------------------------------------------------------------------------------ coverage
-def section_coverage(results, rows):
-    print("## Coverage of the planned grid (slurm/config.sh SYSTEMS x DATASETS)\n")
+def grid_candidates(datasets):
+    """The candidate set (first_stage value in results.csv) each dataset's grid cell refers to."""
+    sys.path.insert(0, os.path.join(ROOT, "src"))
+    try:
+        from cdm.datasets import DATASETS  # plain dataclasses, no heavy imports
+
+        return {d: DATASETS[d].default_first_stage for d in datasets if d in DATASETS}
+    except Exception:  # noqa: BLE001 -- fall back to "any candidate set" if the package can't be imported
+        return {}
+
+
+def missing_caches(datasets):
+    """Datasets whose grid candidate set has no first-stage cache yet (runs/<dataset>/<candidates>/)."""
+    cands = grid_candidates(datasets)
+    return [d for d in datasets
+            if not os.path.exists(os.path.join(ROOT, "runs", d, cands.get(d, "*"), "candidates.jsonl.gz"))]
+
+
+def from_literature(system, dataset):
+    return subprocess.run(["bash", "-c", f'source slurm/config.sh >/dev/null 2>&1 && from_literature "{system}" '
+                                         f'"{dataset}"'], cwd=ROOT).returncode == 0
+
+
+def coverage(results, rows):
+    """(systems, datasets, mark(system, dataset)) for the grid of slurm/config.sh."""
     systems, datasets = config_list("SYSTEMS"), config_list("DATASETS")
-    if not systems or not datasets:
-        print("_Could not read SYSTEMS/DATASETS from slurm/config.sh._\n")
-        return
-    done = {(r["system"], r["dataset"]) for r in results if r.get("job") == "rerank" and not r.get("subset")}
+    cands = grid_candidates(datasets)
+    done = {(r["system"], r["dataset"]) for r in results if r.get("job") == "rerank" and not r.get("subset")
+            and (r["dataset"] not in cands or r.get("first_stage") == cands[r["dataset"]])}
     latest = {}
-    for r in rows:  # newest first
-        if r["job"] == "rerank" and r["system"] and r["dataset"]:
+    for r in rows:  # newest first; only jobs on the grid's candidate set (no --depth/--first-stage override)
+        if r["job"] == "rerank" and r["system"] and r["dataset"] and "--depth" not in r["extra"] \
+                and "--first-stage" not in r["extra"]:
             latest.setdefault((r["system"], r["dataset"]), r)
-    have_cache = {d for d in datasets if glob.glob(os.path.join(ROOT, "runs", d, "*", "candidates.jsonl.gz"))}
+    lit = {(s, d) for s in systems for d in datasets if from_literature(s, d)}
 
     def mark(s, d):
         if (s, d) in done:
             return "done"
+        if (s, d) in lit:
+            return "lit"
         j = latest.get((s, d))
         if j and j["state"] == "PENDING" and j["reason"] == "DependencyNeverSatisfied":
             return "STUCK"
@@ -259,21 +282,44 @@ def section_coverage(results, rows):
             return "FAILED"
         return "."
 
-    print("Legend: done = row in results.csv; run / queued = Slurm; STUCK = queued behind a failed job (never "
-          "starts); FAILED = latest attempt failed; . = not run. "
-          "Datasets without a first-stage cache are marked * in the header.\n")
+    return systems, datasets, mark
+
+
+def section_coverage(results, rows):
+    print("## Coverage of the grid (slurm/config.sh SYSTEMS x DATASETS, BM25 top-100 candidates)\n")
+    systems, datasets, mark = coverage(results, rows)
+    if not systems or not datasets:
+        print("_Could not read SYSTEMS/DATASETS from slurm/config.sh._\n")
+        return
+    have_cache = set(datasets) - set(missing_caches(datasets))
+    print("Legend: done = row in results.csv on the grid's candidates; lit = taken from results/literature.csv; "
+          "run / queued = Slurm; STUCK = queued behind a failed job (never starts); FAILED = latest attempt "
+          "failed; . = not run. Datasets without a first-stage cache are marked * in the header.\n")
     header = ["system"] + [d + ("" if d in have_cache else "*") for d in datasets]
-    print(table(header, [[s] + [mark(s, d) for d in datasets] for s in systems]))
-    missing = defaultdict(list)
+    marks = {(s, d): mark(s, d) for s in systems for d in datasets}
+    print(table(header, [[s] + [marks[s, d] for d in datasets] for s in systems]))
+    counts = Counter(marks.values())
+    print(f"{counts['done']} of {len(marks)} cells done, {counts['lit']} from the literature, "
+          f"{counts['run'] + counts['queued']} running or queued, "
+          f"{counts['.'] + counts['FAILED'] + counts['STUCK']} not run, failed or stuck.\n")
+
+
+def section_next(results, rows):
+    """slurm/submit.sh commands for the grid cells that are neither done, from the literature, nor active."""
+    print("## Commands for the missing cells\n")
+    systems, datasets, mark = coverage(results, rows)
+    s1 = set(config_list("SYSTEMS")) - {"bge-m3", "monot5-3b", "qwen3-reranker-8b", "set-encoder-large",
+                                         "qwen3.7-flash"}
+    missing_cache = missing_caches(datasets)
+    lines = []
+    if missing_cache:
+        lines.append(f"slurm/submit.sh first-stage --datasets {','.join(missing_cache)}   # then add --after <ids> below")
     for s in systems:
-        for d in datasets:
-            if mark(s, d) in (".", "FAILED", "STUCK"):
-                missing[s].append(d)
-    total = len(systems) * len(datasets)
-    n_done = sum(mark(s, d) == "done" for s in systems for d in datasets)
-    n_active = sum(mark(s, d) in ("run", "queued") for s in systems for d in datasets)
-    print(f"{n_done} of {total} cells done, {n_active} running or queued, "
-          f"{sum(map(len, missing.values()))} not run, failed or stuck.\n")
+        todo = [d for d in datasets if mark(s, d) in (".", "FAILED", "STUCK")]
+        if todo:
+            extra = " --phrasings s1rank" if s in s1 else ""
+            lines.append(f"slurm/submit.sh rerank {s} --datasets {','.join(todo)}{extra}")
+    print("```bash\n" + ("\n".join(lines) or "# nothing missing") + "\n```\n")
 
 
 # -------------------------------------------------------------------------------------------------------- others
@@ -324,14 +370,16 @@ def main():
     dirty = "uncommitted changes" if sh(["git", "status", "--porcelain"]).strip() else "clean"
     print(f"# Experiment status ({sh(['hostname']).strip()}, {sh(['date', '+%Y-%m-%d %H:%M']).strip()})\n")
     print(f"Branch `{sh(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()}` at {head} ({dirty}).\n")
-    rows = jobs(a.days) if {"jobs", "coverage"} & set(wanted) else []
-    results = read_results() if {"results", "coverage"} & set(wanted) else []
+    rows = jobs(a.days) if {"jobs", "coverage", "next"} & set(wanted) else []
+    results = read_results() if {"results", "coverage", "next"} & set(wanted) else []
     if "jobs" in wanted:
         section_jobs(rows)
     if "results" in wanted:
         section_results(results)
     if "coverage" in wanted:
         section_coverage(results, rows)
+    if "next" in wanted:
+        section_next(results, rows)
     if "others" in wanted:
         section_others(not a.no_fetch)
 

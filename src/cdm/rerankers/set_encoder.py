@@ -1,10 +1,11 @@
 """
-Set-Encoder (Schlatt et al., ECIR 2025; webis/set-encoder-*): a listwise cross-encoder, through lightning-ir.
+Set-Encoder (Schlatt et al., ECIR 2025; webis/set-encoder-*): a cross-encoder that scores a query's candidates jointly,
+through lightning-ir. (Its authors call it listwise; it still outputs one score per passage.)
 
 Each (query, passage) pair is its own sequence, as in a pointwise cross-encoder, but every sequence carries an
 interaction token that the other passages of the same query attend to, so a passage's score depends on the rest of
 the candidate list -- without depending on its order (permutation-invariant). That makes it the trained-reranker
-counterpart of the System One models' listwise mode (RQ4), next to the pointwise cross-encoders.
+counterpart of the System One models' joint mode (RQ2), next to the cross-encoders that score each pair alone.
 
 The checkpoints were trained on, and the authors evaluate them with, BM25 top-100 lists (config.depth = 100): a list
 of up to `depth` candidates is scored in one forward pass, a longer one is refused (rerank the official 1000-candidate
@@ -26,7 +27,7 @@ from cdm.rerankers.base import Reranker, Scores
 
 
 class SetEncoderReranker(Reranker):
-    listwise = True
+    joint = True
     prob_kind = "sigmoid(logit)"
 
     def __init__(

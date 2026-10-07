@@ -14,14 +14,14 @@ Facts from the call for papers (read 2026-10-06):
 - No concurrent submissions to other venues.
 - Relevant topics: "Retrieval, indexing, and ranking with foundation models"; "Search benchmarking and evaluation".
 
-Consequences, not yet acted on:
+Consequences:
 
-- The paper moves from LNCS to ACM `sigconf` (anonymised for the WSDM version).
-- 4 pages cannot hold RQ1--RQ5; the arXiv version can be longer. Which RQs go into the short paper is open.
-- This sets a deadline six weeks out, replacing the "no fixed deadline" decision of 2026-10-05.
+- The paper moves from LNCS to ACM `sigconf` (anonymised for the WSDM version) -- roadmap step 5.
+- The 4 pages hold the three research questions of `docs/roadmap.md`; Phase 2 (control signal, fine-tuning,
+  BRIGHT) goes to the arXiv extension or a follow-up.
 
 ## arXiv date
 
 Decided by the owner on 2026-10-06 (open question 2): the arXiv preprint goes up **before Nov 17, 2026**, with or
-just before the WSDM submission, to claim priority on RQ3/RQ4. Its content is therefore limited to what is ready in
+just before the WSDM submission. Its content is therefore limited to what is ready in
 six weeks; the WSDM version must not refer to it explicitly.

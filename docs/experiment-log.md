@@ -12,6 +12,37 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-07 -- One setup (BM25 top-100, literature numbers), straightened branch
+
+Owner's decisions: simplify towards S1Rank's setup so published numbers can stand in for runs; Kev in two sizes;
+RankZephyr from the literature; S1Rank's terms joint/isolated pointwise instead of listwise/pointwise; three paper RQs
+plus a Phase 2 (control signal, fine-tuning, BRIGHT). Plan of record: docs/roadmap.md.
+
+- **Candidates: BM25 top-100 everywhere.** The DL19/20 official pools are not the literature's candidate set: our
+  BM25 order of the 1000-candidate DL19 pool gives nDCG@10 0.522 (DL20 0.488), Pyserini's standard BM25 run 0.5058
+  (0.4796), which S1Rank (50.6), RankGPT, RankZephyr and Abdallah et al. (2025) rerank. DL19/20 therefore use
+  bm25-d100; DL21-23 keep the official top-100 files, which equal Pyserini's BM25 top-100 (2CR match). The
+  unranked-pool code (tsv pools, BM25 re-ordering, top1000.dev) is removed.
+- **Datasets:** FiQA and SciDocs out; Touche and DBPedia in (published RankGPT/RankZephyr/monoT5 numbers).
+- **Systems:** dropped minilm-l6, mxbai-base, monot5-base, qwen3-reranker-0.6b/4b, set-encoder-base,
+  laya-multilingual, kev-0.8b, kev-9b. Kept: bge-m3, monot5-3b, qwen3-reranker-8b, set-encoder-large, qwen3.7-flash,
+  jev/clef-flash/clef/kev-4b/kev-27b (joint and isolated), laya. Draft phrasings p1-p3 removed (only s1rank).
+- **results/literature.csv** (new): Abdallah et al. (2025) Tables 2-3 for RankGPT-4, RankZephyr-7B, monoT5-3B,
+  bge-reranker-v2-m3; Set-Encoder-large DL19/20 (model card); S1Rank and Pyserini 2CR BM25 as references.
+  `from_literature` in slurm/config.sh makes slurm/submit.sh skip those cells. RankZephyr's own paper reports DL21/22
+  only on SPLADE++ candidates, so it has no DL21-23 cells.
+- **Renamed** with `cdm rename-system` (new): `<model>-pointwise` -> `-isolated`, `-listwise` -> `-joint` (jev, clef-flash,
+  clef, kev-0.8b, kev-4b, kev-27b; 35 rows). Output directories keep the old names.
+- **Cancelled** the 15 remaining DL19/20 official-pool jobs (2 running Clef-27B full-pool runs, 13 queued).
+- **99 of the DL21-23/DL19-20 jobs had failed** on two infrastructure problems, now fixed in slurm/env.sh:
+  node skadi could not create the home mount point ("mkdir /home/dinzinger: file exists", 97 jobs, all within
+  seconds), and Triton's cache ~/.triton was unwritable or full on compute nodes (Kev, Laya). The container now runs
+  with --no-home and TRITON_CACHE_DIR under data/cache; checked on skadi (job 4360426). slurm/exec.sh got --nodelist.
+- Measured run times on 100 candidates (DL21-23): Kev-27B isolated 29-44 min, Clef 27B 7-18 min, all else < 10 min;
+  budgets in slurm/config.sh now follow these.
+- New project skill `straighten-branch` (with a consistency check and deprecated.txt); `experiment-status` follows
+  the new grid (lit cells, `next` section with submit commands).
+
 ## 2026-10-07 -- DL 2021-2023: Jev done; DL19/20 submitted
 
 - First DL 2021-2023 chain: prefetch 4356461 failed after 140 GB (hf_xet "os error 11"), leaving 78 jobs stuck;

@@ -1,0 +1,22 @@
+# Names and terms that are no longer part of the plan (one regular expression per line, # = comment).
+# Tracked files outside the history files (docs/experiment-log.md, docs/research-plan.md, results/) must not use them.
+# Append what a straightening removes, so later sweeps catch stragglers.
+
+# Systems dropped from the grid (2026-10-07)
+\bminilm-l6\b
+\bmxbai-base\b
+\bmonot5-base\b
+\bqwen3-reranker-(0\.6b|4b)\b
+\bset-encoder-base\b
+\blaya-multilingual\b
+\bkev-(0\.8b|9b)\b
+# Datasets dropped (2026-10-07)
+\bfiqa\b
+\bscidocs\b
+# System One modes are joint/isolated (S1Rank's terms), not pointwise/listwise (2026-10-07)
+\b[a-z0-9.]+-(pointwise|listwise)\b
+# Candidate sets: BM25 top-100 everywhere, no 1000-candidate official pools (2026-10-07)
+official-d1000
+top1000
+# Work-package numbering of the original proposal; the roadmap has phases and steps
+\bWP[0-9]\b

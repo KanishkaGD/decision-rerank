@@ -15,7 +15,8 @@ description: >-
 
 The project has two people on two branches with different code: Michael (`dev-michael`, package `cdm`, Slurm jobs
 on the FAITH cluster, results in `results/results.csv`) and Kanishka (`master`, package `decisionrerank`, his own A100,
-results committed as `results/*.md` and `*.csv`). Status questions therefore need three sources that nobody sees at
+results committed as `results/*.md` and `*.csv`), plus published numbers we use instead of runs
+(`results/literature.csv`). Status questions therefore need three sources that nobody sees at
 once: Slurm, our results file, and the other branch. A bundled script collects all of them; your job is to read its
 report, look up causes, and turn it into a short, decision-ready answer.
 
@@ -29,9 +30,9 @@ python3 .claude/skills/experiment-status/scripts/status.py --section jobs --days
 ```
 
 Sections: `jobs` (Slurm: states, pending reasons, failures with log path and error lines, run times of finished
-jobs), `results` (our nDCG@10, ECE/Brier, API cost), `coverage` (SYSTEMS x DATASETS from `slurm/config.sh`, each
-cell done / run / queued / STUCK / FAILED / not run), `others` (every remote branch but ours: recent commits, result
-files, Kanishka's nDCG@10 next to our closest system). It only uses git, `squeue`/`sacct` and file reads, so it is
+jobs), `results` (our nDCG@10, ECE/Brier, API cost), `coverage` (SYSTEMS x DATASETS from `slurm/config.sh` on the
+BM25 top-100, each cell done / lit / run / queued / STUCK / FAILED / not run), `next` (submit commands for the missing
+cells), `others` (every remote branch but ours: recent commits, result files, Kanishka's nDCG@10). It only uses git, `squeue`/`sacct` and file reads, so it is
 fine on the login node -- never run models, `cdm rerank` or the first stage there to "check" something; that goes
 through `slurm/exec.sh` or `slurm/submit.sh` (CLAUDE.md, "Where things run").
 
@@ -48,25 +49,24 @@ through `slurm/exec.sh` or `slurm/submit.sh` (CLAUDE.md, "Where things run").
 
 ## 3. Read the plan context
 
-To say what comes next, read (briefly, only what you need): the newest entries of `docs/experiment-log.md`,
-"Next steps" in `README.md`, the decisions in `docs/intent/*.md`, and the work-package order in
-`docs/research-plan.md`. Then apply what the plan and CLAUDE.md require:
+To say what comes next, read `docs/roadmap.md` -- research questions, the fixed setup and the order of work -- and,
+for recent events, the newest entries of `docs/experiment-log.md`. Then apply the roadmap's rules:
 
-- **Order**: WP2 baselines (DL19/20 on the official pools, then DL21-23 and BEIR) before WP3 (phrasing) and WP4
-  (fine-tuning); the go/no-go on Laya is reported to the owner before WP4.
-- **Test-set hygiene**: System One models run on test sets only with frozen phrasings (`s1rank` so far); draft
-  phrasings run on `msmarco-dev` only (WP3). Flag any planned run that would break this.
-- **RQ4 (pointwise vs. listwise)** needs `<model>-pointwise` and `<model>-listwise` for Jev, Clef and Kev on the
-  same candidates and depth, plus the cross-encoders (pointwise) and Set-Encoder (listwise, at most 100 candidates:
-  `--depth 100` on the 1000-candidate DL19/20 pools, so the other systems need a `--depth 100` run there too).
-- **Comparison with Kanishka**: monoT5-base, Qwen3-Reranker-0.6B and Qwen3.7-Flash use his exact prompts, so on
-  DL19/20 (official pool, all candidates) our numbers should match his within about 0.01 nDCG@10 -- a larger gap
-  is a finding to investigate, not noise. Laya/Jev/Kev use a different question and state, so differences there
-  are expected. Don't propose re-running something of his unless it is such a replication check or the setup
-  differs in a way that matters.
-- **Cost**: Jev (TypeSafe) and Qwen3.7-Flash (OpenRouter) cost money; estimate before proposing (Jev listwise about
-  $2 per 1k queries at 100 candidates, pointwise similar; Kanishka paid $2.06 for 101k pairs) and let the user
-  decide. API keys live in `.env`; a missing key means the run can't start.
+- **Order**: Phase 1 (paper: candidate sets, sanity checks, grid runs, analysis, writing) before Phase 2 (control
+  signal, fine-tuning, BRIGHT), which starts after the WSDM submission.
+- **The grid is the plan.** `slurm/config.sh` SYSTEMS x DATASETS on the BM25 top-100 is everything the paper needs;
+  cells marked `lit` come from `results/literature.csv` and must not be recomputed. The `next` section prints the
+  submit commands for the missing cells (first stage first, reranks with `--after` its job ids).
+- **Sanity checks before trusting a dataset**: our BM25 first stage must equal Pyserini's 2CR score
+  (`results/literature.csv`, role `reference`); monoT5-3B on DL19/20 within about one point of 71.83 / 68.89;
+  `jev-joint` close to S1Rank's numbers. A miss means the candidates differ -- investigate before running more.
+- **Fixed question**: System One models run with `--phrasings s1rank` only.
+- **RQ2 (joint vs. isolated)** needs both modes of Jev, Clef-Flash, Clef, Kev-4B and Kev-27B on every dataset.
+- **Kanishka's numbers** (branch `master`) rerank the 1000-candidate official DL19/20 pools, not our candidates:
+  not directly comparable; useful as context and for Phase 2 (his QPP work).
+- **Cost**: Jev (TypeSafe) and Qwen3.7-Flash (OpenRouter) cost money -- about $0.005 (joint) and $0.017 (isolated)
+  per 1k query-passage pairs for Jev, measured on DL21-23; estimate before proposing and let the user decide.
+  A missing API key in `.env` means the run can't start.
 - **Provenance**: numbers meant for the paper must come from a commit (`dirty=false` in the job's REVISION). If the
   tree is dirty, say so and suggest committing before submitting.
 
@@ -88,10 +88,10 @@ Our key numbers (nDCG@10, and ECE where relevant), next to Kanishka's where comp
 One or two sentences, or the relevant slice of the grid -- not the whole 27 x 10 table unless asked.
 
 ## What to run next
-A ranked list. Each item: why (which RQ/WP it serves), the exact command(s), rough time or API cost.
+A ranked list. Each item: why (which RQ or roadmap step it serves), the exact command(s), rough time or API cost.
 ```
 
 Commands use the project's scripts: `slurm/submit.sh rerank <system> --datasets <ds> [--after <ids>]
-[--phrasings s1rank] [--depth 100]`, `slurm/submit.sh first-stage --datasets <ds>`, `slurm/submit.sh prefetch
+[--phrasings s1rank]`, `slurm/submit.sh first-stage --datasets <ds>`, `slurm/submit.sh prefetch
 --datasets ... --systems ...`; check a batch with `--dry-run` first. Don't submit, cancel or spend API money on
 your own: propose, and act once the user agrees.

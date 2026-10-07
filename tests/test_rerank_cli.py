@@ -26,7 +26,7 @@ def test_rerank_end_to_end(tmp_path, monkeypatch):
     from cdm.runs import Candidate, QueryCandidates, write_candidates, write_qrels
 
     class Fake(Reranker):
-        name, model_id, prob_kind = "minilm-l6", "fake", "sigmoid(logit)"
+        name, model_id, prob_kind = "bge-m3", "fake", "sigmoid(logit)"
 
         def score(self, query, passages, phrasing):
             s = [1.0 if "good" in p else 0.0 for p in passages]
@@ -43,9 +43,9 @@ def test_rerank_end_to_end(tmp_path, monkeypatch):
     )
     write_qrels(str(cache / "qrels.tsv"), {"q1": {"good": 1, "bad": 0}})
 
-    result = CliRunner().invoke(rr.rerank, ["minilm-l6", "scifact"], catch_exceptions=False)
+    result = CliRunner().invoke(rr.rerank, ["bge-m3", "scifact"], catch_exceptions=False)
     assert result.exit_code == 0, result.output
     df = cdm.results_csv.load_results()
     assert float(df["nDCG@10"].iloc[0]) == 1.0
     assert float(df["n_judged_nonrel_pairs"].iloc[0]) == 1
-    assert os.path.exists(tmp_path / "outputs" / "scifact" / "bm25-d100" / "minilm-l6" / "none" / "scores.jsonl.gz")
+    assert os.path.exists(tmp_path / "outputs" / "scifact" / "bm25-d100" / "bge-m3" / "none" / "scores.jsonl.gz")
