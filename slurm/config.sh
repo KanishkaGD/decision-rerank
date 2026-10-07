@@ -114,7 +114,10 @@ rerank_time_for() {
         msmarco-dev:*) echo "08:00:00" ;; # ~700k query-passage pairs at depth 100 (pass --max-queries / --depth)
         # The official DL pools: 41k (DL19) / 50k (DL20) pairs. Kanishka's runs: Kev-0.8B ~8 min for both on an A100;
         # Qwen3.7-Flash ~64 pairs/s through OpenRouter (~15 min per year); Jev 101k requests.
-        dl19:*-27b* | dl20:*-27b* | dl19:clef* | dl20:clef*) echo "08:00:00" ;;
+        # 27B models on all 41k/50k pairs: unmeasured, generous (gpu partition max 48h).
+        dl19:*-27b* | dl20:*-27b* | dl19:clef-pointwise | dl20:clef-pointwise | dl19:clef-listwise | \
+            dl20:clef-listwise) echo "16:00:00" ;;
+        dl19:clef-flash* | dl20:clef-flash*) echo "08:00:00" ;;
         dl19:qwen3-reranker-8b | dl20:qwen3-reranker-8b) echo "08:00:00" ;;
         dl19:* | dl20:*) echo "04:00:00" ;;
         # The official DL 2021-2023 pools: top-100 for 53 / 76 / 82 judged queries (5k-8k pairs). Unmeasured.
