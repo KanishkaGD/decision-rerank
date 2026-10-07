@@ -10,7 +10,7 @@ Two people (and their agents) work in this repository with ordinary git branches
 
 - Work on a feature or dev branch (`feature/<topic>`, `dev-<name>`), never directly on `master`.
 - Merge your changes into `master` regularly -- small, working steps rather than long-lived branches. Run
-  `scripts/check.sh` (shell syntax, Python compile, unit tests) before merging.
+  the unit tests (`pytest`) before merging.
 - Never force-push or rewrite `master` or someone else's branch. Pull/merge `master` into your branch before merging
   back, so conflicts are resolved on your branch.
 

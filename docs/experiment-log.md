@@ -18,8 +18,8 @@ Owner's decision (`docs/intent/collaboration.md`): no handoff to a shared VM. Mi
 feature/dev branches merged into `master` regularly. Removed: `docs/handoff.md`, `docs/collaboration.md`,
 `docs/vm-setup.md`, `docs/tasks/backlog.md`, `cluster/vm/`, `scripts/task.sh`, `scripts/agent_guard.py` and its hook
 (`.claude/settings.json`); they remain in the git history (last at commit cdd8ed8). Kept: the per-checkout cluster
-layout (two clones must not overwrite each other's code on `/shared`) and `scripts/check.sh`; the open next steps
-moved to README.md.
+layout (two clones must not overwrite each other's code on `/shared`); the open next steps moved to README.md.
+`scripts/check.sh` (the pre-merge check of that workflow) was removed too.
 
 ## 2026-10-06 -- Move to a shared VM; collaboration rules; per-checkout cluster layout
 
