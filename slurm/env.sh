@@ -22,13 +22,19 @@ export CDM_DATA="${CDM_ROOT}/data"
 export HF_HOME="${CDM_DATA}/hf_cache"
 export PYSERINI_CACHE="${CDM_DATA}/pyserini"
 export XDG_CACHE_HOME="${CDM_DATA}/cache"
+# The container runs without the home directory (--no-home below): /home is login-node storage, on compute nodes it is
+# missing, read-only or tiny. On skadi Apptainer could not even create the mount point (97 failed jobs, 2026-10-07),
+# and Triton's default cache ~/.triton failed with "Permission denied" or "No space left on device". Caches are set
+# explicitly instead (XDG_CACHE_HOME, HF_HOME, TRITON_CACHE_DIR); Apptainer doesn't allow overriding HOME itself.
+export TRITON_CACHE_DIR="${XDG_CACHE_HOME}/triton"
 export CDM_RUNS="${CDM_ROOT}/runs"        # cached first-stage candidates (src/cdm/runs.py)
 export CDM_OUTPUTS="${CDM_ROOT}/outputs"  # raw reranker scores, per-query metrics, manifests
 export CDM_RESULTS="${CDM_ROOT}/results"  # results.csv (tracked in git: review `git diff results/`, then commit)
 # Jobs only read the caches: offline mode makes a model or dataset missing from them fail fast with a clear error,
 # instead of hanging on a download a compute node can't make. slurm/prefetch.sh sets HF_HUB_OFFLINE=0.
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
-mkdir -p "${HF_HOME}" "${PYSERINI_CACHE}" "${XDG_CACHE_HOME}" "${CDM_RUNS}" "${CDM_OUTPUTS}" "${CDM_RESULTS}"
+mkdir -p "${HF_HOME}" "${PYSERINI_CACHE}" "${XDG_CACHE_HOME}" "${TRITON_CACHE_DIR}" "${CDM_RUNS}" \
+    "${CDM_OUTPUTS}" "${CDM_RESULTS}"
 
 # HF_TOKEN, API keys etc. from .env (gitignored; keep it mode 600: chmod 600 .env). Passed as a file, not
 # as --env KEY=value arguments, so the secrets don't show up in the process list of a shared compute node.
@@ -51,9 +57,10 @@ fi
 CDM_CODE_DIR="${CDM_CODE_DIR:-${CDM_ROOT}}"
 CONTAINER_CMD=(
     apptainer exec "${NV_ARGS[@]}"
+    --no-home
     --bind "${CDM_ROOT}:${CDM_ROOT}"
     --pwd "${CDM_ROOT}"
-    --env "PYTHONPATH=${CDM_CODE_DIR}/src,CDM_CODE_DIR=${CDM_CODE_DIR},CDM_ROOT=${CDM_ROOT},CDM_DATA=${CDM_DATA},HF_HOME=${HF_HOME},PYSERINI_CACHE=${PYSERINI_CACHE},XDG_CACHE_HOME=${XDG_CACHE_HOME},CDM_RUNS=${CDM_RUNS},CDM_OUTPUTS=${CDM_OUTPUTS},CDM_RESULTS=${CDM_RESULTS},HF_HUB_OFFLINE=${HF_HUB_OFFLINE}"
+    --env "PYTHONPATH=${CDM_CODE_DIR}/src,CDM_CODE_DIR=${CDM_CODE_DIR},CDM_ROOT=${CDM_ROOT},CDM_DATA=${CDM_DATA},HF_HOME=${HF_HOME},PYSERINI_CACHE=${PYSERINI_CACHE},XDG_CACHE_HOME=${XDG_CACHE_HOME},CDM_RUNS=${CDM_RUNS},CDM_OUTPUTS=${CDM_OUTPUTS},CDM_RESULTS=${CDM_RESULTS},HF_HUB_OFFLINE=${HF_HUB_OFFLINE},TRITON_CACHE_DIR=${TRITON_CACHE_DIR}"
     "${ENV_ARGS[@]}"
     "${CONTAINER}"
 )
