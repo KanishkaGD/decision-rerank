@@ -23,9 +23,6 @@ Two people (and their agents) work in this repository with ordinary git branches
   opens automatically when the user has a valid Kerberos ticket (`kinit <user>@FIM.UNI-PASSAU.DE`). If a script
   fails with "no connection", stop and ask the user -- don't try to log in yourself, and never ask for or handle the
   password.
-- Each clone syncs its code to its own `checkouts/<user>-<directory>/` on `/shared`, so two people's clones don't
-  overwrite each other's code; data, caches, outputs, results, logs and the container are shared
-  (`cluster/cluster.env`).
 - Which wrapper for what:
   - `cluster/exec.sh [--gpu] -- <cmd>` -- one blocking command in the container on a compute node (`short`
     partition): quick checks, `--max-queries 20` trial runs.

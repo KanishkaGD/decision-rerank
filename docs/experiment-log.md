@@ -12,31 +12,6 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
-## 2026-10-07 -- Back to branch-based collaboration; handoff workflow removed
-
-Owner's decision (`docs/intent/collaboration.md`): no handoff to a shared VM. Michael and his colleague collaborate with
-feature/dev branches merged into `master` regularly. Removed: `docs/handoff.md`, `docs/collaboration.md`,
-`docs/vm-setup.md`, `docs/tasks/backlog.md`, `cluster/vm/`, `scripts/task.sh`, `scripts/agent_guard.py` and its hook
-(`.claude/settings.json`); they remain in the git history (last at commit cdd8ed8). Kept: the per-checkout cluster
-layout (two clones must not overwrite each other's code on `/shared`); the open next steps moved to README.md.
-`scripts/check.sh` (the pre-merge check of that workflow) was removed too.
-
-## 2026-10-06 -- Move to a shared VM; collaboration rules; per-checkout cluster layout
-
-Owner's decisions (`docs/intent/collaboration.md`): work continues on a shared VM in the university network with a
-colleague; jobs run under Michael's FAITH account via a Kerberos keytab and a cron job (no manual renewal); one
-worktree per agent/task, merged back to main as soon as a task works.
-
-- Kerberos works for FAITH: realm FIM.UNI-PASSAU.DE, KDCs via DNS SRV (ilium, ischii, neurocranium); a ticket lasts
-  10 h, renewable for 24 h -- hence a keytab for unattended use (`cluster/vm/setup-kerberos.sh`).
-- Cluster layout: each checkout syncs to `checkouts/<user>-<worktree>/` under the project directory, with data, runs,
-  outputs, results, logs, snapshots and the container linked in (`cluster/sync.sh`, `slurm/env.sh` binds the project
-  directory, `container/build.sh` writes through the link). Tested: sync + `cdm rerank minilm-l6 scifact
-  --first-stage bm25-d100-max20 --max-queries 2 --no-save` from the new layout (n_queries=2, as it should).
-- Collaboration: `scripts/task.sh` (claims in the shared git dir, worktrees, finish = rebase + `scripts/check.sh` +
-  fast-forward + push), `scripts/agent_guard.py` (PreToolUse hook), rules in `docs/collaboration.md`, open work in
-  `docs/tasks/backlog.md`. Tested in a scratch repository with a bare remote, including a concurrent remote commit.
-
 ## 2026-10-06 -- First Laya and Clef-Flash runs (scifact, 20 queries)
 
 Container 35af14a adds gcc (Triton's run-time C build; Laya on GPU failed without it, job 4346919) and accelerate
@@ -107,7 +82,7 @@ Open question 2: the arXiv preprint goes up before Nov 17, 2026 (owner, 2026-10-
 
 ## 2026-10-06 -- Cluster bring-up
 
-Bring-up sequence from `docs/handoff.md` run against FAITH; everything works after two fixes.
+Bring-up sequence of the setup session run against FAITH; everything works after two fixes.
 
 - Container: `cluster/login.sh bash container/build.sh` built `container/cdm.sif` (3.4 GB, ~13 min) with fakeroot on
   the login node. Resolved versions: torch 2.14.1, transformers 5.18.0, sentence-transformers 6.1.0, pyserini 2.4.0,

@@ -141,8 +141,7 @@ cd paper && make && make check
 
 Two people work in this repository with ordinary git branches: develop on a feature or dev branch, merge into
 `master` regularly in small working steps, run the unit tests (`pytest`) before
-merging, and never rewrite `master`'s history. Each clone syncs to its own `checkouts/<user>-<directory>/` on the
-cluster, so two clones never overwrite each other's code (`cluster/cluster.env`).
+merging, and never rewrite `master`'s history.
 
 ## Next steps
 

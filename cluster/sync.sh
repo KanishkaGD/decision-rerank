@@ -61,22 +61,7 @@ if [ -f "${CDM_ROOT}/.env" ] && [ "${#DRY_RUN[@]}" -eq 0 ]; then
 fi
 
 # File modes don't always survive the trip (e.g. files written by tools that don't set the executable bit).
-# The shared directories (data, caches, outputs, results, logs, snapshots, the container image) live once in the
-# project directory and are symlinked into this checkout's code directory, so all checkouts use the same data and
-# write to the same results.csv (src/cdm/results_csv.py locks it). They are gitignored or excluded above, so
-# rsync --delete never touches them.
 if [ "${#DRY_RUN[@]}" -eq 0 ]; then
-    SHARED="$(remote_shared_root)"
-    if [ "${SHARED}" != "${ROOT}" ]; then
-        remote_shell "set -e; S=$(printf '%q' "${SHARED}")
-            mkdir -p \"\$S\"/{data,runs,outputs,results,logs/done,snapshots,checkpoints,container}
-            for d in data runs outputs results logs snapshots checkpoints; do
-                [ -L \"\$d\" ] || { [ -e \"\$d\" ] && rmdir \"\$d\" 2>/dev/null; true; }
-                [ -e \"\$d\" ] && [ ! -L \"\$d\" ] && { echo \"sync: \$d is a real directory in this checkout, not a link to \$S/\$d; move its content there\" >&2; exit 1; }
-                ln -sfn \"\$S/\$d\" \"\$d\"
-            done
-            [ -L container/cdm.sif ] || ln -sfn \"\$S/container/cdm.sif\" container/cdm.sif"
-    fi
     remote_shell 'chmod +x slurm/*.sh container/*.sh 2>/dev/null || true; mkdir -p logs/done results'
 fi
 

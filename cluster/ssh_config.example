@@ -14,8 +14,7 @@ Host faith
     ControlPersist 12h
     # With a Kerberos ticket (kinit <user>@<REALM>), no password prompt at all:
     GSSAPIAuthentication yes
-    # Log in with the ticket, but do not forward it to the cluster (FIM advice on ssh -K).
-    GSSAPIDelegateCredentials no
+    GSSAPIDelegateCredentials yes
 
 # Also trust the cluster's host certificate authority, so the first connection doesn't ask to confirm a host
 # key: copy the `@cert-authority freia.fim.uni-passau.de,frigga.fim.uni-passau.de ...` line from the docs page
