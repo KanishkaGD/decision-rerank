@@ -26,6 +26,10 @@ dependencies = [
     "typesafe-sdk>=0.7.2",
     "laya>=0.3.28",
     "accelerate>=1.0",  # transformers needs it for device_map (Clef loads straight onto the GPU)
+    # Kev's run-time dependencies. Kev itself (not on PyPI) is installed by container/cdm.def without its declared
+    # dependencies, which pin torch<2.9 and would downgrade the container's torch.
+    "peft>=0.21",
+    "pydantic>=2.9",
 ]
 
 [project.optional-dependencies]

@@ -26,14 +26,17 @@ def info():
 def datasets():
     """List the registered datasets (src/cdm/datasets.py)."""
     for d in DATASETS.values():
-        click.echo(f"{d.name:12} {d.split:5} {d.group:8} rel>={d.rel_threshold}  index={d.index}  topics={d.topics}")
+        click.echo(
+            f"{d.name:12} {d.split:5} {d.group:8} rel>={d.rel_threshold}  index={d.index}  topics={d.topics}  "
+            f"first stage={d.default_first_stage}"
+        )
 
 
 @click.command("systems")
 def systems():
     """List the registered rerankers (src/cdm/rerankers/__init__.py)."""
     for s in SYSTEMS.values():
-        click.echo(f"{s.name:12} {s.kind:14} {s.model_id}  {s.params or ''}")
+        click.echo(f"{s.name:22} {s.kind:15} {s.model_id}  {s.params or ''}")
 
 
 @click.command("prefetch")
@@ -41,13 +44,14 @@ def systems():
 @click.option("--systems", "system_list", default=",".join(SYSTEMS), show_default=True)
 def prefetch(dataset_list, system_list):
     """
-    Download Pyserini indexes, topics and qrels, and the rerankers' Hugging Face models, into the caches (PYSERINI_CACHE,
-    HF_HOME). Run on the login node (slurm/prefetch.sh): compute nodes may have no internet.
+    Download Pyserini indexes, topics and qrels, official rerank pools (data/pools/), and the rerankers' Hugging Face
+    models, into the caches (PYSERINI_CACHE, HF_HOME). Run on the login node (slurm/prefetch.sh): compute nodes may
+    have no internet.
     """
     from huggingface_hub import snapshot_download
     from pyserini.search.lucene import LuceneSearcher
 
-    from cdm.first_stage import load_topics_and_qrels
+    from cdm.first_stage import download_pool, load_topics_and_qrels, read_pool
 
     for name in filter(None, dataset_list.split(",")):
         ds = DATASETS[name]
@@ -55,13 +59,34 @@ def prefetch(dataset_list, system_list):
         LuceneSearcher.from_prebuilt_index(ds.index)
         queries, qrels = load_topics_and_qrels(ds)
         click.echo(f"[{name}] {len(queries)} judged queries, {sum(map(len, qrels.values()))} judgments")
+        if ds.pool:
+            path = download_pool(ds)
+            pooled = {}
+            for qid, docid, _, _ in read_pool(path, ds.pool.fmt):
+                if qid in queries:
+                    pooled.setdefault(qid, set()).add(docid)
+            click.echo(
+                f"[{name}] official pool {path}: {len(pooled)} of {len(queries)} judged queries, "
+                f"{sum(map(len, pooled.values()))} pairs"
+            )
+    downloaded = set()
     for name in filter(None, system_list.split(",")):
         spec = SYSTEMS[name]
         if not spec.hf:
-            click.echo(f"[{name}] skipped: {spec.model_id} is not a Hugging Face model (yet)")
+            click.echo(f"[{name}] skipped: {spec.model_id} is not a Hugging Face model")
             continue
-        path = snapshot_download(spec.model_id, revision=spec.revision)
-        click.echo(f"[{name}] {spec.model_id} -> {path}")
+        repos = [(spec.model_id, spec.revision), *spec.extra_hf]
+        if spec.params.get("backend") == "kev":  # a LoRA adapter: its base model is named in the checkpoint
+            from kev.checkpoint import Checkpoint
+
+            snapshot_download(spec.model_id, revision=spec.revision)
+            meta = Checkpoint(f"{spec.model_id}@{spec.revision}" if spec.revision else spec.model_id).meta
+            repos.append((meta.base, meta.base_revision))
+        for repo, revision in repos:
+            if (repo, revision) not in downloaded:
+                path = snapshot_download(repo, revision=revision)
+                downloaded.add((repo, revision))
+                click.echo(f"[{name}] {repo} -> {path}")
 
 
 @click.command("results")

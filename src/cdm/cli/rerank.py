@@ -7,14 +7,14 @@ import time
 import click
 import numpy as np
 
-from cdm.config import FIRST_STAGE_DEPTH, OUTPUTS_FOLDER, SEED
+from cdm.config import OUTPUTS_FOLDER, SEED
 from cdm.datasets import DATASETS, get_dataset
 from cdm.evaluation import calibration, evaluate, judged_pairs
 from cdm.phrasings import NONE, PHRASINGS, get_phrasing
 from cdm.provenance import write_manifest
 from cdm.rerankers import SYSTEMS, load_reranker
 from cdm.results_csv import result_exists, save_result
-from cdm.runs import first_stage_name, read_candidates, read_qrels, run_dir, write_run
+from cdm.runs import read_candidates, read_qrels, run_dir, write_run
 
 
 def _seed_everything(seed: int) -> None:
@@ -34,11 +34,17 @@ def _seed_everything(seed: int) -> None:
 @click.option(
     "--first-stage",
     "first_stage",
-    default=first_stage_name("bm25", FIRST_STAGE_DEPTH),
-    show_default=True,
-    help="Which cached candidate set to rerank (a directory under runs/<dataset>/).",
+    default=None,
+    help="Which cached candidate set to rerank (a directory under runs/<dataset>/). Default: the official "
+    "pool where the dataset has one (official-d1000), else bm25-d100.",
 )
-@click.option("--depth", type=int, default=None, help="Rerank only the top N candidates (default: all).")
+@click.option(
+    "--depth",
+    type=int,
+    default=None,
+    help="Rerank only the top N candidates (default: all; an official "
+    "pool is in BM25 order, so --depth 100 is its BM25 top 100).",
+)
 @click.option(
     "--phrasings",
     default=None,
@@ -65,6 +71,7 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
     """
     _seed_everything(seed)
     ds = get_dataset(dataset)
+    first_stage = first_stage or ds.default_first_stage
     cache = run_dir(dataset, first_stage)
     if not os.path.exists(os.path.join(cache, "candidates.jsonl.gz")):
         raise click.ClickException(f"No cached candidates in {cache}: run `cdm first-stage {dataset}` first.")

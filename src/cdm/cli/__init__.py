@@ -9,7 +9,7 @@ from cdm.cli import first_stage, misc, rerank
 def main():
     """
     Calibrated System One decision models as rerankers (see README.md). On the cluster, run these through the
-    Slurm scripts (slurm/, or cluster/ from your own machine) rather than directly.
+    Slurm scripts (slurm/) rather than directly: the login node is not for computation.
     """
 
 

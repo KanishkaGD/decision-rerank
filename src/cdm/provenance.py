@@ -28,6 +28,9 @@ PACKAGES = [
     "pandas",
     "typesafe-sdk",
     "laya",
+    "kev",
+    "peft",
+    "flash-linear-attention",
 ]
 
 
@@ -38,8 +41,8 @@ CODE_DIR = os.environ.get("CDM_CODE_DIR", CDM_ROOT)
 @functools.lru_cache(maxsize=None)
 def code_revision() -> Dict[str, str]:
     """
-    The REVISION file written by cluster/sync.sh (on the cluster, .git isn't synced), else git itself. Read once, at
-    the first call, so a later sync during a long job can't change what this run reports.
+    The REVISION file of the code snapshot the job runs (slurm/snapshot.sh), else git itself. Read once, at
+    the first call, so a change to the repo during a long job can't change what this run reports.
     """
     path = os.path.join(CODE_DIR, "REVISION")
     if os.path.exists(path):

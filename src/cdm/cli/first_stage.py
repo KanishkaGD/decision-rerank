@@ -14,12 +14,18 @@ from cdm.runs import first_stage_name, run_dir, write_candidates, write_qrels, w
 @click.argument("dataset", type=click.Choice(list(DATASETS)))
 @click.option(
     "--retriever",
-    type=click.Choice(["bm25"]),
-    default="bm25",
-    show_default=True,
-    help="First-stage retriever. A dense retriever for the robustness check is still to be added.",
+    type=click.Choice(["official", "bm25"]),
+    default=None,
+    help="'official': the track's rerank pool (needs `cdm prefetch`); 'bm25': our own BM25 top-N. Default: "
+    "official where the dataset has a pool, else bm25. A dense retriever is still to be added.",
 )
-@click.option("--depth", type=int, default=FIRST_STAGE_DEPTH, show_default=True, help="Candidates per query.")
+@click.option(
+    "--depth",
+    type=int,
+    default=FIRST_STAGE_DEPTH,
+    show_default=True,
+    help="Candidates per query (bm25 only; an official pool keeps all its candidates).",
+)
 @click.option("--threads", type=int, default=8, show_default=True, help="Search threads (Slurm: --cpus-per-task).")
 @click.option(
     "--max-queries",
@@ -34,9 +40,14 @@ def first_stage(dataset, retriever, depth, threads, max_queries, save_subset, ov
     Retrieve and cache the first-stage candidates of DATASET under runs/<dataset>/<retriever>-d<depth>/: the
     candidates with their texts, a TREC run file, the qrels and a manifest. Every reranker reads this cache.
     """
-    from cdm.first_stage import retrieve_bm25
+    from cdm.first_stage import official_pool, retrieve_bm25
 
     ds = get_dataset(dataset)
+    retriever = retriever or ("official" if ds.pool else "bm25")
+    if retriever == "official":
+        if not ds.pool:
+            raise click.ClickException(f"{dataset} has no official rerank pool; use --retriever bm25.")
+        depth = ds.pool.depth
     name = first_stage_name(retriever, depth)
     out = run_dir(dataset, name) if not max_queries else run_dir(dataset, f"{name}-max{max_queries}")
     if os.path.exists(os.path.join(out, "candidates.jsonl.gz")) and not overwrite:
@@ -44,8 +55,12 @@ def first_stage(dataset, retriever, depth, threads, max_queries, save_subset, ov
         return
     os.makedirs(out, exist_ok=True)
 
-    click.echo(f"Retrieving top-{depth} with {retriever} for {dataset} ({ds.index}, {ds.topics})...")
-    candidates, qrels, params = retrieve_bm25(ds, depth=depth, threads=threads, max_queries=max_queries)
+    if retriever == "official":
+        click.echo(f"Reading the official pool of {dataset} ({ds.pool.url}), ordered by BM25 on {ds.index}...")
+        candidates, qrels, params = official_pool(ds, threads=threads, max_queries=max_queries)
+    else:
+        click.echo(f"Retrieving top-{depth} with {retriever} for {dataset} ({ds.index}, {ds.topics})...")
+        candidates, qrels, params = retrieve_bm25(ds, depth=depth, threads=threads, max_queries=max_queries)
     write_candidates(os.path.join(out, "candidates.jsonl.gz"), candidates)
     run = {q.qid: {c.docid: c.score for c in q.candidates} for q in candidates}
     write_run(os.path.join(out, "run.trec.gz"), run, tag=name)

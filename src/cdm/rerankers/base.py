@@ -21,13 +21,14 @@ class Scores:
 
 class Reranker(ABC):
     """
-    One reranking system. `joint` systems score the whole candidate set in one state (RQ4); the others score each
-    (query, passage) pair on its own. `uses_phrasing` systems are asked a relevance question (src/cdm/phrasings.py).
+    One reranking system. Every system outputs one score per candidate; `listwise` systems compute it with the whole
+    candidate list in view (System One listwise mode, Set-Encoder; RQ4), pointwise ones from each (query, passage)
+    pair alone. `uses_phrasing` systems are asked a relevance question (src/cdm/phrasings.py).
     """
 
     name: str
     model_id: str
-    joint: bool = False
+    listwise: bool = False
     uses_phrasing: bool = False
     prob_kind: str = "none"  # "model" | "sigmoid(logit)" | "none"
     warmup: bool = True  # whether the rerank CLI scores one query untimed first (CUDA kernels, caches)
@@ -51,7 +52,7 @@ class Reranker(ABC):
         return {
             "name": self.name,
             "model_id": self.model_id,
-            "joint": self.joint,
+            "listwise": self.listwise,
             "uses_phrasing": self.uses_phrasing,
             "prob_kind": self.prob_kind,
         }

@@ -1,8 +1,13 @@
 % =====================================================================================
-% Section 6 -- Joint vs. isolated scoring (RQ4) -- WP6
+% Section 6 -- Listwise vs. pointwise scoring (RQ4) -- WP6
 % =====================================================================================
-\section{Why Joint Scoring Helps}
+\section{Why Listwise Scoring Helps}
 \label{sec:joint}
 
-\PENDING{\RQ{4}: ablations on order shuffling, set size (5, 10, 20), distractor injection and
-random-text neighbours; truncation rates under \laya{}'s 512/1024-token context.}
+% Terminology: both modes output one relevance probability per candidate. Pointwise: the model sees one
+% query--passage pair. Listwise: it sees the whole candidate list (S1Rank's ``joint pointwise''), as the
+% Set-Encoder does among cross-encoders -- not listwise in the generative, permutation-producing sense of RankGPT.
+\PENDING{\RQ{4}: pointwise vs.\ listwise for \jev{}, Clef and Kev on the same official pools, next to the
+pointwise cross-encoders and the listwise Set-Encoder~\cite{Schlatt2025SetEncoder}; ablations on order shuffling,
+list size (5, 10, 20), distractor injection and random-text neighbours. \laya{} runs pointwise only (its
+512/1024-token context does not hold a list).}

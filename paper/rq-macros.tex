@@ -14,7 +14,7 @@
 %   RQ1 purple  -- zero-shot reranking quality (Laya vs. Jev vs. cross-encoders)
 %   RQ2 rose    -- fine-tuning and calibration
 %   RQ3 amber   -- calibrated probabilities as a control signal
-%   RQ4 teal    -- joint vs. isolated scoring
+%   RQ4 teal    -- listwise vs. pointwise scoring
 %   RQ5 olive   -- limits on reasoning-intensive retrieval (stretch goal)
 % Keep the data colours of the figures apart from these five; figures carry no RQ badges.
 % Wording of the questions: docs/research-plan.md, "Research questions and hypotheses".
@@ -59,5 +59,6 @@
 \defineRQ{2}{Does fine-tuning Laya on MS~MARCO make it competitive with cross-encoders of
   similar latency, and does fine-tuning destroy its calibration?}
 \defineRQ{3}{Are the calibrated probabilities useful as a control signal in retrieval?}
-\defineRQ{4}{Why does scoring all candidates in one state beat scoring each pair alone?}
+\defineRQ{4}{Why does listwise scoring, with all candidates in one state, beat pointwise scoring of each
+  query--passage pair?}
 \defineRQ{5}{Where do fast, non-reasoning System One judges fail?}

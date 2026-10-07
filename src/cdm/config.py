@@ -6,17 +6,21 @@ point them at /shared on the cluster; the defaults, relative to the working dire
 import os
 
 CDM_ROOT = os.environ.get("CDM_ROOT", ".")
+# Downloads that aren't Pyserini or Hugging Face caches, e.g. official rerank pools: data/pools/<dataset>/.
+DATA_FOLDER = os.environ.get("CDM_DATA", "data")
+POOLS_FOLDER = os.path.join(DATA_FOLDER, "pools")
 # Cached first-stage candidates: runs/<dataset>/<first-stage>/ (src/cdm/runs.py).
 RUNS_FOLDER = os.environ.get("CDM_RUNS", "runs")
 # Raw reranker outputs: outputs/<dataset>/<first-stage>/<system>/<phrasing>/ -- every score, per-query metrics,
-# the reranked run and a manifest. Large, gitignored; fetch selectively with cluster/fetch.sh --path.
+# the reranked run and a manifest. Large, gitignored.
 OUTPUTS_FOLDER = os.environ.get("CDM_OUTPUTS", "outputs")
 # results.csv, one row per evaluated configuration (src/cdm/results_csv.py). Tracked in git.
 RESULTS_FOLDER = os.environ.get("CDM_RESULTS", "results")
 
 SEED = 42
 
-# First stage: BM25 top-100 for every dataset (research plan, "Experimental setup").
+# First stage where a dataset has no official rerank pool (datasets.Dataset.pool): BM25 top-100 (research plan,
+# "Experimental setup").
 FIRST_STAGE_DEPTH = 100
 
 # Effectiveness metrics. Binary metrics use the dataset's relevance threshold (datasets.Dataset.rel_threshold),

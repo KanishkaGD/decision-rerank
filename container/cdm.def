@@ -20,6 +20,13 @@ From: python:3.12-slim-trixie
     # the image only needs a rebuild when dependencies change. The resolved versions are frozen into the image and
     # referenced by every output manifest (src/cdm/provenance.py), since there is no lock file.
     pip install --no-cache-dir /opt/cdm
+    # Kev (github.com/jaredpalmer/kev, pinned commit), for the kev-* rerankers. --no-deps: it declares torch<2.9, but
+    # runs on this torch; its other run-time dependencies (transformers>=5.17, peft, pydantic, accelerate) come from
+    # pyproject.toml. flash-linear-attention at the version Kev's fused kernels check (kev/fused_qwen35.py
+    # FLA_VERSION): the fast path of the Qwen3.5 linear-attention layers in transformers, for Kev and Clef.
+    pip install --no-cache-dir --no-deps "kev @ git+https://github.com/jaredpalmer/kev@5e42a7a03f28134853dd3ff77461457e921e5ec1"
+    pip install --no-cache-dir "flash-linear-attention==0.5.2"
+    pip check || true  # prints kev's unmet torch<2.9 pin (expected) and anything unexpected, without failing
     pip freeze > /opt/cdm/pip-freeze.txt
 
 %environment
