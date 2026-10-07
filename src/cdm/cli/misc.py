@@ -88,7 +88,7 @@ def prefetch(dataset_list, system_list):
         if ds.pool:
             path = download_pool(ds)
             pooled = {}
-            for qid, docid, _, _ in read_pool(path, ds.pool.fmt):
+            for qid, docid, _ in read_pool(path):
                 if qid in queries:
                     pooled.setdefault(qid, set()).add(docid)
             click.echo(
@@ -142,3 +142,16 @@ def results(job, metric, subsets):
     )
     table = df.pivot_table(index="row", columns="dataset", values="value", aggfunc="first")
     click.echo(table.round(4).to_string())
+
+
+@click.command("rename-system")
+@click.argument("old")
+@click.argument("new")
+def rename_system(old, new):
+    """
+    Rename system OLD to NEW in results/results.csv (after renaming a registry entry). Log it in
+    docs/experiment-log.md; output directories keep their old names (the `output` column still points to them).
+    """
+    from cdm.results_csv import rename_system as rename
+
+    click.echo(f"Renamed {rename(old, new)} rows: {old} -> {new}")

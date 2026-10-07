@@ -1,0 +1,61 @@
+system,dataset,metric,value,candidates,role,source,note
+rankgpt-4,dl19,nDCG@10,0.7559,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankGPT with gpt-4 (listwise, sliding window)"
+rankgpt-4,dl20,nDCG@10,0.7056,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankGPT with gpt-4 (listwise, sliding window)"
+rankgpt-4,trec-covid,nDCG@10,0.8551,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankGPT with gpt-4 (listwise, sliding window)"
+rankgpt-4,nfcorpus,nDCG@10,0.3847,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankGPT with gpt-4 (listwise, sliding window)"
+rankgpt-4,touche,nDCG@10,0.3857,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankGPT with gpt-4 (listwise, sliding window)"
+rankgpt-4,dbpedia,nDCG@10,0.4712,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankGPT with gpt-4 (listwise, sliding window)"
+rankgpt-4,scifact,nDCG@10,0.7495,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankGPT with gpt-4 (listwise, sliding window)"
+rankzephyr-7b,dl19,nDCG@10,0.7422,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankZephyr 7B (listwise, sliding window)"
+rankzephyr-7b,dl20,nDCG@10,0.7021,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankZephyr 7B (listwise, sliding window)"
+rankzephyr-7b,trec-covid,nDCG@10,0.8070,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankZephyr 7B (listwise, sliding window)"
+rankzephyr-7b,nfcorpus,nDCG@10,0.3658,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankZephyr 7B (listwise, sliding window)"
+rankzephyr-7b,touche,nDCG@10,0.3112,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankZephyr 7B (listwise, sliding window)"
+rankzephyr-7b,dbpedia,nDCG@10,0.4318,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankZephyr 7B (listwise, sliding window)"
+rankzephyr-7b,scifact,nDCG@10,0.7513,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3","RankZephyr 7B (listwise, sliding window)"
+monot5-3b,dl19,nDCG@10,0.7183,bm25-d100,reference,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",castorini/monot5-3b-msmarco-10k; we compute this cell (sanity check against the published number)
+monot5-3b,dl20,nDCG@10,0.6889,bm25-d100,reference,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",castorini/monot5-3b-msmarco-10k; we compute this cell (sanity check against the published number)
+monot5-3b,trec-covid,nDCG@10,0.8071,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",castorini/monot5-3b-msmarco-10k
+monot5-3b,nfcorpus,nDCG@10,0.3897,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",castorini/monot5-3b-msmarco-10k
+monot5-3b,touche,nDCG@10,0.3241,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",castorini/monot5-3b-msmarco-10k
+monot5-3b,dbpedia,nDCG@10,0.4445,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",castorini/monot5-3b-msmarco-10k
+monot5-3b,scifact,nDCG@10,0.7657,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",castorini/monot5-3b-msmarco-10k
+bge-m3,dl19,nDCG@10,0.7219,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",BAAI/bge-reranker-v2-m3
+bge-m3,dl20,nDCG@10,0.6698,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",BAAI/bge-reranker-v2-m3
+bge-m3,trec-covid,nDCG@10,0.7479,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",BAAI/bge-reranker-v2-m3
+bge-m3,nfcorpus,nDCG@10,0.3384,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",BAAI/bge-reranker-v2-m3
+bge-m3,touche,nDCG@10,0.3985,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",BAAI/bge-reranker-v2-m3
+bge-m3,dbpedia,nDCG@10,0.4193,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",BAAI/bge-reranker-v2-m3
+bge-m3,scifact,nDCG@10,0.7348,bm25-d100,baseline,"Abdallah et al. 2025, How Good are LLM-based Rerankers? (EMNLP Findings), Tables 2-3",BAAI/bge-reranker-v2-m3
+set-encoder-large,dl19,nDCG@10,0.7500,bm25-d100,baseline,"Schlatt et al. 2025 (Set-Encoder, ECIR), model card webis/set-encoder-large","authors' evaluation, bf16"
+set-encoder-large,dl20,nDCG@10,0.7220,bm25-d100,baseline,"Schlatt et al. 2025 (Set-Encoder, ECIR), model card webis/set-encoder-large","authors' evaluation, bf16"
+bm25,dl19,nDCG@10,0.5060,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",first stage
+bm25,dl20,nDCG@10,0.4800,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",first stage
+bm25,trec-covid,nDCG@10,0.5950,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",first stage
+bm25,nfcorpus,nDCG@10,0.3220,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",first stage
+bm25,scifact,nDCG@10,0.6790,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",first stage
+bge-m3,dl19,nDCG@10,0.7240,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",bge-reranker-v2-m3
+bge-m3,dl20,nDCG@10,0.6820,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",bge-reranker-v2-m3
+bge-m3,trec-covid,nDCG@10,0.7900,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",bge-reranker-v2-m3
+bge-m3,nfcorpus,nDCG@10,0.3370,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",bge-reranker-v2-m3
+bge-m3,scifact,nDCG@10,0.7240,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",bge-reranker-v2-m3
+monot5-3b,dl19,nDCG@10,0.7170,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",monoT5-3B
+monot5-3b,dl20,nDCG@10,0.6880,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",monoT5-3B
+monot5-3b,trec-covid,nDCG@10,0.7950,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",monoT5-3B
+monot5-3b,nfcorpus,nDCG@10,0.3700,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",monoT5-3B
+monot5-3b,scifact,nDCG@10,0.7600,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07",monoT5-3B
+jev-joint,dl19,nDCG@10,0.7370,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07","jev-1.13.0, joint pointwise, S1Rank question (= our s1rank phrasing)"
+jev-joint,dl20,nDCG@10,0.7170,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07","jev-1.13.0, joint pointwise, S1Rank question (= our s1rank phrasing)"
+jev-joint,trec-covid,nDCG@10,0.8650,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07","jev-1.13.0, joint pointwise, S1Rank question (= our s1rank phrasing)"
+jev-joint,nfcorpus,nDCG@10,0.3830,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07","jev-1.13.0, joint pointwise, S1Rank question (= our s1rank phrasing)"
+jev-joint,scifact,nDCG@10,0.8050,bm25-d100,reference,"S1Rank README (github.com/zaesho/S1Rank), read 2026-10-07","jev-1.13.0, joint pointwise, S1Rank question (= our s1rank phrasing)"
+bm25,dl19,nDCG@10,0.5058,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"
+bm25,dl20,nDCG@10,0.4796,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"
+bm25,dl21,nDCG@10,0.4458,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"
+bm25,dl22,nDCG@10,0.2692,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"
+bm25,dl23,nDCG@10,0.2627,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"
+bm25,trec-covid,nDCG@10,0.5947,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"
+bm25,nfcorpus,nDCG@10,0.3218,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"
+bm25,scifact,nDCG@10,0.6789,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"
+bm25,touche,nDCG@10,0.4422,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"
+bm25,dbpedia,nDCG@10,0.3180,bm25 (full run),reference,"Pyserini 2CR (pyserini/2cr/msmarco-v*-passage.yaml, beir.yaml bm25-flat)","k1 0.9, b 0.4; our first stage must reproduce it"

@@ -29,3 +29,24 @@ def test_unknown_key_column_rejected(tmp_path, monkeypatch):
     except ValueError:
         return
     raise AssertionError("expected ValueError")
+
+
+def test_rename_system(tmp_path, monkeypatch):
+    import importlib
+
+    monkeypatch.setenv("CDM_RESULTS", str(tmp_path))
+    import cdm.config
+    import cdm.results_csv as rc
+
+    importlib.reload(cdm.config)
+    importlib.reload(rc)
+    rc.save_result({"job": "rerank", "system": "a-old", "dataset": "dl21"}, {"nDCG@10": 0.5})
+    rc.save_result({"job": "rerank", "system": "b", "dataset": "dl21"}, {"nDCG@10": 0.4})
+    assert rc.rename_system("a-old", "a-new") == 1
+    assert sorted(rc.load_results()["system"]) == ["a-new", "b"]
+    rc.save_result({"job": "rerank", "system": "a-old", "dataset": "dl21"}, {"nDCG@10": 0.6})
+    try:
+        rc.rename_system("a-old", "a-new")
+        raise AssertionError("collision not detected")
+    except ValueError:
+        pass

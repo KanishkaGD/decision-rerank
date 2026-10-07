@@ -21,5 +21,6 @@ for command in [
     first_stage.first_stage,
     rerank.rerank,
     misc.results,
+    misc.rename_system,
 ]:
     main.add_command(command)
