@@ -12,6 +12,20 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-07 -- DL 2021-2023: Jev done; DL19/20 submitted
+
+- First DL 2021-2023 chain: prefetch 4356461 failed after 140 GB (hf_xet "os error 11"), leaving 78 jobs stuck;
+  cancelled, prefetch now retries (f1077cb), resubmitted: prefetch 4357122 (5 min), first stage 4357123-4357125
+  (4 min each), 75 reranks (logs/submitted-dl21-23.txt). Jev pointwise/listwise finished (40 s / 2-3 min per
+  dataset, $0.45 in total); 69 GPU reranks waiting for GPUs (Priority).
+- Official-pool BM25 reproduces Pyserini's 2CR BM25 on msmarco-v2-passage exactly: nDCG@10 0.4458 / 0.2692 / 0.2627.
+- Jev listwise above pointwise on all three years (about +0.02 nDCG@10, lower ECE and Brier), 3x cheaper; no
+  significance test yet. results.csv committed (efa4661).
+- DL19/20 submitted from efa4661 (logs/submitted-dl19-20.txt): prefetch 4357489 (MS MARCO v1 index + pools),
+  first stage 4357490/4357491, then 46 reranks on all candidates (every system but Set-Encoder; the comparison
+  with Kanishka) and 50 at --depth 100 (all systems; RQ4). System One models with s1rank only. Budgets for the 27B
+  models on the full pools raised to 16 h (a69268e), unmeasured.
+
 ## 2026-10-07 -- Pointwise/listwise naming, Set-Encoder, first DL 2021-2023 submission
 
 - **Naming (owner's decision):** IR terms. System One models are `<model>-pointwise` (one candidate per request,
