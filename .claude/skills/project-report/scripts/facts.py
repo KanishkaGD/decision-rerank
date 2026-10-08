@@ -28,7 +28,7 @@ HEAD = {"dl19": "DL19", "dl20": "DL20", "dl21": "DL21", "dl22": "DL22", "dl23": 
 SYSTEM_ONE = ["jev", "clef-flash", "clef", "kev-4b", "kev-27b"]
 NAMES = {"bm25": "BM25", "rankgpt-4": "RankGPT-4", "rankzephyr-7b": "RankZephyr-7B", "bge-m3": "bge-reranker-v2-m3",
          "monot5-3b": "monoT5-3B", "qwen3-reranker-8b": "Qwen3-Reranker-8B", "set-encoder-large": "Set-Encoder-large",
-         "qwen3.7-flash": "Qwen3.7-Flash", "jev": "Jev", "clef-flash": "Clef-Flash", "clef": "Clef", "kev-4b": "Kev-4B",
+         "jev": "Jev", "clef-flash": "Clef-Flash", "clef": "Clef", "kev-4b": "Kev-4B",
          "kev-27b": "Kev-27B", "laya": "Laya"}
 
 
@@ -80,7 +80,7 @@ def main_table():
     cells, cost = load_cells()
     section("RQ1: nDCG@10 x 100, BM25 top-100 (main table: joint mode; * = literature)")
     systems = ["bm25", "rankgpt-4", "rankzephyr-7b", "bge-m3", "monot5-3b", "qwen3-reranker-8b", "set-encoder-large",
-               "qwen3.7-flash"] + [f"{m}-joint" for m in SYSTEM_ONE] + ["laya"]
+               ] + [f"{m}-joint" for m in SYSTEM_ONE] + ["laya"]
     print("| System | " + " | ".join(HEAD[d] for d in DS) + " | Avg | $/1k q |")
     print("|---|" + "---:|" * (len(DS) + 2))
     best = {d: max((cells[(s, d)][0] for s in systems if s != "bm25" and (s, d) in cells), default=None) for d in DS}
@@ -133,7 +133,7 @@ def rq3():
     for r in rows():
         if r["first_stage"] == FIRST_STAGE.get(r["dataset"]) and not r["variant"] and fnum(r.get("ECE")) is not None:
             ece[(r["system"], r["dataset"])] = float(r["ECE"])
-    systems = ["monot5-3b", "qwen3-reranker-8b", "set-encoder-large", "bge-m3", "qwen3.7-flash"] + [
+    systems = ["monot5-3b", "qwen3-reranker-8b", "set-encoder-large", "bge-m3"] + [
         f"{m}-{mode}" for m in SYSTEM_ONE for mode in ("joint", "isolated")] + ["laya"]
     print("| System | " + " | ".join(HEAD[d] for d in dl) + " | mean |")
     print("|---|" + "---:|" * (len(dl) + 1))

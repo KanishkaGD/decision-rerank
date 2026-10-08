@@ -32,7 +32,6 @@ KANISHKA_TO_OURS = {
     "BM25 (bm25s order of the pool)": ("bm25", "other candidates; bm25s k1=1.2 b=0.75"),
     "Laya noul: P(yes)": ("laya", "other candidates, question and state"),
     "Jev noul: P(yes)": ("jev-isolated", "other candidates, question and state"),
-    "Qwen3.7-Flash noul: P(yes)": ("qwen3.7-flash", "other candidates; same prompt"),
 }
 
 
@@ -308,8 +307,7 @@ def section_next(results, rows):
     """slurm/submit.sh commands for the grid cells that are neither done, from the literature, nor active."""
     print("## Commands for the missing cells\n")
     systems, datasets, mark = coverage(results, rows)
-    s1 = set(config_list("SYSTEMS")) - {"bge-m3", "monot5-3b", "qwen3-reranker-8b", "set-encoder-large",
-                                         "qwen3.7-flash"}
+    s1 = {s for s in config_list("SYSTEMS") if s.endswith(("-joint", "-isolated")) or s == "laya"}
     missing_cache = missing_caches(datasets)
     lines = []
     if missing_cache:

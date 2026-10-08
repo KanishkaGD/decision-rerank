@@ -24,7 +24,8 @@ GPU_CONSTRAINT="gpumem.48gib"
 # of memory on the 44 GiB L40S (jobs 4360571-4360575).
 gpu_constraint_for() {
     case "$1" in
-        clef-isolated | clef-joint | kev-27b-* | qwen3-reranker-8b) echo "gpumem.80gib" ;;
+        clef-isolated | clef-joint | kev-27b-* | qwen3-reranker-8b | qwen3-8b-prompted | qwen3-8b-base-prompted | \
+            qwen3.5-9b-prompted | prism-9b | qwen3.8-27b-prompted) echo "gpumem.80gib" ;;
         *) echo "${GPU_CONSTRAINT}" ;;
     esac
 }
@@ -55,7 +56,6 @@ SYSTEMS=(
     "qwen3-reranker-8b"
     "set-encoder-large"  # cross-encoder that scores the candidates jointly (own container, container_for)
     "rankzephyr-7b"      # listwise LLM reranker (permutation, sliding window); BEIR from the literature
-    "qwen3.7-flash"      # LLM judge via OpenRouter (API_SYSTEMS)
     # System One models: <name>-isolated (one candidate per request), <name>-joint (all candidates in one state)
     "jev-isolated"       # TypeSafe API; runs on CPU (API_SYSTEMS)
     "jev-joint"
@@ -68,9 +68,29 @@ SYSTEMS=(
     "kev-4b-joint"
     "kev-27b-isolated"   # needs an 80 GB GPU (gpu_constraint_for)
     "kev-27b-joint"
+    # Triplet scale line (docs/intent/paper-focus.md): base model zero-shot | decision fine-tune | reranker fine-tune
+    "qwen3-0.6b-prompted" # Qwen3-0.6B | Kev-0.6B | Qwen3-Reranker-0.6B
+    "kev-0.6b-isolated"
+    "kev-0.6b-joint"
+    "qwen3-reranker-0.6b"
+    "qwen3-8b-prompted"   # Qwen3-8B | Kev-8B | Qwen3-Reranker-8B (above)
+    "qwen3-8b-base-prompted" # robustness check: the pretrained -Base with a completion prompt
+    "kev-8b-isolated"
+    "kev-8b-joint"
+    "qwen3.5-0.8b-prompted" # Qwen3.5-0.8B | Kev-0.8B | Prism-0.8B
+    "kev-0.8b-isolated"
+    "kev-0.8b-joint"
+    "prism-0.8b"
+    "qwen3.5-4b-prompted" # Qwen3.5-4B | Kev-4B (above) | Prism-4B
+    "prism-4b"
+    "qwen3.5-9b-prompted" # Qwen3.5-9B | Kev-9B, Clef-Flash (above) | Prism-9B
+    "kev-9b-isolated"
+    "kev-9b-joint"
+    "prism-9b"
+    "qwen3.8-27b-prompted" # Qwen3.8-27B | Kev-27B, Clef (above) | no reranker fine-tune exists
 )
 # Systems served by an external API: slurm/submit.sh runs them on the general (CPU) partition, no GPU.
-API_SYSTEMS=("jev-isolated" "jev-joint" "qwen3.7-flash")
+API_SYSTEMS=("jev-isolated" "jev-joint")
 
 # Grid cells we take from published papers instead of computing (results/literature.csv; docs/roadmap.md):
 # slurm/submit.sh skips them unless --include-literature. monoT5-3B is still computed on DL19/20, as the check that
@@ -115,17 +135,24 @@ rerank_time_for() {
         # RankZephyr: 9 generated permutations per query with HF generate, roughly 30 s per query (estimate).
         dl*:rankzephyr-7b) echo "02:00:00" ;;
         # Touche's passages are long: Kev-27B isolated 1h27 (4360663), Kev-4B joint over 45 min (4360656, timeout).
-        touche:clef-* | touche:kev-27b-*) echo "03:00:00" ;;
+        touche:clef-* | touche:kev-27b-* | touche:qwen3.8-27b-prompted | touche:kev-8b-* | touche:kev-9b-*)
+            echo "03:00:00" ;;
         touche:*) echo "01:30:00" ;;
         # 100 candidates for <= 82 queries (DL19-23, TREC-COVID). Measured on DL21-23: Kev-27B isolated
         # 29-44 min (4357189-4357191), Clef 27B 7-18 min (4357165-4357170), everything else under 10 min.
-        dl*:clef-isolated | dl*:clef-joint | dl*:kev-27b-* | trec-covid:clef-* | trec-covid:kev-27b-*)
+        dl*:clef-isolated | dl*:clef-joint | dl*:kev-27b-* | trec-covid:clef-* | trec-covid:kev-27b-* | \
+            dl*:qwen3.8-27b-prompted | trec-covid:qwen3.8-27b-prompted | dl*:kev-8b-* | dl*:kev-9b-* | \
+            trec-covid:kev-8b-* | trec-covid:kev-9b-*)
             echo "01:30:00" ;;
         dl* | trec-covid:*) echo "00:45:00" ;;
         # 300-400 queries (NFCorpus, SciFact, DBPedia). Kev-27B isolated up to 2h37 (4360664), Kev-4B joint on
         # SciFact 2h51 of 3h (4360655).
-        *:clef-isolated | *:clef-joint | *:kev-27b-*) echo "06:00:00" ;;
+        *:clef-isolated | *:clef-joint | *:kev-27b-* | nfcorpus:qwen3.8-27b-prompted | scifact:qwen3.8-27b-prompted | \
+            dbpedia:qwen3.8-27b-prompted) echo "06:00:00" ;;
         nfcorpus:kev-4b-* | scifact:kev-4b-* | dbpedia:kev-4b-*) echo "05:00:00" ;;
+        # Kev-8B/9B: about twice Kev-4B (unmeasured).
+        nfcorpus:kev-8b-* | scifact:kev-8b-* | dbpedia:kev-8b-* | nfcorpus:kev-9b-* | scifact:kev-9b-* | \
+            dbpedia:kev-9b-*) echo "10:00:00" ;;
         msmarco-dev:*) echo "08:00:00" ;; # ~700k query-passage pairs at depth 100 (pass --max-queries)
         *) echo "03:00:00" ;;
     esac

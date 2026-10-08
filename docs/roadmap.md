@@ -54,9 +54,25 @@ role `baseline`; `from_literature` in `slurm/config.sh` makes `slurm/submit.sh` 
 | monoT5-3B | cross-encoder (seq2seq) | computed (check against literature; calibration) | computed | literature |
 | Qwen3-Reranker-8B | pointwise LLM reranker | computed | computed | computed |
 | Set-Encoder-large | cross-encoder, scores candidates jointly | literature | computed | computed |
-| Qwen3.7-Flash | LLM judge (log-probs), Jev's price | computed | computed | computed |
 | Jev, Clef-Flash, Clef, Kev-4B, Kev-27B | System One, joint and isolated | computed | computed | computed |
 | Laya | System One, isolated only (context too short) | computed | computed | computed |
+
+**Triplets** (`docs/intent/paper-focus.md`, decided 2026-10-09): one backbone, three training objectives -- none
+(the post-trained release asked S1Rank's question zero-shot, `*-prompted`), decision fine-tuning (Kev, Clef; joint
+and isolated) and reranker fine-tuning (Qwen3-Reranker, Prism). All computed on all ten datasets.
+
+| Backbone | Base model (zero-shot) | Decision fine-tune | Reranker fine-tune |
+| --- | --- | --- | --- |
+| Qwen3-0.6B | `qwen3-0.6b-prompted` | Kev-0.6B (on -Base) | Qwen3-Reranker-0.6B (on -Base) |
+| Qwen3-8B | `qwen3-8b-prompted`; `qwen3-8b-base-prompted` (-Base, completion prompt: robustness check) | Kev-8B (on -Base) | Qwen3-Reranker-8B (on -Base) |
+| Qwen3.5-0.8B | `qwen3.5-0.8b-prompted` | Kev-0.8B (on -Base) | Prism-0.8B (checkpoint not stated) |
+| Qwen3.5-4B | `qwen3.5-4b-prompted` | Kev-4B (on -Base) | Prism-4B |
+| Qwen3.5-9B | `qwen3.5-9b-prompted` | Kev-9B (on -Base), Clef-Flash | Prism-9B |
+| Qwen3.8-27B | `qwen3.8-27b-prompted` | Kev-27B, Clef (on the post-trained release) | -- (none exists) |
+
+Training data differs between the fine-tunes: Qwen3-Reranker and Prism are trained on MS MARCO among much else
+(in-domain for DL19-23); Kev's public sources contain no MS MARCO or BEIR. The paper reports the BEIR collections
+without training splits (TREC-COVID, Touché, DBPedia) as the zero-shot subset next to the averages.
 
 **Question.** S1Rank's Noul question (phrasing `s1rank`), fixed for all System One models; no phrasing search.
 

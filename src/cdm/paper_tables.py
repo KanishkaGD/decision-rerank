@@ -47,7 +47,6 @@ MAIN_ROWS: List[Tuple[str, List[Tuple[str, str, str]]]] = [
             ("monot5-3b", "monoT5-3B", ""),
             ("qwen3-reranker-8b", "Qwen3-Reranker-8B", ""),
             ("set-encoder-large", "Set-Encoder-large", ""),
-            ("qwen3.7-flash", "Qwen3.7-Flash", ""),
         ],
     ),
     (

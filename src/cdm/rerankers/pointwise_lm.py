@@ -16,12 +16,31 @@ from cdm.phrasings import Phrasing
 from cdm.rerankers.base import Reranker, Scores
 
 QWEN3_INSTRUCTION = "Given a web search query, retrieve relevant passages that answer the query"
-QWEN3_PREFIX = (
-    "<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and "
-    'the Instruct provided. Note that the answer can only be "yes" or "no".<|im_end|>\n'
-    "<|im_start|>user\n"
+QWEN3_SYSTEM = (
+    'Judge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the '
+    'answer can only be "yes" or "no".'
 )
 QWEN3_SUFFIX = "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+# Prism-Qwen3.5-Reranker (Zhang 2026, arXiv:2604.23734): the same layout as Qwen3-Reranker with its own fixed system
+# prompt and instruction, copied from the checkpoints' chat_template.jinja (read 2026-10-09). The card says only this
+# prompt yields its calibrated score sigmoid(z_yes - z_no); the first answer token is read, nothing is generated.
+PRISM_SYSTEM = "Judge whether the Document meets the requirements based on the Query and the Instruct provided. "
+PRISM_INSTRUCTION = (
+    'Judge if the document is relevant to the query. Reply "yes" or "no".\n'
+    'On "yes", also emit:\n'
+    "<contribution>One sentence covering every core point the document contributes to the query, without "
+    "elaboration.</contribution>\n"
+    "<evidence>Self-contained rewrite of the query-relevant content. Rules:\n"
+    "- Faithful: rephrase only; add or infer nothing.\n"
+    "- Self-contained: evidence alone must fully answer the query.\n"
+    "- Concise: drop query-irrelevant background.\n"
+    "- Verbatim (no translation): proper nouns, terms, abbreviations, numbers, dates, code, URLs.\n"
+    "- Output language: multilingual doc \u2192 query's language; else doc's language.</evidence>"
+)
+
+
+def qwen3_prefix(system: str) -> str:
+    return f"<|im_start|>system\n{system}<|im_end|>\n<|im_start|>user\n"
 
 
 def _torch_dtype(name: str):
@@ -139,7 +158,10 @@ class MonoT5Reranker(_YesNoReranker):
 
 
 class Qwen3Reranker(_YesNoReranker):
-    """Qwen/Qwen3-Reranker-*: the model card's prompt and web-search instruction -> last-position "yes"/"no" logits."""
+    """
+    Qwen/Qwen3-Reranker-*: the model card's prompt and web-search instruction -> last-position "yes"/"no" logits. With
+    `system`/`instruction` = PRISM_*, the same reader serves Prism-Qwen3.5-Reranker.
+    """
 
     def __init__(
         self,
@@ -150,12 +172,14 @@ class Qwen3Reranker(_YesNoReranker):
         batch_size: int = 64,
         dtype: str = "float32",
         instruction: str = QWEN3_INSTRUCTION,
+        system: str = QWEN3_SYSTEM,
         device: Optional[str] = None,
     ):
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         super().__init__(name, model_id, revision, max_length, batch_size, dtype, device)
         self.instruction = instruction
+        self.system = system
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision, padding_side="left")
         self.model = (
             AutoModelForCausalLM.from_pretrained(model_id, revision=revision, dtype=_torch_dtype(dtype))
@@ -164,7 +188,7 @@ class Qwen3Reranker(_YesNoReranker):
         )
         self.no_id = self.tokenizer.convert_tokens_to_ids("no")
         self.yes_id = self.tokenizer.convert_tokens_to_ids("yes")
-        self.prefix = self.tokenizer.encode(QWEN3_PREFIX, add_special_tokens=False)
+        self.prefix = self.tokenizer.encode(qwen3_prefix(system), add_special_tokens=False)
         self.suffix = self.tokenizer.encode(QWEN3_SUFFIX, add_special_tokens=False)
 
     def _bodies(self, query: str, passages: List[str]) -> List[str]:
@@ -194,5 +218,5 @@ class Qwen3Reranker(_YesNoReranker):
 
     def describe(self) -> Dict[str, Any]:
         d = super().describe()
-        d.update(instruction=self.instruction)
+        d.update(system=self.system, instruction=self.instruction)
         return d

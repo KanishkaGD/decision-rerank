@@ -13,7 +13,8 @@ The owner's current decisions; `docs/roadmap.md` turns them into the setup.
 - **System One models:** Jev (closed), Clef-Flash and Clef, Kev in two sizes (4B, 27B), Laya. Every one joint and
   isolated, except Laya (isolated only).
 - **Baselines computed:** monoT5-3B, bge-reranker-v2-m3 (where no published number exists), Qwen3-Reranker-8B,
-  Set-Encoder-large, Qwen3.7-Flash.
+  Set-Encoder-large. Qwen3.7-Flash (an OpenRouter LLM judge at Jev's price) was run but dropped from the paper on
+  2026-10-09: the triplets' base models (`docs/intent/paper-focus.md`) are the better-matched control.
 - **Terminology:** S1Rank's -- joint pointwise and isolated pointwise; "listwise" only for rerankers that output a
   ranking.
 
@@ -21,7 +22,7 @@ The owner's current decisions; `docs/roadmap.md` turns them into the setup.
 
 - **Jev:** TypeSafe API, key in `.env` (`TYPESAFE_AI_API_KEY`). No fixed API budget; runs cost a few dollars, ask
   before anything larger.
-- **Qwen3.7-Flash:** OpenRouter, needs `OPENROUTER_API_KEY` in `.env`.
+- **OpenRouter** (`OPENROUTER_API_KEY` in `.env`): an alternative route for Jev (`JEV_PROVIDER=openrouter`).
 - **Open models** (Clef, Kev, Laya, the cross-encoders): Hugging Face, pinned revisions, prefetched to `data/`.
 
 ## Calibration

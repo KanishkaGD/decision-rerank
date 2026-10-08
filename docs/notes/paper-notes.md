@@ -56,7 +56,7 @@ nDCG@10 x 100; Avg over all ten datasets.
 | monoT5-3B / bge-m3 | 57.5 / 56.6 | mostly literature cells |
 | Clef joint / isolated | 56.1 / 56.2 | |
 | Clef-Flash isolated / joint | 54.7 / 52.8 | |
-| Qwen3.7-Flash (LLM judge, Jev's price) | 53.0 | the "plain LLM at the same price" control |
+| Qwen3.7-Flash (LLM judge, Jev's price) | 53.0 | dropped from the paper 2026-10-09 (the triplets' base models replace it) |
 | Kev-4B isolated / joint | 51.4 / 49.8 | |
 | Laya | 44.0 | barely above BM25 (43.2) |
 | RankGPT-4 / RankZephyr-7B (literature) | -- | no DL21-23 on BM25 candidates; RankGPT-4 best on DL19 (75.6) |

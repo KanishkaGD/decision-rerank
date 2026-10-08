@@ -6,10 +6,11 @@
 \bminilm-l6\b
 \bmxbai-base\b
 \bmonot5-base\b
-\bqwen3-reranker-(0\.6b|4b)\b
+\bqwen3-reranker-4b\b
 \bset-encoder-base\b
 \blaya-multilingual\b
-\bkev-(0\.8b|9b)\b
+# Dropped from the paper (2026-10-09): the triplets' base models replace the price-matched LLM judge
+\bqwen3\.7-flash\b
 # Datasets dropped (2026-10-07)
 \bfiqa\b
 \bscidocs\b
