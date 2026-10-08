@@ -53,7 +53,8 @@ MAIN_ROWS: List[Tuple[str, List[Tuple[str, str, str]]]] = [
     (
         "System One models",
         [
-            (f"{model}-{mode}", name, mode)
+            # Joint mode only (docs/intent/paper-focus.md); the isolated runs are in the RQ2 table.
+            (f"{model}-joint", name, "joint")
             for model, name in [
                 ("jev", "\\jev{}"),
                 ("clef-flash", "Clef-Flash"),
@@ -61,7 +62,6 @@ MAIN_ROWS: List[Tuple[str, List[Tuple[str, str, str]]]] = [
                 ("kev-4b", "Kev-4B"),
                 ("kev-27b", "Kev-27B"),
             ]
-            for mode in ("joint", "isolated")
         ]
         + [("laya", "\\laya{}", "isolated")],
     ),
@@ -159,9 +159,10 @@ def main_table(cells: Cells, cost: Costs) -> str:
         "% results/literature.csv -- do not edit by hand.",
         "\\begin{table*}[t]",
         "\\caption{Reranking effectiveness (nDCG@10, $\\times 100$) on the BM25 top-100 of TREC DL 2019--2023 and five",
-        "BEIR collections. $^\\dagger$: published number on the same candidates~\\cite{Abdallah2025HowGood}, not",
-        "recomputed. Avg: mean over all ten collections (only where all are available). \\$/1k: mean API cost in US",
-        "dollars per 1,000 queries over the collections run. Best reranker per column in bold.}",
+        "BEIR collections; System One models in joint mode (\\laya{} isolated). $^\\dagger$: published number on the",
+        "same candidates~\\cite{Abdallah2025HowGood,SetEncoderCard}, not recomputed. Avg: mean over all ten",
+        "collections (only where all are available). \\$/1k: mean API cost in US dollars per 1,000 queries over the",
+        "collections run. Best reranker per column in bold.}",
         "\\label{tab:main}",
         "\\centering",
         "\\scriptsize",

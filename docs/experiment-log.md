@@ -12,6 +12,22 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-08 -- RankZephyr and the efficiency run
+
+Owner's decisions (`docs/intent/paper-focus.md`): RankZephyr run by us, one fixed-GPU latency/energy run, main table
+joint only, open title, RQ1 led by open vs. closed.
+
+- **RankZephyr** (`src/cdm/rerankers/listwise.py`): rank_llm's prompt and sliding window (20/10, 9 windows per
+  query) with transformers in bf16, greedy. Trial on 3 DL19 queries (L40S, no-save): nDCG@10 0.777, 20.4k input
+  and ~800 output tokens per query (Chen et al.: 18.2k / 711), 21 s per query, 5 of 27 answers missing identifiers
+  (filled in their old order, as rank_llm does). Submitted DL19-23 (4377662-4377666); BEIR stays from the literature.
+- **GPU energy** (`src/cdm/energy.py`): NVML's cumulative energy counter via ctypes around the timed loop; results.csv
+  gets `energy_j`, `energy_j_per_query`, `rerank_wall_s`. Check on bge-m3 (5 DL19 queries, L40S): 123 J per query
+  at 0.33 s, i.e. ~370 W.
+- **Efficiency run**: all 14 local systems on DL19/20 with `--gres gpu:a100-sxm:1 --variant a100`
+  (4377668-4377696); bge-m3 and Set-Encoder with `--include-literature` (their DL19/20 effectiveness cells stay from
+  the literature).
+
 ## 2026-10-08 -- Grid batch 4360xxx: failures fixed; Jev through OpenRouter prepared
 
 The grid batch of 2026-10-07 (jobs 4360571-4360672) left 114 of 160 cells done. Failures and fixes:

@@ -141,7 +141,9 @@ Fill the blanks from the model cards before the setup table is written.
 - 15 NFCorpus queries have no BM25 hit; they count with nDCG 0 for every system (as in BEIR).
 - Calibration only on DL19-23 (judged non-relevant passages); unjudged excluded there, counted as non-relevant
   in the `_unjudged0` variants.
-- Latency from mixed hardware so far; energy not measured.
+- Latency of the grid runs comes from mixed hardware; the comparable numbers come from the efficiency run (variant
+  `a100`, DL19/20, one A100-SXM-80GB, GPU-board energy from NVML -- not CPU or cooling). RankZephyr runs with
+  transformers, not vLLM: its latency is comparable within our setup, not to rank_llm's published speed.
 
 ## 7. Open questions for the owner
 
