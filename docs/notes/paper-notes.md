@@ -145,9 +145,11 @@ Fill the blanks from the model cards before the setup table is written.
 
 ## 7. Open questions for the owner
 
-Asked 2026-10-08; answers go to `docs/intent/` and the roadmap.
+Asked and answered 2026-10-08 (`docs/intent/paper-focus.md`):
 
-1. Headline of the paper.
-2. Efficiency in the paper (cost only, or latency/energy on one GPU).
-3. A current listwise baseline (run RankGPT with a current model, RankZephyr ourselves, or literature only).
-4. What fits in 4 pages (all 16 rows, or the smaller System One models moved to the arXiv version).
+1. Headline: **open matches closed** (Kev-27B vs Jev, both above the trained rerankers).
+2. Efficiency: **API cost plus one fixed-GPU latency/energy run** (DL19/20, A100-SXM-80GB, NVML).
+3. Listwise baseline: **RankZephyr run by us** (DL19-23; BEIR from the literature); RankGPT-4 literature only.
+4. Main table: **joint mode only**; isolated rows in the RQ2 table.
+
+Still open: RQ wording for the new headline; title; whether Kanishka's QPP results enter the paper or Phase 2.

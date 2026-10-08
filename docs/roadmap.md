@@ -15,6 +15,9 @@ scores all candidates in one request. We test whether that holds for System One 
 open (Clef, Kev, Laya) -- against strong trained rerankers on ten datasets, whether the joint mode is what makes the
 difference, and whether their probabilities are calibrated.
 
+**Headline** (`docs/intent/paper-focus.md`): open matches closed -- an open System One model (Kev-27B) matches Jev
+and beats every trained reranker on average; size matters more than open vs. closed. RQ2 and RQ3 support it.
+
 ## Research questions (paper)
 
 | RQ | Question | Evidence |
@@ -45,7 +48,8 @@ role `baseline`; `from_literature` in `slurm/config.sh` makes `slurm/submit.sh` 
 
 | System | Kind | DL19/20 | DL21-23 | BEIR |
 | --- | --- | --- | --- | --- |
-| RankGPT-4, RankZephyr-7B | listwise LLM rerankers | literature | -- | literature |
+| RankGPT-4 | listwise LLM reranker | literature | -- | literature |
+| RankZephyr-7B | listwise LLM reranker (rank_llm, run by us) | computed (check against literature) | computed | literature |
 | bge-reranker-v2-m3 | cross-encoder | literature | computed | literature |
 | monoT5-3B | cross-encoder (seq2seq) | computed (check against literature; calibration) | computed | literature |
 | Qwen3-Reranker-8B | pointwise LLM reranker | computed | computed | computed |
@@ -57,7 +61,11 @@ role `baseline`; `from_literature` in `slurm/config.sh` makes `slurm/submit.sh` 
 **Question.** S1Rank's Noul question (phrasing `s1rank`), fixed for all System One models; no phrasing search.
 
 **Metrics.** nDCG@10 everywhere; ECE (15 bins) and Brier on judged pairs of DL19-23, relevant from grade 2; API
-cost and latency.
+cost. Latency and energy from one efficiency run: every local model on DL19/20 on one A100-SXM-80GB, energy from
+NVML per run; API models get cost and wall-clock time only.
+
+**Main table.** One row per System One model (joint; Laya isolated) plus the baselines; the isolated rows are in the
+RQ2 table (joint minus isolated, with tests).
 
 **Significance.** Paired t-test over queries for joint vs. isolated per model and dataset (from the stored
 per-query metrics; no extra runs), Holm-corrected across datasets. Literature numbers are not tested (no per-query
@@ -72,20 +80,23 @@ runs); the paper says so.
 
 1. **Candidate sets** for all ten datasets; check BM25 against 2CR. *DL21-23 done (exact match).*
 2. **Sanity checks**: monoT5-3B on DL19/20, `jev-joint` against S1Rank.
-3. **Grid runs** -- the missing cells of `slurm/config.sh` (`experiment-status` skill, section `next`). RQ1-RQ3 all
-   come from these runs; nothing else is needed for the paper.
-4. **Analysis**: main table (systems x datasets, plus cost) generated from `results/results.csv` and
+3. **Grid runs** -- the cells of `slurm/config.sh` (`experiment-status` skill, section `next`). *Done 2026-10-08
+   (146 computed, 14 from the literature).*
+4. **RankZephyr and the efficiency run** (`docs/intent/paper-focus.md`): RankZephyr-7B on DL19-23 through rank_llm
+   (DL19/20 against the published 74.2 / 70.2); NVML energy in the manifests; all local models on DL19/20 on one
+   A100-SXM-80GB.
+5. **Analysis**: main table (systems x datasets, plus cost) generated from `results/results.csv` and
    `results/literature.csv` into `paper/tables/`; joint-vs-isolated tests; calibration table and reliability plot.
-5. **Related-work check** for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
+6. **Related-work check for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
    post on arXiv; submit to WSDM.
 
 ### Phase 2 -- after the submission (arXiv extension, follow-up paper)
 
-6. **Probabilities as a control signal**: query performance prediction (Kanishka's QPP results on DL19/20 are the
+7. **Probabilities as a control signal**: query performance prediction (Kanishka's QPP results on DL19/20 are the
    starting point), "no relevant document" detection, adaptive rerank depth. Uses the Phase 1 outputs; little new
    compute.
-7. **Fine-tuning** an open System One model on MS MARCO (`msmarco-dev` for selection), with and without a
+8. **Fine-tuning** an open System One model on MS MARCO (`msmarco-dev` for selection), with and without a
    calibration term in the loss; effectiveness and calibration before and after. Model to be chosen from the Phase 1
    results (Laya, Kev-4B).
-8. **BRIGHT**: where fast System One judges fail on reasoning-intensive queries, against an LLM reranker, with an
+9. **BRIGHT**: where fast System One judges fail on reasoning-intensive queries, against an LLM reranker, with an
    error analysis of 20 failure cases.
