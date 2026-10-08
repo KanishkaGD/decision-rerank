@@ -1,6 +1,7 @@
 # Build the paper (paper/ of calibrated-decision-models-for-ir).
 #
 #   make            build main.pdf (pdflatex + bibtex, as many runs as needed)
+#   make tables     regenerate tables/*.tex from ../results/*.csv (also done by make when they changed)
 #   make watch      rebuild automatically whenever a source file changes
 #   make check      list LaTeX errors, undefined references/citations, overfull boxes
 #   make wordcount  rough word count of the section files
@@ -13,10 +14,11 @@
 MAIN     := main
 LATEXMK  := latexmk
 FLAGS    := -pdf -interaction=nonstopmode -file-line-error -halt-on-error
-SOURCES  := $(MAIN).tex rq-macros.tex $(wildcard sections/*.tex) $(wildcard tables/*.tex) $(wildcard *.bib) \
+TABLES   := tables/main.tex
+SOURCES  := $(MAIN).tex rq-macros.tex $(wildcard sections/*.tex) $(TABLES) $(wildcard *.bib) \
             llncs.cls splncs04.bst $(wildcard images/*) $(wildcard figures/*)
 
-.PHONY: all pdf watch check wordcount clean distclean
+.PHONY: all pdf tables watch check wordcount clean distclean
 
 all: pdf
 
@@ -24,6 +26,12 @@ pdf: $(MAIN).pdf
 
 $(MAIN).pdf: $(SOURCES)
 	$(LATEXMK) $(FLAGS) $(MAIN).tex
+
+# Generated from the results (src/cdm/paper_tables.py, standard library only); never edit them by hand.
+tables: $(TABLES)
+
+$(TABLES): ../results/results.csv ../results/literature.csv ../src/cdm/paper_tables.py
+	cd .. && PYTHONPATH=src python3 -m cdm.paper_tables
 
 watch:
 	$(LATEXMK) $(FLAGS) -pvc -view=none $(MAIN).tex
