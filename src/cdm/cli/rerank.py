@@ -132,6 +132,9 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
         try:
             for i, q in enumerate(queries, start=1):
                 cands = q.candidates[:depth] if depth else q.candidates
+                if not cands:  # no first-stage hit (15 NFCorpus queries): nothing to rerank, the query scores 0
+                    run[q.qid] = {}
+                    continue
                 start = time.perf_counter()
                 result = reranker.score(q.query, [c.text for c in cands], phrasing)
                 latencies.append((time.perf_counter() - start) * 1000)
