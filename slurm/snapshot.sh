@@ -3,7 +3,7 @@
 #
 # A queued job starts later, perhaps after src/ has been edited again, so every submission freezes the code it was
 # submitted with: snapshots/<timestamp>_<pid>/ gets a copy of src/ plus
-#   REVISION        commit=, describe=, dirty= (uncommitted or untracked files count), snapshot_at=, snapshot_on=
+#   REVISION        commit=, describe=, dirty= (uncommitted or untracked files count, except results/), snapshot_at=, snapshot_on=
 #   REVISION.patch  the uncommitted changes against HEAD, untracked files included
 # The job puts the snapshot first on PYTHONPATH (slurm/env.sh, CDM_CODE_DIR) and every manifest records its REVISION
 # and copies the patch (src/cdm/provenance.py). Snapshots are small (src/ only); delete old ones whenever no job of
@@ -19,7 +19,8 @@ snapshot_code() {
         {
             echo "commit=$(git -C "${CDM_ROOT}" rev-parse HEAD 2>/dev/null || echo none)"
             echo "describe=$(git -C "${CDM_ROOT}" describe --always --dirty 2>/dev/null || echo none)"
-            if [ -n "$(git -C "${CDM_ROOT}" status --porcelain)" ]; then
+            # results/ is written by running jobs (results.csv) and is not code: it doesn't count as dirty.
+            if [ -n "$(git -C "${CDM_ROOT}" status --porcelain -- . ':(exclude)results')" ]; then
                 echo "dirty=true"
             else
                 echo "dirty=false"
@@ -28,9 +29,9 @@ snapshot_code() {
             echo "snapshot_on=$(hostname)"
         } >"${dir}/REVISION"
         {
-            git -C "${CDM_ROOT}" diff HEAD 2>/dev/null || true
+            git -C "${CDM_ROOT}" diff HEAD -- . ':(exclude)results' 2>/dev/null || true
             # Untracked paths are relative to the repo root, so diff them from there.
-            (cd "${CDM_ROOT}" && git ls-files --others --exclude-standard -z | while IFS= read -r -d '' f; do
+            (cd "${CDM_ROOT}" && git ls-files --others --exclude-standard -z -- . ':(exclude)results' | while IFS= read -r -d '' f; do
                 git diff --no-index -- /dev/null "${f}" 2>/dev/null || true
             done)
         } >"${dir}/REVISION.patch"
