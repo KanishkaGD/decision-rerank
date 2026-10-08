@@ -87,7 +87,7 @@ runs); the paper says so.
    results.csv (`src/cdm/energy.py`); all local models on DL19/20 on one A100-SXM-80GB.
 5. **Analysis**: main table (systems x datasets, plus cost) generated from `results/results.csv` and
    `results/literature.csv` into `paper/tables/`; joint-vs-isolated tests; calibration table and reliability plot.
-6. **Related-work check for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
+6. **Related-work check** for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
    post on arXiv; submit to WSDM.
 
 ### Phase 2 -- after the submission (arXiv extension, follow-up paper)
