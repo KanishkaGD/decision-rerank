@@ -126,6 +126,35 @@ def rq2(cells):
     print("\nPaired t-tests: not run yet (roadmap step 5).")
 
 
+TRIPLETS = [
+    ("Qwen3-0.6B", ["qwen3-0.6b-prompted"], ["kev-0.6b-joint", "kev-0.6b-isolated"], ["qwen3-reranker-0.6b"]),
+    ("Qwen3-8B", ["qwen3-8b-prompted", "qwen3-8b-base-prompted"], ["kev-8b-joint", "kev-8b-isolated"],
+     ["qwen3-reranker-8b"]),
+    ("Qwen3.5-0.8B", ["qwen3.5-0.8b-prompted"], ["kev-0.8b-joint", "kev-0.8b-isolated"], ["prism-0.8b"]),
+    ("Qwen3.5-4B", ["qwen3.5-4b-prompted"], ["kev-4b-joint", "kev-4b-isolated"], ["prism-4b"]),
+    ("Qwen3.5-9B", ["qwen3.5-9b-prompted"], ["kev-9b-joint", "kev-9b-isolated", "clef-flash-joint",
+                                              "clef-flash-isolated"], ["prism-9b"]),
+    ("Qwen3.8-27B", ["qwen3.8-27b-prompted"], ["kev-27b-joint", "kev-27b-isolated", "clef-joint", "clef-isolated"],
+     []),
+]
+
+
+def triplets(cells):
+    section("Triplets: base (zero-shot) | decision fine-tune | reranker fine-tune, nDCG@10 x 100")
+    print("| Backbone | Role | System | " + " | ".join(HEAD[d] for d in DS) + " | Avg | ZS avg |")
+    print("|---|---|---|" + "---:|" * (len(DS) + 2))
+    zs = ["trec-covid", "touche", "dbpedia"]  # BEIR without training splits: the zero-shot subset
+    for backbone, *groups in TRIPLETS:
+        for role, systems in zip(("base", "decision", "reranker"), groups):
+            for s in systems:
+                vals = [cells.get((s, d)) for d in DS]
+                txt = ["–" if v is None else f"{100 * v[0]:.1f}" for v in vals]
+                avg = f"{100 * mean(v[0] for v in vals):.1f}" if all(vals) else "–"
+                z = [cells.get((s, d)) for d in zs]
+                zavg = f"{100 * mean(v[0] for v in z):.1f}" if all(z) else "–"
+                print(f"| {backbone} | {role} | {s} | " + " | ".join(txt) + f" | {avg} | {zavg} |")
+
+
 def rq3():
     section("RQ3: ECE (15 bins) on judged pairs, DL19-23")
     dl = DS[:5]
@@ -216,6 +245,7 @@ if __name__ == "__main__":
     paper_frame()
     cells = main_table()
     rq2(cells)
+    triplets(cells)
     rq3()
     efficiency()
     roadmap()
