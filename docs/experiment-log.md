@@ -12,6 +12,25 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-09 -- RankZephyr reproduces; efficiency run done; triplets set up
+
+- **RankZephyr check passes**: DL19 74.3 / DL20 70.0 (jobs 4377662-4377663) against the published 74.2 / 70.2
+  (Abdallah et al.); DL21-23 68.0 / 50.5 / 44.1. 6-15% of the windows' answers miss identifiers (55-150 per
+  dataset), filled in their old order as rank_llm does.
+- **Efficiency run complete** (variant `a100`, 4377668-4377696, all on A100-SXM4-80GB): e.g. on DL19, per query,
+  Set-Encoder 0.24 s / 83 J, monoT5-3B 0.68 s / 258 J, Qwen3-Reranker-8B 2.85 s / 1,139 J, Clef-Flash joint
+  2.26 s / 850 J, Kev-27B joint 14.3 s / 3,311 J, RankZephyr 22.3 s / 4,364 J. Kev is slow for its size (Kev-4B
+  joint 10.7 s): its exact-dtype path (`kev-exact`), worth a look before the efficiency table is written.
+- **Triplets** (owner's decision, `docs/intent/paper-focus.md` 9-11): base model zero-shot / decision fine-tune /
+  reranker fine-tune on Qwen3-0.6B, Qwen3-8B, Qwen3.5-0.8B/4B/9B and Qwen3.8-27B. Checked on the cards:
+  Qwen3-Reranker-0.6B/4B/8B start from Qwen3-*-Base, the same checkpoints as Kev-0.6B/8B (Kev-8B's provenance
+  records Qwen3-8B-Base revision 49e3418f); Kev-27B starts from Qwen3.8-27B's post-trained release (revision
+  1d4bf0f2); Prism's paper and card say only "the Qwen3.5 causal LM", base or post-trained unstated. Training
+  data: Qwen3-Reranker and Prism (KaLM-Embedding aggregation) include MS MARCO, NQ, HotpotQA, FiQA; Kev's sources
+  are classification and QA sets without MS MARCO or BEIR. New code: `src/cdm/rerankers/prompted.py` (zero-shot
+  base), Prism through the Qwen3-Reranker reader. Model downloads: job 4388029.
+- **Qwen3.7-Flash dropped** from the paper (code and grid entry removed; results stay).
+
 ## 2026-10-08 -- RankZephyr and the efficiency run
 
 Owner's decisions (`docs/intent/paper-focus.md`): RankZephyr run by us, one fixed-GPU latency/energy run, main table
