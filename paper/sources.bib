@@ -186,3 +186,148 @@
   booktitle = {Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
   year      = {2023},
 }
+
+% ---- Efficiency and cost of listwise LLM rerankers (numbers in results/literature.csv, role efficiency) -------
+
+@inproceedings{Jin2025RankFlow,
+  author    = {Can Jin and Hongwu Peng and Anxiang Zhang and Nuo Chen and Jiahui Zhao and Xi Xie and Kuangzheng Li and
+               Shuya Feng and Kai Zhong and Caiwen Ding and Dimitris N. Metaxas},
+  title     = {{RankFlow}: A Multi-Role Collaborative Reranking Workflow Utilizing Large Language Models},
+  booktitle = {Companion Proceedings of the ACM Web Conference 2025 (WWW Companion '25)},
+  year      = {2025},
+  doi       = {10.1145/3701716.3717575},
+  note      = {arXiv:2502.00709. Table 9: RankGPT with GPT-4-0613 on TREC DL, per query 19,890 input and 732 output
+               tokens, 82 s, \$0.641}
+}
+
+@inproceedings{Reddy2024FIRST,
+  author    = {Revanth Gangi Reddy and JaeHyeok Doo and Yifei Xu and Md Arafat Sultan and Deevya Swain and Avirup Sil and
+               Heng Ji},
+  title     = {{FIRST}: Faster Improved Listwise Reranking with Single Token Decoding},
+  booktitle = {Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+  year      = {2024},
+  note      = {arXiv:2406.15657. Venue to verify (the arXiv page says only ``Preprint'')}
+}
+
+@inproceedings{Chen2025FIRSTRepro,
+  author    = {Zijian Chen and Ronak Pradeep and Jimmy Lin},
+  title     = {Accelerating Listwise Reranking: Reproducing and Enhancing {FIRST}},
+  booktitle = {Proceedings of the 48th International ACM SIGIR Conference on Research and Development in Information
+               Retrieval},
+  year      = {2025},
+  doi       = {10.1145/3726302.3730287},
+  note      = {Preprint: An Early {FIRST} Reproduction and Improvements to Single-Token Decoding for Fast Listwise
+               Reranking, arXiv:2411.05508. Table 5: RankZephyr on DL19--23, 15.7k--18.2k input and 711 output tokens,
+               2.6--3.1 s per query on one RTX 4090}
+}
+
+@inproceedings{Schlatt2025RankDistiLLM,
+  author    = {Ferdinand Schlatt and Maik Fr{\"o}be and Harrisen Scells and Shengyao Zhuang and Bevan Koopman and
+               Guido Zuccon and Benno Stein and Martin Potthast and Matthias Hagen},
+  title     = {{Rank-DistiLLM}: Closing the Effectiveness Gap Between Cross-Encoders and {LLMs} for Passage
+               Re-Ranking},
+  booktitle = {Advances in Information Retrieval. 47th European Conference on IR Research (ECIR 2025)},
+  series    = {Lecture Notes in Computer Science},
+  publisher = {Springer},
+  year      = {2025},
+  doi       = {10.1007/978-3-031-88714-7_31},
+  note      = {arXiv:2405.07920; cross-encoders ``up to 173 times faster'' than LLM rerankers at similar effectiveness}
+}
+
+% ---- Models, model cards, APIs and price lists (web sources: keep urldate current) -----------------------------
+
+@misc{SetEncoderCard,
+  author       = {{Webis}},
+  title        = {webis/set-encoder-large (model card)},
+  howpublished = {\url{https://huggingface.co/webis/set-encoder-large}},
+  year         = {2025},
+  note         = {Hugging Face, revision 42b6e397; source of the DL19/DL20 nDCG@10 we report (75.0, 72.2), accessed
+                  2026-10-07}
+}
+
+@misc{Pyserini2CR,
+  author       = {{Pyserini}},
+  title        = {Two-Click Reproductions ({2CR}): {MS MARCO} v1/v2 passage and {BEIR}},
+  howpublished = {\url{https://github.com/castorini/pyserini/tree/master/pyserini/2cr}},
+  year         = {2026},
+  note         = {msmarco-v1-passage.yaml, msmarco-v2-passage.yaml, beir.yaml (bm25-flat); BM25 reference scores,
+                  accessed 2026-10-07}
+}
+
+@misc{TypeSafeModels,
+  author       = {{TypeSafe}},
+  title        = {Models ({Jev} 1.13.0) and pricing},
+  howpublished = {\url{https://docs.typesafe.ai/models}},
+  year         = {2026},
+  note         = {jev-1.13.0, \$0.042 per million input tokens, output free; accessed 2026-10-06}
+}
+
+@misc{OpenRouterJev,
+  author       = {{OpenRouter}},
+  title        = {{Jev} on {OpenRouter} and the {TypeSafe} {SDK} guide},
+  howpublished = {\url{https://openrouter.ai/docs/guides/community/jev},
+                  \url{https://openrouter.ai/docs/guides/community/typesafe-sdk}},
+  year         = {2026},
+  note         = {System One endpoint /api/v1/systemone; typesafe/jev-1.13 (snapshot jev-1.13-20260917), 32k context,
+                  \$0.042 per million input tokens; accessed 2026-10-08}
+}
+
+@misc{OpenRouterModels,
+  author       = {{OpenRouter}},
+  title        = {Models {API}: model list and prices},
+  howpublished = {\url{https://openrouter.ai/api/v1/models}},
+  year         = {2026},
+  note         = {List prices used for the RankGPT cost estimate (docs/notes/paper-notes.md) and for Qwen3.7-Flash
+                  (\$0.03/\$0.13 per million input/output tokens); accessed 2026-10-08}
+}
+
+@inproceedings{Nogueira2020monoT5,
+  author    = {Rodrigo Nogueira and Zhiying Jiang and Ronak Pradeep and Jimmy Lin},
+  title     = {Document Ranking with a Pretrained Sequence-to-Sequence Model},
+  booktitle = {Findings of the Association for Computational Linguistics: EMNLP 2020},
+  pages     = {708--718},
+  year      = {2020}
+}
+
+@article{Chen2024BGEM3,
+  author  = {Jianlv Chen and Shitao Xiao and Peitian Zhang and Kun Luo and Defu Lian and Zheng Liu},
+  title   = {{BGE} {M3}-Embedding: Multi-Lingual, Multi-Functionality, Multi-Granularity Text Embeddings Through
+             Self-Knowledge Distillation},
+  journal = {arXiv preprint arXiv:2402.03216},
+  year    = {2024},
+  note    = {bge-reranker-v2-m3: \url{https://huggingface.co/BAAI/bge-reranker-v2-m3}}
+}
+
+@article{Zhang2025Qwen3Embedding,
+  author  = {Yanzhao Zhang and Mingxin Li and Dingkun Long and Xin Zhang and Huan Lin and Baosong Yang and Pengjun Xie
+             and An Yang and Dayiheng Liu and Junyang Lin and Fei Huang and Jingren Zhou},
+  title   = {{Qwen3 Embedding}: Advancing Text Embedding and Reranking Through Foundation Models},
+  journal = {arXiv preprint arXiv:2506.05176},
+  year    = {2025},
+  note    = {Qwen3-Reranker-8B. Author list to verify}
+}
+
+@misc{Clef,
+  author       = {{Cloudflare}},
+  title        = {Clef and Clef-Flash: open-weight {Jev}-compatible System One models},
+  howpublished = {\url{https://huggingface.co/Cloudflare/clef}, \url{https://huggingface.co/Cloudflare/clef-flash}},
+  year         = {2026},
+  note         = {Hugging Face, revisions 2f3de3dd (Clef, 27B) and 17f0b0ad (Clef-Flash, 9B); accessed 2026-10-07}
+}
+
+@misc{Kev,
+  author       = {Jared Palmer},
+  title        = {Kev: open {Jev}-like System One adapters},
+  howpublished = {\url{https://github.com/jaredpalmer/kev}},
+  year         = {2026},
+  note         = {Kev 1.0, LoRA adapters on Qwen3.5/3.8 bases; jaredpalmer/kev-4b@6cfce5c2, kev-27b@af0e6d55;
+                  accessed 2026-10-07}
+}
+
+@misc{Laya,
+  author       = {{ConvAI Innovations}},
+  title        = {Laya: an open System One model},
+  howpublished = {\url{https://huggingface.co/convaiinnovations/laya}},
+  year         = {2026},
+  note         = {Hugging Face, revision 7b928d82; accessed 2026-10-07}
+}
