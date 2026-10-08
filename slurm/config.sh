@@ -54,6 +54,7 @@ SYSTEMS=(
     "monot5-3b"
     "qwen3-reranker-8b"
     "set-encoder-large"  # cross-encoder that scores the candidates jointly (own container, container_for)
+    "rankzephyr-7b"      # listwise LLM reranker (permutation, sliding window); BEIR from the literature
     "qwen3.7-flash"      # LLM judge via OpenRouter (API_SYSTEMS)
     # System One models: <name>-isolated (one candidate per request), <name>-joint (all candidates in one state)
     "jev-isolated"       # TypeSafe API; runs on CPU (API_SYSTEMS)
@@ -81,6 +82,9 @@ from_literature() {
             bge-m3:dbpedia) return 0 ;;
         monot5-3b:trec-covid | monot5-3b:nfcorpus | monot5-3b:scifact | monot5-3b:touche | monot5-3b:dbpedia) return 0 ;;
         set-encoder-large:dl19 | set-encoder-large:dl20) return 0 ;;
+        # RankZephyr: computed on DL19/20 (check against 74.2 / 70.2), DL21-23 and for the efficiency run.
+        rankzephyr-7b:trec-covid | rankzephyr-7b:nfcorpus | rankzephyr-7b:scifact | rankzephyr-7b:touche | \
+            rankzephyr-7b:dbpedia) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -108,6 +112,8 @@ first_stage_time_for() {
 rerank_time_for() {
     local dataset="$1" system="$2"
     case "${dataset}:${system}" in
+        # RankZephyr: 9 generated permutations per query with HF generate, roughly 30 s per query (estimate).
+        dl*:rankzephyr-7b) echo "02:00:00" ;;
         # Touche's passages are long: Kev-27B isolated 1h27 (4360663), Kev-4B joint over 45 min (4360656, timeout).
         touche:clef-* | touche:kev-27b-*) echo "03:00:00" ;;
         touche:*) echo "01:30:00" ;;

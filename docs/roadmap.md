@@ -4,7 +4,7 @@ The plan of record: what the paper claims, how it is tested, and the order of th
 `docs/intent/`, what happened along the way in `docs/experiment-log.md`. Keep this file current -- it describes the
 plan as it is, not how it got here (the `straighten-branch` skill does that sweep).
 
-**Working title:** *Decide, then Rank: Calibrated System One Models as Rerankers.*
+**Working title:** *Calibrated System One Models as Rerankers* (deliberately open, `docs/intent/paper-focus.md`).
 **Venue:** arXiv preprint, then a WSDM 2027 short paper (4 pages + references, ACM sigconf, anonymised), deadline
 **Nov 17, 2026** (`docs/intent/venue.md`).
 
@@ -22,7 +22,7 @@ and beats every trained reranker on average; size matters more than open vs. clo
 
 | RQ | Question | Evidence |
 | --- | --- | --- |
-| RQ1 | Do System One models, closed and open, rerank BM25 top-100 as well as strong trained rerankers? | nDCG@10 on all ten datasets |
+| RQ1 | Do open System One models rerank BM25 top-100 as well as the closed Jev and strong trained rerankers? | nDCG@10 on all ten datasets |
 | RQ2 | Does joint pointwise scoring (all candidates in one state) beat isolated pointwise scoring (one candidate per request), and does that hold beyond Jev? | joint vs. isolated for Jev, Clef-Flash, Clef, Kev-4B, Kev-27B; Set-Encoder as the trained counterpart; paired tests |
 | RQ3 | Are their relevance probabilities calibrated, and does joint scoring change that? | ECE and Brier on DL19-DL23 against the trained rerankers' probabilities |
 
@@ -49,7 +49,7 @@ role `baseline`; `from_literature` in `slurm/config.sh` makes `slurm/submit.sh` 
 | System | Kind | DL19/20 | DL21-23 | BEIR |
 | --- | --- | --- | --- | --- |
 | RankGPT-4 | listwise LLM reranker | literature | -- | literature |
-| RankZephyr-7B | listwise LLM reranker (rank_llm, run by us) | computed (check against literature) | computed | literature |
+| RankZephyr-7B | listwise LLM reranker (run by us) | computed (check against literature) | computed | literature |
 | bge-reranker-v2-m3 | cross-encoder | literature | computed | literature |
 | monoT5-3B | cross-encoder (seq2seq) | computed (check against literature; calibration) | computed | literature |
 | Qwen3-Reranker-8B | pointwise LLM reranker | computed | computed | computed |
@@ -82,9 +82,9 @@ runs); the paper says so.
 2. **Sanity checks**: monoT5-3B on DL19/20, `jev-joint` against S1Rank.
 3. **Grid runs** -- the cells of `slurm/config.sh` (`experiment-status` skill, section `next`). *Done 2026-10-08
    (146 computed, 14 from the literature).*
-4. **RankZephyr and the efficiency run** (`docs/intent/paper-focus.md`): RankZephyr-7B on DL19-23 through rank_llm
-   (DL19/20 against the published 74.2 / 70.2); NVML energy in the manifests; all local models on DL19/20 on one
-   A100-SXM-80GB.
+4. **RankZephyr and the efficiency run** (`docs/intent/paper-focus.md`): RankZephyr-7B on DL19-23 with rank_llm's
+   prompt (`src/cdm/rerankers/listwise.py`; DL19/20 against the published 74.2 / 70.2); GPU energy from NVML in
+   results.csv (`src/cdm/energy.py`); all local models on DL19/20 on one A100-SXM-80GB.
 5. **Analysis**: main table (systems x datasets, plus cost) generated from `results/results.csv` and
    `results/literature.csv` into `paper/tables/`; joint-vs-isolated tests; calibration table and reliability plot.
 6. **Related-work check for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;

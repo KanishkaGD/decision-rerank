@@ -152,4 +152,6 @@ Asked and answered 2026-10-08 (`docs/intent/paper-focus.md`):
 3. Listwise baseline: **RankZephyr run by us** (DL19-23; BEIR from the literature); RankGPT-4 literature only.
 4. Main table: **joint mode only**; isolated rows in the RQ2 table.
 
-Still open: RQ wording for the new headline; title; whether Kanishka's QPP results enter the paper or Phase 2.
+Follow-ups (same day): RQ1 leads with the headline (open vs. the closed Jev); the title stays open, *Calibrated System
+One Models as Rerankers*; Kanishka's QPP results get one paragraph; RQ2's explanation (window splits, passage length)
+goes into the main text.

@@ -9,6 +9,7 @@ import numpy as np
 
 from cdm.config import OUTPUTS_FOLDER, SEED
 from cdm.datasets import DATASETS, get_dataset
+from cdm.energy import GpuEnergyMeter
 from cdm.evaluation import calibration, evaluate, judged_pairs
 from cdm.phrasings import NONE, PHRASINGS, get_phrasing
 from cdm.provenance import write_manifest
@@ -82,6 +83,7 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
     subset = f"max{max_queries}" if max_queries else ""
 
     reranker = load_reranker(system, batch_size=batch_size)
+    energy = GpuEnergyMeter()  # GPU energy of the timed loop (efficiency run, docs/intent/paper-focus.md)
     if phrasings is None:
         phrasing_ids = [p for p in PHRASINGS if p != NONE.id] if reranker.uses_phrasing else [NONE.id]
     elif phrasings == "all":
@@ -129,6 +131,8 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
         if queries and reranker.warmup:  # warm-up (CUDA kernels, caches), so the first query doesn't inflate latency
             reranker.score(queries[0].query, [c.text for c in queries[0].candidates[: depth or None]], phrasing)
         reranker.reset_stats()
+        energy.start()
+        wall_start = time.perf_counter()
         try:
             for i, q in enumerate(queries, start=1):
                 cands = q.candidates[:depth] if depth else q.candidates
@@ -177,6 +181,8 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
             calib = {**calibration(probs, labels), "n_judged_nonrel_pairs": len(labels) - sum(labels)}
             all_pairs = calibration(*judged_pairs(scored, qrels, ds.rel_threshold, unjudged_as_nonrelevant=True))
             calib.update(ECE_unjudged0=all_pairs["ECE"], Brier_unjudged0=all_pairs["Brier"])
+        wall_s = time.perf_counter() - wall_start
+        energy_j = energy.stop()
         lat = np.asarray(latencies)
         stats = {
             **means,
@@ -185,6 +191,8 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
             "latency_p95_ms": float(np.percentile(lat, 95)),
             "truncated_frac": truncated / max(n_pairs, 1),
             "n_pairs": n_pairs,
+            "rerank_wall_s": wall_s,
+            **({"energy_j": energy_j, "energy_j_per_query": energy_j / max(len(queries), 1)} if energy_j else {}),
             **reranker.run_stats(),
         }
         if "api_cost_usd" in stats:

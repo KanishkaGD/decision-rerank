@@ -13,7 +13,7 @@ from cdm.rerankers.base import Reranker, Scores
 @dataclass(frozen=True)
 class SystemSpec:
     name: str
-    kind: str  # "cross-encoder" | "monot5" | "qwen3-reranker" | "set-encoder" | "system-one" | "llm-judge"
+    kind: str  # "cross-encoder" | "monot5" | "qwen3-reranker" | "set-encoder" | "listwise" | "system-one" | "llm-judge"
     model_id: str  # Hugging Face id (prefetched) or API model name
     params: Dict[str, Any] = field(default_factory=dict)
     hf: bool = True  # whether `cdm prefetch` should download model_id from Hugging Face
@@ -85,6 +85,14 @@ SYSTEMS: Dict[str, SystemSpec] = {
             {"batch_size": 1},
             revision="42b6e397e620db497820062433754f4eb2d4bf8b",
         ),
+        # RankZephyr (listwise: generates a permutation, sliding window 20/10), run by us for DL21-23, the efficiency
+        # run and as a check against the published DL19/20 numbers (docs/intent/paper-focus.md).
+        SystemSpec(
+            "rankzephyr-7b",
+            "listwise",
+            "castorini/rank_zephyr_7b_v1_full",
+            revision="aa11d9da444ec3490827656c3b961d5c5f3af0eb",
+        ),
         # A decoder LLM at Jev's price, read through its log-probabilities (Kanishka's reference; OpenRouter).
         SystemSpec("qwen3.7-flash", "llm-judge", "qwen/qwen3.7-flash", hf=False),
         # System One models (src/cdm/rerankers/system_one.py), all asked the same state and question, each joint and
@@ -129,6 +137,10 @@ def _factory(kind: str) -> Callable[..., Reranker]:
         from cdm.rerankers.set_encoder import SetEncoderReranker
 
         return SetEncoderReranker
+    if kind == "listwise":
+        from cdm.rerankers.listwise import RankZephyrReranker
+
+        return RankZephyrReranker
     if kind == "system-one":
         from cdm.rerankers.system_one import SystemOneReranker
 

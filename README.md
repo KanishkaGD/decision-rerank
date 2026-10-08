@@ -104,6 +104,7 @@ candidates can stand in for runs; those are in `results/literature.csv`, and `sl
 | --- | --- | --- |
 | Cross-encoders | `bge-m3`, `monot5-3b`, `qwen3-reranker-8b` | fp32 + TF32 (`src/cdm/rerankers/cross_encoder.py`, `pointwise_lm.py`) |
 | Cross-encoder scoring the candidates jointly | `set-encoder-large` | lightning-ir, own container (`container/lightning-ir.def`); at most 100 candidates |
+| Listwise LLM | `rankzephyr-7b` | generates a permutation, sliding window 20/10 (rank_llm's prompt); BEIR from the literature |
 | LLM judge | `qwen3.7-flash` | OpenRouter, P(yes) from log-probs; needs `OPENROUTER_API_KEY` |
 | System One | `jev-*`, `clef-flash-*`, `clef-*`, `kev-4b-*`, `kev-27b-*` | each `-joint` (all candidates in one state) and `-isolated` (one per request), both pointwise |
 | System One | `laya` | isolated only (context too short for a list) |
