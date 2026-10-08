@@ -71,7 +71,7 @@ load the `artifact-design` skill first, then call the Artifact tool with `file_p
 Later updates go to the same artifact: its URL is recorded below -- read it first (`action: "read"`), then publish
 with that `url`. After the first publish, write the URL into this file.
 
-Artifact URL: (none yet)
+Artifact URL: https://claude.ai/artifact/6CdmvqL9JtfJ6AqFCKNFoh (published 2026-10-08)
 
 Then commit the report (`docs/notes/decision-rerank-status.md`) with a short message, and give the user the link
 and the 3-5 points that matter most for the meeting.
