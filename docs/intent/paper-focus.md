@@ -25,5 +25,6 @@ Follow-up decisions, 2026-10-08:
    Models Rerank as Well as Closed Ones") is too narrow.
 7. **Kanishka's QPP results** get one paragraph in the paper (probabilities as a control signal); the full study
    stays Phase 2.
-8. **RQ2's explanation goes into the main text:** where joint scoring hurts, related to how often a joint request has
-   to be split (window_splits per dataset, passage length).
+8. **RQ2's explanation goes into the main text:** where joint scoring hurts, explained by the length of the joint
+   request (tokens in one state), not by window splits -- decided 2026-10-08 after the split counts did not fit
+   (Kev-4B loses on COVID/SciFact without any split; Clef gains on DL while splitting every query).
