@@ -12,6 +12,34 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-08 -- Grid batch 4360xxx: failures fixed; Jev through OpenRouter prepared
+
+The grid batch of 2026-10-07 (jobs 4360571-4360672) left 114 of 160 cells done. Failures and fixes:
+
+- **NFCorpus, every joint System One run** (jev, clef-flash, clef, kev-4b, kev-27b; e.g. 4360594):
+  `range() arg 3 must not be zero`. A query without BM25 candidates gives a joint window of 0 passages.
+  SystemOneReranker.score now returns empty scores for an empty list (isolated runs were never affected).
+- **set-encoder-large, 7 datasets** (4360577-4360583): ir_datasets, imported by lightning-ir, creates ~/.ir_datasets,
+  read-only since the container runs with --no-home. IR_DATASETS_HOME now points to data/ir_datasets (slurm/env.sh).
+- **qwen3-reranker-8b, 5 datasets** (4360571-4360575): CUDA out of memory on 44 GiB L40S. Now gpumem.80gib
+  (A100-80GB/H200, gpu partition).
+- **Time limits:** kev-4b-joint on Touche timed out at 45 min (4360656); kev-27b-isolated Touche took 1h27 of 1h30
+  (4360663), kev-4b-joint SciFact 2h51 of 3h (4360655). Touche budgets raised to 1h30 (3h for the 27B models),
+  Kev-4B on NFCorpus/SciFact/DBPedia to 5h. clef-joint Touche ran out of memory on an 80 GB GPU (4360636): open.
+- **jev-isolated, NFCorpus/SciFact/DBPedia** (4360587, 4360588, 4360590): TypeSafe 402, the organisation's credits
+  are used up.
+
+Jev through OpenRouter: OpenRouter serves Jev on the System One endpoint (`https://openrouter.ai/api/v1/systemone`,
+the TypeSafe SDK with another base URL; openrouter.ai/docs/guides/community/typesafe-sdk). TypeSafe is the only
+provider, the price is the same ($0.042 per million input tokens), the context 32k. OpenRouter has no patch
+versions: `typesafe/jev-1.13`, answered by the snapshot `typesafe/jev-1.13-20260917`. `JEV_PROVIDER=openrouter` in
+.env switches the Jev backend (system names unchanged; the manifest records provider, requested and served model).
+Before OpenRouter results count as jev-1.13.0, the snapshot has to answer like TypeSafe's jev-1.13.0: rescore the
+first queries of DL19 in both modes (`--max-queries 5 --variant openrouter-check`) and compare the probabilities with
+the stored TypeSafe responses. Also unchecked: whether OpenRouter passes on TypeSafe's `max_tokens_exceeded` error
+(the backend also accepts a 400/413 that mentions the context); joint DL19 requests always need a split, so the check
+run exercises it.
+
 ## 2026-10-07 -- One setup (BM25 top-100, literature numbers), straightened branch
 
 Owner's decisions: simplify towards S1Rank's setup so published numbers can stand in for runs; Kev in two sizes;

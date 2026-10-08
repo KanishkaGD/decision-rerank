@@ -103,21 +103,24 @@ def test_long_passage_ends_up_alone_then_cut_and_counted(fake):
 
 
 class FakeAPIError(Exception):
-    def __init__(self, body):
+    def __init__(self, body, status=400):
         super().__init__(body)
         self.body = body
+        self.status = status
 
 
 class FakeClient:
     answer_model = None
     max_docs = 1000
+    too_long_body = {"error": "max_tokens_exceeded"}
 
-    def __init__(self, api_key, model, timeout):
+    def __init__(self, api_key, model, timeout, **kwargs):
         self.model = model
+        self.kwargs = kwargs
 
     def system_one(self, state, questions):
         if len(questions) > self.max_docs:
-            raise FakeAPIError({"error": "max_tokens_exceeded"})
+            raise FakeAPIError(self.too_long_body)
         body = {
             "model": self.answer_model or self.model,
             "answers": {k: {"type": "noul", "noul": 0.5} for k in questions},
@@ -132,10 +135,13 @@ def jev(monkeypatch):
     sdk = types.ModuleType("typesafe_sdk")
     sdk.TypeSafeClient = FakeClient
     sdk.TypeSafeAPIError = FakeAPIError
+    sdk.RetryPolicy = lambda **kw: kw
     monkeypatch.setitem(sys.modules, "typesafe_sdk", sdk)
     monkeypatch.setenv("TYPESAFE_AI_API_KEY", "test-key")
     monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    monkeypatch.delenv("JEV_PROVIDER", raising=False)
     FakeClient.answer_model, FakeClient.max_docs = None, 1000
+    FakeClient.too_long_body = {"error": "max_tokens_exceeded"}
     from cdm.rerankers import load_reranker
 
     return load_reranker
@@ -165,4 +171,49 @@ def test_jev_model_drift_is_an_error(jev):
 def test_jev_missing_key(jev, monkeypatch):
     monkeypatch.delenv("TYPESAFE_AI_API_KEY")
     with pytest.raises(RuntimeError, match="API key"):
+        jev("jev-joint")
+
+
+def test_query_without_candidates(fake):
+    for window in (0, 1):
+        r = fake(window)
+        out = r.score("q", [], get_phrasing("s1rank"))
+        assert out.scores == [] and out.probs == [] and r.backend.calls == []
+
+
+def test_jev_through_openrouter(jev, monkeypatch):
+    monkeypatch.setenv("JEV_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
+    FakeClient.answer_model = "typesafe/jev-1.13-20260917"
+    r = jev("jev-joint")
+    assert r.backend.client.model == "typesafe/jev-1.13"
+    assert r.backend.client.kwargs["base_url"] == "https://openrouter.ai/api"
+    out = r.score("q", ["a", "b"], get_phrasing("s1rank"))
+    assert out.probs == [0.5, 0.5] and out.raw[0]["model"] == "typesafe/jev-1.13-20260917"
+    assert r.describe()["provider"] == "openrouter"
+
+
+def test_jev_through_openrouter_checks_the_snapshot(jev, monkeypatch):
+    monkeypatch.setenv("JEV_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
+    FakeClient.answer_model = "typesafe/jev-1.14-20261101"
+    with pytest.raises(RuntimeError, match="jev-1.14"):
+        jev("jev-joint").score("q", ["a"], get_phrasing("s1rank"))
+
+
+def test_jev_through_openrouter_context_error_splits(jev, monkeypatch):
+    monkeypatch.setenv("JEV_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "or-key")
+    FakeClient.answer_model = "typesafe/jev-1.13-20260917"
+    FakeClient.max_docs = 1
+    FakeClient.too_long_body = {"error": {"message": "This request exceeds the model's context length"}}
+    r = jev("jev-joint")
+    r.score("q", ["a", "b"], get_phrasing("s1rank"))
+    assert r.run_stats()["window_splits"] == 1
+
+
+def test_jev_through_openrouter_missing_key(jev, monkeypatch):
+    monkeypatch.setenv("JEV_PROVIDER", "openrouter")
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="OPENROUTER_API_KEY"):
         jev("jev-joint")

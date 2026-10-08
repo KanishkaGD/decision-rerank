@@ -45,6 +45,15 @@ TOO_LONG = "too_long"
 JEV_PRICE_PER_M_INPUT = 0.042
 # The SDK reads TYPESAFE_API_KEY; this project's .env uses TYPESAFE_AI_API_KEY. Either works.
 JEV_API_KEY_VARS = ("TYPESAFE_API_KEY", "TYPESAFE_AI_API_KEY")
+# Jev is also served through OpenRouter's System One endpoint (the same SDK with another base URL, billed to the
+# OpenRouter account; openrouter.ai/docs/guides/community/typesafe-sdk, read 2026-10-08). JEV_PROVIDER=openrouter in
+# .env switches to it. Same price ($0.042 per million input tokens, openrouter.ai/api/v1/models/typesafe/jev-1.13/
+# endpoints), and TypeSafe itself is the only provider there. OpenRouter has no patch versions, so our pinned id maps to
+# its model name plus the dated snapshot that has to answer. That this snapshot answers like TypeSafe's jev-1.13.0
+# is checked by rescoring stored queries (docs/experiment-log.md) before any OpenRouter run counts.
+JEV_PROVIDER_VAR = "JEV_PROVIDER"
+OPENROUTER_BASE_URL = "https://openrouter.ai/api"
+OPENROUTER_JEV = {"jev-1.13.0": ("typesafe/jev-1.13", "typesafe/jev-1.13-20260917")}
 
 
 def _version(package: str) -> str:
@@ -57,20 +66,52 @@ def _version(package: str) -> str:
 
 
 class TypeSafeBackend:
-    """Jev through the TypeSafe API (typesafe-sdk), requests in parallel threads."""
+    """
+    Jev through the TypeSafe API (typesafe-sdk), requests in parallel threads; with provider "openrouter" (or
+    JEV_PROVIDER=openrouter) the same SDK goes through OpenRouter instead.
+    """
 
     price_per_m_input = JEV_PRICE_PER_M_INPUT
 
-    def __init__(self, model_id: str, max_workers: int = 16, timeout: float = 120.0, **_: Any):
+    def __init__(
+        self,
+        model_id: str,
+        max_workers: int = 16,
+        timeout: float = 120.0,
+        provider: Optional[str] = None,
+        **_: Any,
+    ):
         from typesafe_sdk import TypeSafeClient
 
-        api_key = next((os.environ[v] for v in JEV_API_KEY_VARS if os.environ.get(v)), None)
-        if not api_key:
-            raise RuntimeError(f"No Jev API key: set one of {', '.join(JEV_API_KEY_VARS)} in .env")
+        self.provider = provider or os.environ.get(JEV_PROVIDER_VAR) or "typesafe"
         self.model_id = model_id
         self.max_workers = max_workers
-        # Pinned model id, never an alias: an alias moves to a new model without notice (docs.typesafe.ai/models).
-        self.client = TypeSafeClient(api_key=api_key, model=model_id, timeout=timeout)
+        if self.provider == "typesafe":
+            api_key = next((os.environ[v] for v in JEV_API_KEY_VARS if os.environ.get(v)), None)
+            if not api_key:
+                raise RuntimeError(f"No Jev API key: set one of {', '.join(JEV_API_KEY_VARS)} in .env")
+            # Pinned model id, never an alias: an alias moves to a new model without notice (docs.typesafe.ai/models).
+            self.request_model = self.served_model = model_id
+            self.client = TypeSafeClient(api_key=api_key, model=model_id, timeout=timeout)
+        elif self.provider == "openrouter":
+            from typesafe_sdk import RetryPolicy
+
+            api_key = os.environ.get("OPENROUTER_API_KEY")
+            if not api_key:
+                raise RuntimeError("No OpenRouter API key: set OPENROUTER_API_KEY in .env")
+            if model_id not in OPENROUTER_JEV:
+                raise ValueError(f"No OpenRouter id for {model_id}: add it to OPENROUTER_JEV after checking it")
+            self.request_model, self.served_model = OPENROUTER_JEV[model_id]
+            # OpenRouter rate-limits per key: more retries and a longer budget than the SDK's default (2 in 30 s).
+            self.client = TypeSafeClient(
+                api_key=api_key,
+                model=self.request_model,
+                timeout=timeout,
+                base_url=OPENROUTER_BASE_URL,
+                retry=RetryPolicy(max_retries=8, timeout=300.0),
+            )
+        else:
+            raise ValueError(f"Unknown Jev provider '{self.provider}' (typesafe or openrouter)")
 
     def _one(self, request: Request) -> Any:
         import typesafe_sdk
@@ -80,14 +121,16 @@ class TypeSafeBackend:
         try:
             response = self.client.system_one(state=state, questions=questions)
         except typesafe_sdk.TypeSafeAPIError as e:
-            if "max_tokens_exceeded" in str(e.body):
+            # TypeSafe's code; through OpenRouter the provider's error may be passed on or reworded.
+            if "max_tokens_exceeded" in str(e.body) or (e.status in (400, 413) and "context" in str(e.body).lower()):
                 return TOO_LONG
             raise
         body = response.raw_http_response.json()
-        if body.get("model") != self.model_id:
-            raise RuntimeError(f"Jev answered with model '{body.get('model')}', expected '{self.model_id}'")
+        if body.get("model") != self.served_model:
+            raise RuntimeError(f"Jev answered with model '{body.get('model')}', expected '{self.served_model}'")
         body["latency_s"] = round(time.perf_counter() - start, 4)
-        body["request_id"] = response.raw_http_response.headers.get("x-typesafe-request-id")
+        # OpenRouter puts its generation id into the body instead of TypeSafe's header.
+        body["request_id"] = response.raw_http_response.headers.get("x-typesafe-request-id") or body.get("id")
         return body
 
     def answer(self, requests: List[Request], truncate: List[bool]) -> List[Any]:
@@ -99,7 +142,10 @@ class TypeSafeBackend:
 
     def describe(self) -> Dict[str, Any]:
         return {
-            "backend": "typesafe-api",
+            "backend": "typesafe-api" if self.provider == "typesafe" else "openrouter-systemone",
+            "provider": self.provider,
+            "request_model": self.request_model,
+            "served_model": self.served_model,
             "sdk_version": _version("typesafe-sdk"),
             "max_workers": self.max_workers,
             "price_per_m_input_usd": self.price_per_m_input,
@@ -424,6 +470,9 @@ class SystemOneReranker(Reranker):
         return state, questions
 
     def score(self, query: str, passages: List[str], phrasing: Phrasing) -> Scores:
+        self._last_truncated = 0
+        if not passages:  # a query without candidates (one in NFCorpus has no BM25 hit): nothing to ask
+            return Scores(scores=[], probs=[], raw=[])
         size = self.window or len(passages)
         pending = [(i, passages[i : i + size]) for i in range(0, len(passages), size)]
         records: List[Dict[str, Any]] = []

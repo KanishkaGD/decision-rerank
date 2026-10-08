@@ -20,10 +20,11 @@ GPU_CONSTRAINT="gpumem.48gib"
 
 # The GPU memory feature for one system. The 27B models (Clef: ~55 GB of bf16 weights; Kev-27B: ~51 GB plus ~15 GB
 # of batching buffers) need the A100-80GB/H200 nodes, which are only in the gpu partition (slurm/exec.sh needs
-# --partition gpu for them). Qwen3-Reranker-8B in fp32 is ~32 GB of weights: 48 GB is enough.
+# --partition gpu for them). So does Qwen3-Reranker-8B: ~32 GB of fp32 weights plus batches of long passages ran out
+# of memory on the 44 GiB L40S (jobs 4360571-4360575).
 gpu_constraint_for() {
     case "$1" in
-        clef-isolated | clef-joint | kev-27b-*) echo "gpumem.80gib" ;;
+        clef-isolated | clef-joint | kev-27b-* | qwen3-reranker-8b) echo "gpumem.80gib" ;;
         *) echo "${GPU_CONSTRAINT}" ;;
     esac
 }
@@ -107,13 +108,18 @@ first_stage_time_for() {
 rerank_time_for() {
     local dataset="$1" system="$2"
     case "${dataset}:${system}" in
-        # 100 candidates for <= 82 queries (DL19-23, TREC-COVID, Touche). Measured on DL21-23: Kev-27B isolated
+        # Touche's passages are long: Kev-27B isolated 1h27 (4360663), Kev-4B joint over 45 min (4360656, timeout).
+        touche:clef-* | touche:kev-27b-*) echo "03:00:00" ;;
+        touche:*) echo "01:30:00" ;;
+        # 100 candidates for <= 82 queries (DL19-23, TREC-COVID). Measured on DL21-23: Kev-27B isolated
         # 29-44 min (4357189-4357191), Clef 27B 7-18 min (4357165-4357170), everything else under 10 min.
-        dl*:clef-isolated | dl*:clef-joint | dl*:kev-27b-* | trec-covid:clef-* | trec-covid:kev-27b-* | \
-            touche:clef-* | touche:kev-27b-*) echo "01:30:00" ;;
-        dl* | trec-covid:* | touche:*) echo "00:45:00" ;;
-        # 300-400 queries (NFCorpus, SciFact, DBPedia): about 5x, unmeasured.
+        dl*:clef-isolated | dl*:clef-joint | dl*:kev-27b-* | trec-covid:clef-* | trec-covid:kev-27b-*)
+            echo "01:30:00" ;;
+        dl* | trec-covid:*) echo "00:45:00" ;;
+        # 300-400 queries (NFCorpus, SciFact, DBPedia). Kev-27B isolated up to 2h37 (4360664), Kev-4B joint on
+        # SciFact 2h51 of 3h (4360655).
         *:clef-isolated | *:clef-joint | *:kev-27b-*) echo "06:00:00" ;;
+        nfcorpus:kev-4b-* | scifact:kev-4b-* | dbpedia:kev-4b-*) echo "05:00:00" ;;
         msmarco-dev:*) echo "08:00:00" ;; # ~700k query-passage pairs at depth 100 (pass --max-queries)
         *) echo "03:00:00" ;;
     esac

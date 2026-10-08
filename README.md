@@ -110,8 +110,9 @@ candidates can stand in for runs; those are in `results/literature.csv`, and `sl
 
 The System One models share one reranker (`src/cdm/rerankers/system_one.py`) and get identical requests with
 S1Rank's question (`--phrasings s1rank`): Jev through the TypeSafe API (`TYPESAFE_AI_API_KEY`, runs on the CPU
-partition), Laya, Clef and Kev on a GPU (the 27B models need an 80 GB GPU). A joint request that is too long for the
-model is split in halves.
+partition; with `JEV_PROVIDER=openrouter` in `.env`, the same model through OpenRouter, `OPENROUTER_API_KEY`), Laya,
+Clef and Kev on a GPU (the 27B models need an 80 GB GPU). A joint request that is too long for the model is split in
+halves.
 
 ## Slurm details
 
