@@ -141,7 +141,7 @@ cd paper && make && make check
 ```
 
 `paper/main.tex` includes one file per section from `paper/sections/`; RQ boxes and badges come from
-`paper/rq-macros.tex`. Tables are generated from `results/results.csv` into `paper/tables/`.
+`paper/rq-macros.tex`. Tables are generated from `results/results.csv` and `results/literature.csv` into `paper/tables/` by `src/cdm/paper_tables.py` (`make tables`; `make` reruns it when the results change).
 
 ## Working together
 
