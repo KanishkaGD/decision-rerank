@@ -28,6 +28,10 @@ The grid batch of 2026-10-07 (jobs 4360571-4360672) left 114 of 160 cells done. 
   Kev-4B on NFCorpus/SciFact/DBPedia to 5h. clef-joint Touche ran out of memory on an 80 GB GPU (4360636): open.
 - **jev-isolated, NFCorpus/SciFact/DBPedia** (4360587, 4360588, 4360590): TypeSafe 402, the organisation's credits
   are used up.
+- **Rerun (4372149-4372198):** with the new TypeSafe key all Jev cells finished. 15 NFCorpus queries have no BM25 hit
+  (e.g. PLAIN-1214 "Fosamax"); Qwen3-Reranker-8B, the Set-Encoder and Qwen3.7-Flash failed on them too (4372151,
+  4372157, 4372195). `cdm rerank` now skips a query without candidates (it counts with nDCG 0, as before);
+  resubmitted as 4372201-4372203.
 
 Jev through OpenRouter: OpenRouter serves Jev on the System One endpoint (`https://openrouter.ai/api/v1/systemone`,
 the TypeSafe SDK with another base URL; openrouter.ai/docs/guides/community/typesafe-sdk). TypeSafe is the only
