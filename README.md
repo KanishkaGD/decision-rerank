@@ -95,6 +95,8 @@ versions, hardware and configuration.
 | `cdm rerank <system> <dataset>` | rerank the cache, store raw scores, evaluate, write results.csv |
 | `cdm cutoff` | RQ2, Part A: one fixed probability cutoff (p >= 0.3/0.5/0.7) on DL19-23 from the stored outputs -- set precision/recall/F1, oracle cutoff and regret, top-k F1 (`src/cdm/cutoff.py`; rows with `job` = `cutoff`) |
 | `cdm posthoc` | RQ2, Part C: temperature and Platt scaling of the trained rerankers' logits, fitted on a msmarco-dev subset (`bm25-d100-max1000`), evaluated on all test collections (ECE/Brier, Part A's cutoff on DL; `src/cdm/posthoc.py`; rows with `job` = `posthoc`) |
+| `cdm finetune-data <name>` | training groups for our reranker fine-tunes: MS MARCO train queries, 1 positive + hard negatives, minus every query shared with a test collection or msmarco-dev (`src/cdm/finetune_data.py`; sources via `cdm prefetch --training-data`) |
+| `cdm finetune <system> <data>` | LoRA reranker fine-tune with Qwen3-Reranker's prompt and yes/no readout, scored by the existing reader (`src/cdm/finetune.py`; plan: `docs/notes/reranker-27b-plan.md`) |
 | `cdm results` | print results.csv as a table |
 | `cdm info` | versions, paths, GPU |
 
@@ -129,6 +131,7 @@ Conventions are in [CLAUDE.md](CLAUDE.md).
 | prefetch | `prefetch [--datasets ...] [--systems ...]` | `slurm/prefetch.interactive.sh` (on the login node) |
 | first stage | `first-stage [--datasets ...]` | `slurm/first-stage.interactive.sh <dataset>` |
 | rerank | `rerank <system> [--datasets ...] [--cpu \| --gres gpu:a100-sxm:1]` | `slurm/rerank.interactive.sh <system> <dataset>` |
+| finetune | `finetune <system> --datasets <training data> [--resume] [--after <id>]` (GPUs from `finetune_gres_for`) | `slurm/finetune.interactive.sh <system> <data>` |
 
 - `slurm/config.sh`: account (`chair-ds`), dataset and system lists, GPU request (`gpumem.48gib` -- verify with
   `sinfo -N -o "%N %G %f"`), `--time` budgets (first guesses; correct them from real runs).

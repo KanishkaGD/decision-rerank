@@ -22,4 +22,5 @@ export HF_HUB_OFFLINE=0
 source "${CDM_ROOT}/slurm/env.sh"
 prefetch_lists "$@"
 
-srun -n 1 --cpus-per-task="${SLURM_CPUS_PER_TASK:-1}" "${CONTAINER_CMD[@]}" cdm prefetch --datasets "${PREFETCH_DATASETS}" --systems "${PREFETCH_SYSTEMS}"
+srun -n 1 --cpus-per-task="${SLURM_CPUS_PER_TASK:-1}" "${CONTAINER_CMD[@]}" cdm prefetch --datasets "${PREFETCH_DATASETS}" --systems "${PREFETCH_SYSTEMS}" \
+    --training-data "${PREFETCH_TRAINING_DATA}"

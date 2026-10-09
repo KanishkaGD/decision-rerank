@@ -59,11 +59,19 @@ def _seed_everything(seed: int) -> None:
     "output path (e.g. a fine-tuned checkpoint).",
 )
 @click.option("--batch-size", type=int, default=None, help="Override the system's batch size.")
+@click.option(
+    "--adapter",
+    default=None,
+    help="Score another LoRA adapter of one of our fine-tunes (e.g. an intermediate checkpoint, for selection on "
+    "msmarco-dev); give it a --variant.",
+)
 @click.option("--max-queries", type=int, default=None, help="Only the first N queries (quick checks).")
 @click.option("--no-save", is_flag=True, help="Print metrics only; write nothing.")
 @click.option("--overwrite", is_flag=True, help="Recompute even if results.csv already has this configuration.")
 @click.option("--seed", type=int, default=SEED, show_default=True)
-def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, max_queries, no_save, overwrite, seed):
+def rerank(
+    system, dataset, first_stage, depth, phrasings, variant, batch_size, adapter, max_queries, no_save, overwrite, seed
+):
     """
     Rerank the cached first-stage candidates of DATASET with SYSTEM. Stores the raw score (and probability, if the
     system has one) of every (query, passage, phrasing) under outputs/, and the metrics in results/results.csv:
@@ -82,7 +90,9 @@ def rerank(system, dataset, first_stage, depth, phrasings, variant, batch_size, 
     qrels = read_qrels(os.path.join(cache, "qrels.tsv"))
     subset = f"max{max_queries}" if max_queries else ""
 
-    reranker = load_reranker(system, batch_size=batch_size)
+    if adapter and not variant and not no_save:
+        raise click.ClickException("--adapter changes the result: give it a --variant (e.g. the checkpoint step).")
+    reranker = load_reranker(system, batch_size=batch_size, adapter=adapter)
     energy = GpuEnergyMeter()  # GPU energy of the timed loop (efficiency run, docs/intent/paper-focus.md)
     if phrasings is None:
         phrasing_ids = [p for p in PHRASINGS if p != NONE.id] if reranker.uses_phrasing else [NONE.id]

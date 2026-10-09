@@ -7,6 +7,7 @@
 #        slurm/submit.sh prefetch [--datasets ...] [--systems ...]   (downloads on a CPU node: slurm/prefetch.sbatch)
 #        slurm/submit.sh first-stage [--datasets all|ds1,ds2,...] [options] [extra cdm args]
 #        slurm/submit.sh rerank <system> [--datasets all|ds1,ds2,...] [options] [extra cdm args]
+#        slurm/submit.sh finetune <system> --datasets <training data> [options] [extra cdm finetune args]
 #        slurm/submit.sh --list | --help
 #
 # Options handled here (anything else is passed to `cdm` unchanged, e.g. --depth 50 or --phrasings p1,p2):
@@ -14,7 +15,8 @@
 #   --after <id>[,<id>...]   start only after those jobs succeeded (sbatch --dependency=afterok), e.g. rerank
 #                            after the first-stage job that caches its candidates
 #   --cpu                    rerank on the general (CPU) partition, no GPU
-#   --gres <spec>            rerank on a specific GPU instead of GPU_CONSTRAINT, e.g. gpu:a100-sxm:1 (latency runs)
+#   --gres <spec>            rerank on a specific GPU instead of GPU_CONSTRAINT, e.g. gpu:a100-sxm:1 (latency runs);
+#                            finetune: the GPUs instead of finetune_gres_for, e.g. gpu:1 for a probe
 #   --time <hh:mm:ss>        override config.sh's budget (then fix config.sh if the budget was wrong)
 #   --include-literature     also submit reranks of cells taken from published papers (from_literature in config.sh)
 #   --dry-run                print the sbatch commands instead of running them
@@ -28,7 +30,7 @@ mkdir -p logs/done
 # Printed at the top of every job's log (slurm/log_command.sh): sbatch passes the environment on to the job.
 export CDM_SUBMIT_COMMAND="slurm/submit.sh$( [ "$#" -gt 0 ] && printf ' %q' "$@" )"
 
-usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; }
 
 case "${1:-}" in
     "" | -h | --help) usage; exit 0 ;;
@@ -49,7 +51,11 @@ case "${JOB}" in
         SYSTEM="${1:?Usage: slurm/submit.sh rerank <system> [--datasets ...] (systems: ${SYSTEMS[*]})}"
         shift
         ;;
-    *) echo "slurm/submit.sh: unknown job '${JOB}' (hello, prefetch, first-stage, rerank)" >&2; exit 2 ;;
+    finetune)
+        SYSTEM="${1:?Usage: slurm/submit.sh finetune <system> --datasets <training data> [cdm finetune args]}"
+        shift
+        ;;
+    *) echo "slurm/submit.sh: unknown job '${JOB}' (hello, prefetch, first-stage, rerank, finetune)" >&2; exit 2 ;;
 esac
 
 DATASET_LIST=("${DATASETS[@]}")
@@ -108,6 +114,11 @@ if [ "${JOB}" = "prefetch" ]; then
     exit 0
 fi
 
+if [ "${JOB}" = "finetune" ] && [ -z "${DATASETS_ARG}" ]; then
+    echo "slurm/submit.sh finetune: name the training data with --datasets (data/finetune/<name>/)" >&2
+    exit 2
+fi
+
 for dataset in "${DATASET_LIST[@]}"; do
     case "${JOB}" in
         first-stage)
@@ -130,6 +141,13 @@ for dataset in "${DATASET_LIST[@]}"; do
             submit "${COMMON[@]}" "${RESOURCES[@]}" \
                 --time="${TIME_OVERRIDE:-$(time_for rerank "${dataset}" "${SYSTEM}")}" \
                 slurm/rerank.sbatch "${SYSTEM}" "${dataset}" "${PASSTHROUGH[@]}"
+            ;;
+        finetune)
+            # Here "dataset" is a set of training groups (`cdm finetune-data`), not an evaluation dataset.
+            submit "${COMMON[@]}" --gres="${GRES:-$(finetune_gres_for "${SYSTEM}")}" \
+                --constraint="$(finetune_constraint_for "${SYSTEM}")" \
+                --time="${TIME_OVERRIDE:-$(time_for finetune "${dataset}" "${SYSTEM}")}" \
+                slurm/finetune.sbatch "${SYSTEM}" "${dataset}" "${PASSTHROUGH[@]}"
             ;;
     esac
 done

@@ -69,7 +69,13 @@ def _download(repo: str, revision: Optional[str], tries: int = 5) -> str:
 @click.command("prefetch")
 @click.option("--datasets", "dataset_list", default=",".join(DATASETS), show_default=True)
 @click.option("--systems", "system_list", default=",".join(SYSTEMS), show_default=True)
-def prefetch(dataset_list, system_list):
+@click.option(
+    "--training-data",
+    "training_list",
+    default="",
+    help="Fine-tuning sources to download (src/cdm/finetune_data.py TRAINING_SOURCES), comma-separated; default none.",
+)
+def prefetch(dataset_list, system_list, training_list):
     """
     Download Pyserini indexes, topics and qrels, official rerank pools (data/pools/), and the rerankers' Hugging Face
     models, into the caches (PYSERINI_CACHE, HF_HOME). Run on the login node (slurm/prefetch.sh): compute nodes may
@@ -95,6 +101,20 @@ def prefetch(dataset_list, system_list):
                 f"[{name}] official pool {path}: {len(pooled)} of {len(queries)} judged queries, "
                 f"{sum(map(len, pooled.values()))} pairs"
             )
+    for name in filter(None, training_list.split(",")):
+        from cdm.finetune_data import TRAINING_SOURCES, source_path
+
+        src = TRAINING_SOURCES[name]
+        for attempt in range(1, 6):
+            try:
+                click.echo(f"[{name}] {src.repo}/{src.filename} -> {source_path(src, local_only=False)}")
+                break
+            except Exception as e:  # noqa: BLE001 -- transient download errors, as in _download
+                if attempt == 5:
+                    raise
+                click.echo(
+                    f"  {name}: download failed ({type(e).__name__}: {str(e)[:200]}); retry {attempt}/4", err=True
+                )
     downloaded = set()
     for name in filter(None, system_list.split(",")):
         spec = SYSTEMS[name]

@@ -10,6 +10,7 @@ bf16 89% of Qwen3-Reranker-0.6B's scores tie within a query, which hands the ran
 """
 
 import math
+import os
 from typing import Any, Dict, List, Optional
 
 from cdm.phrasings import Phrasing
@@ -47,6 +48,40 @@ def _torch_dtype(name: str):
     import torch
 
     return {"float32": torch.float32, "bfloat16": torch.bfloat16}[name]
+
+
+def load_causal_lm(model_id: str, revision: Optional[str], dtype: str, **kwargs: Any):
+    """
+    The checkpoint's own architecture class (config.architectures[0]), else AutoModelForCausalLM. For Qwen3 and
+    Prism (…ForCausalLM) both are the same class; the Qwen3.5/3.8 post-trained releases are multimodal
+    (…ForConditionalGeneration) and take text-only input. The fine-tuning trainer (src/cdm/finetune.py) loads its
+    base model with this too, so a LoRA adapter's module names match at scoring time.
+    """
+    import transformers
+    from transformers import AutoConfig
+
+    arch = (AutoConfig.from_pretrained(model_id, revision=revision).architectures or [None])[0]
+    cls = getattr(transformers, arch, None) if arch else None
+    cls = cls or transformers.AutoModelForCausalLM
+    return cls.from_pretrained(model_id, revision=revision, dtype=_torch_dtype(dtype), **kwargs)
+
+
+def qwen3_reranker_bodies(instruction: str, query: str, passages: List[str]) -> List[str]:
+    return [f"<Instruct>: {instruction}\n<Query>: {query}\n<Document>: {p}" for p in passages]
+
+
+def qwen3_reranker_ids(
+    tokenizer, prefix: List[int], suffix: List[int], instruction: str, query: str, passages: List[str], max_length: int
+) -> List[List[int]]:
+    """
+    Token ids of Qwen3-Reranker's input for each passage: system prefix, the <Instruct>/<Query>/<Document> body cut to
+    fit `max_length`, and the assistant suffix after which "yes"/"no" is read. Shared by the reader and the trainer
+    (src/cdm/finetune.py), so a fine-tune is trained on exactly the input it is scored on.
+    """
+    budget = max_length - len(prefix) - len(suffix)
+    bodies = qwen3_reranker_bodies(instruction, query, passages)
+    ids = tokenizer(bodies, add_special_tokens=False, truncation=True, max_length=budget)["input_ids"]
+    return [prefix + x + suffix for x in ids]
 
 
 def _length_batches(lengths: List[int], batch_size: int) -> List[List[int]]:
@@ -160,7 +195,9 @@ class MonoT5Reranker(_YesNoReranker):
 class Qwen3Reranker(_YesNoReranker):
     """
     Qwen/Qwen3-Reranker-*: the model card's prompt and web-search instruction -> last-position "yes"/"no" logits. With
-    `system`/`instruction` = PRISM_*, the same reader serves Prism-Qwen3.5-Reranker.
+    `system`/`instruction` = PRISM_*, the same reader serves Prism-Qwen3.5-Reranker. With `adapter` (a LoRA adapter
+    directory from `cdm finetune`, relative to CDM_ROOT or absolute), the base model `model_id` gets the adapter merged
+    in: our own reranker fine-tunes (docs/notes/reranker-27b-plan.md).
     """
 
     def __init__(
@@ -173,35 +210,41 @@ class Qwen3Reranker(_YesNoReranker):
         dtype: str = "float32",
         instruction: str = QWEN3_INSTRUCTION,
         system: str = QWEN3_SYSTEM,
+        adapter: Optional[str] = None,
         device: Optional[str] = None,
     ):
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from transformers import AutoTokenizer
 
         super().__init__(name, model_id, revision, max_length, batch_size, dtype, device)
         self.instruction = instruction
         self.system = system
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision, padding_side="left")
-        self.model = (
-            AutoModelForCausalLM.from_pretrained(model_id, revision=revision, dtype=_torch_dtype(dtype))
-            .to(self.device)
-            .eval()
-        )
+        model = load_causal_lm(model_id, revision, dtype)
+        self.adapter = None
+        if adapter:
+            from peft import PeftModel
+
+            from cdm.config import CDM_ROOT
+
+            self.adapter = adapter if os.path.isabs(adapter) else os.path.join(CDM_ROOT, adapter)
+            if not os.path.exists(os.path.join(self.adapter, "adapter_config.json")):
+                raise FileNotFoundError(f"{name}: no LoRA adapter in {self.adapter} (train it with `cdm finetune`)")
+            model = PeftModel.from_pretrained(model, self.adapter).merge_and_unload()
+        self.model = model.to(self.device).eval()
         self.no_id = self.tokenizer.convert_tokens_to_ids("no")
         self.yes_id = self.tokenizer.convert_tokens_to_ids("yes")
         self.prefix = self.tokenizer.encode(qwen3_prefix(system), add_special_tokens=False)
         self.suffix = self.tokenizer.encode(QWEN3_SUFFIX, add_special_tokens=False)
 
     def _bodies(self, query: str, passages: List[str]) -> List[str]:
-        return [f"<Instruct>: {self.instruction}\n<Query>: {query}\n<Document>: {p}" for p in passages]
+        return qwen3_reranker_bodies(self.instruction, query, passages)
 
     def _log_odds(self, query: str, passages: List[str]) -> List[float]:
         import torch
 
-        budget = self.max_length - len(self.prefix) - len(self.suffix)
-        ids = self.tokenizer(
-            self._bodies(query, passages), add_special_tokens=False, truncation=True, max_length=budget
-        )["input_ids"]
-        ids = [self.prefix + x + self.suffix for x in ids]
+        ids = qwen3_reranker_ids(
+            self.tokenizer, self.prefix, self.suffix, self.instruction, query, passages, self.max_length
+        )
         out = [0.0] * len(ids)
         for idx in _length_batches([len(x) for x in ids], self.batch_size):
             enc = self.tokenizer.pad({"input_ids": [ids[i] for i in idx]}, return_tensors="pt").to(self.device)
@@ -219,4 +262,18 @@ class Qwen3Reranker(_YesNoReranker):
     def describe(self) -> Dict[str, Any]:
         d = super().describe()
         d.update(system=self.system, instruction=self.instruction)
+        if self.adapter:
+            d.update(adapter=self.adapter, adapter_training=_adapter_provenance(self.adapter))
         return d
+
+
+def _adapter_provenance(adapter: str) -> Dict[str, Any]:
+    """The training run behind an adapter: code revision and config from the manifest `cdm finetune` wrote."""
+    import json
+
+    for path in (os.path.join(adapter, "manifest.json"), os.path.join(os.path.dirname(adapter), "manifest.json")):
+        if os.path.exists(path):
+            with open(path) as f:
+                m = json.load(f)
+            return {"manifest": path, "code": m.get("code"), "config": m.get("config")}
+    return {}

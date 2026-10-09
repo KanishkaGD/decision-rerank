@@ -163,6 +163,32 @@ rerank_time_for() {
     esac
 }
 
+# Our reranker fine-tunes (`cdm finetune`, docs/notes/reranker-27b-plan.md): GPUs per job (one node, data parallel,
+# each GPU holds the frozen bf16 base model) and their memory tier. 27B: 54 GB of weights per GPU, so 80 GB GPUs
+# (A100-SXM4-80GB or H200).  Usage: finetune_gres_for <system>, finetune_constraint_for <system>
+finetune_gres_for() {
+    case "$1" in
+        qwen3.8-27b-reranker) echo "gpu:4" ;;
+        qwen3.5-9b-reranker) echo "gpu:2" ;;
+        *) echo "gpu:1" ;;
+    esac
+}
+finetune_constraint_for() {
+    case "$1" in
+        qwen3.8-27b-reranker | qwen3.5-9b-reranker) echo "gpumem.80gib" ;;
+        *) echo "${GPU_CONSTRAINT}" ;;
+    esac
+}
+# Estimates from the throughput probes (docs/notes/reranker-27b-plan.md); the job stops with a checkpoint 20 min
+# before the limit, and a chain of jobs with --resume finishes longer runs.
+finetune_time_for() {
+    case "$1" in
+        qwen3.8-27b-reranker) echo "48:00:00" ;;
+        qwen3.5-9b-reranker) echo "24:00:00" ;;
+        *) echo "01:00:00" ;;
+    esac
+}
+
 # Prints the --time budget for one job.  Usage: time_for <job> [dataset] [system]
 time_for() {
     case "$1" in
@@ -170,6 +196,7 @@ time_for() {
         prefetch) echo "06:00:00" ;; # MS MARCO v2 index and 23 models: 52 min until a failure (4356461)
         first-stage) first_stage_time_for "$2" ;;
         rerank) rerank_time_for "$2" "$3" ;;
+        finetune) finetune_time_for "$3" ;;
         *)
             echo "slurm/config.sh: no --time budget for job '$1'" >&2
             return 1
@@ -177,16 +204,19 @@ time_for() {
     esac
 }
 
-# The --datasets/--systems arguments of slurm/prefetch.{sbatch,interactive.sh} -> PREFETCH_DATASETS and
-# PREFETCH_SYSTEMS, comma-separated as `cdm prefetch` takes them. all (the default) = DATASETS + DEV_DATASETS and
-# SYSTEMS above; none = nothing.  Usage: prefetch_lists "$@"
+# The --datasets/--systems/--training-data arguments of slurm/prefetch.{sbatch,interactive.sh} -> PREFETCH_DATASETS,
+# PREFETCH_SYSTEMS and PREFETCH_TRAINING_DATA, comma-separated as `cdm prefetch` takes them. all (the default) =
+# DATASETS + DEV_DATASETS and SYSTEMS above; none = nothing. Training data (src/cdm/finetune_data.py, ~4 GB) only by
+# name, default none.  Usage: prefetch_lists "$@"
 prefetch_lists() {
     PREFETCH_DATASETS="$(IFS=,; echo "${DATASETS[*]},${DEV_DATASETS[*]}")"
     PREFETCH_SYSTEMS="$(IFS=,; echo "${SYSTEMS[*]}")"
+    PREFETCH_TRAINING_DATA=""
     while [ "$#" -gt 0 ]; do
         case "$1" in
             --datasets) PREFETCH_DATASETS="$2"; shift ;;
             --systems) PREFETCH_SYSTEMS="$2"; shift ;;
+            --training-data) PREFETCH_TRAINING_DATA="$2"; shift ;;
             *) echo "prefetch: unknown option $1" >&2; return 2 ;;
         esac
         shift

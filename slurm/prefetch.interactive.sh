@@ -8,6 +8,7 @@
 #   slurm/submit.sh prefetch --datasets dl21,dl22,dl23 --systems none     (slurm/prefetch.sbatch)
 #
 # Usage: slurm/prefetch.interactive.sh [--datasets all|none|ds1,ds2] [--systems all|none|s1,s2]
+#                                     [--training-data src1,src2]   (fine-tuning data, ~4 GB: use the batch job)
 #   (defaults: every dataset and system in slurm/config.sh, the dev datasets included)
 set -euo pipefail
 CDM_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -16,4 +17,5 @@ export HF_HUB_OFFLINE=0
 source "${CDM_ROOT}/slurm/env.sh"
 prefetch_lists "$@"
 
-"${CONTAINER_CMD[@]}" cdm prefetch --datasets "${PREFETCH_DATASETS}" --systems "${PREFETCH_SYSTEMS}"
+"${CONTAINER_CMD[@]}" cdm prefetch --datasets "${PREFETCH_DATASETS}" --systems "${PREFETCH_SYSTEMS}" \
+    --training-data "${PREFETCH_TRAINING_DATA}"

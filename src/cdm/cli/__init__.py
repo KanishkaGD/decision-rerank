@@ -2,7 +2,7 @@ import click
 
 # Modules, not their commands: importing a command named like its module (rerank.rerank) here would shadow the
 # module attribute cdm.cli.rerank.
-from cdm.cli import cutoff, first_stage, misc, posthoc, rerank
+from cdm.cli import cutoff, finetune, first_stage, misc, posthoc, rerank
 
 
 @click.group()
@@ -22,6 +22,8 @@ for command in [
     rerank.rerank,
     cutoff.cutoff,
     posthoc.posthoc,
+    finetune.finetune_data,
+    finetune.finetune,
     misc.results,
     misc.rename_system,
 ]:
