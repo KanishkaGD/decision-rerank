@@ -12,6 +12,29 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-09 -- Triplet runs; why small Kev models fail in joint mode; causal-conv1d
+
+- **Triplet runs** mostly done (325 of 350 cells). 10 failures: GPU memory on long BEIR passages -- the yes/no
+  readers computed logits for every position over the vocabulary (now `logits_to_keep=1`, identical scores checked
+  on 3 DL19 queries for three models), Kev-8B/9B joint on 44 GiB GPUs (now 80 GB) -- and one 3 h timeout of
+  Qwen3.5-9B prompted on NFCorpus (now 6 h). Resubmitted 4392305-4392314.
+- **Small Kev models below BM25** (Kev-0.6B: 27.0 isolated, 13.2 joint on average). On DL19/20 (judged pairs,
+  relevant = grade >= 2): Kev-0.6B joint does not discriminate at all -- AUC of relevant vs. judged non-relevant
+  0.49 / 0.47, almost every passage gets p ~ 0.83, and p *rises* with the passage's position in the state (Spearman
+  +0.28 / +0.33). Isolated it reaches AUC 0.64. Kev-0.8B: 0.63 joint vs 0.69 isolated; Kev-4B: 0.81 vs 0.82;
+  Kev-27B: 0.92 vs 0.92 / 0.89. The cards explain it: Kev-0.8B and Kev-4B were trained on states of at most 7,552
+  tokens (validated to 8,192), Kev-27B on up to 32,768 (validated to 65,536). A joint DL state of 100 passages is
+  about 13k tokens, a BEIR one 40k or more -- far outside the small models' training range, where a question about
+  `documents.D57` is no longer tied to the right passage. This supports explaining RQ2 by request length
+  (owner's decision 8). Possible control: joint requests cut to each model's trained state length.
+- **Container**: causal-conv1d 1.7.0 compiled into `container/cdm.sif` (pip nvcc 13.0, archs 8.0/8.6/8.9/9.0;
+  the pip CUDA wheels needed a `libcudart.so` link name), so Qwen3.5/3.8 models (Kev, Clef, Prism, prompted) no
+  longer use the slow reference convolution. Kernel check and trial on L40S: Kev-4B joint 8.1 s per DL19 query.
+  The kernel changes scores in the last digits: Qwen3.5-0.8B prompted on 3 DL19 queries keeps ECE/Brier but
+  nDCG@10 moves 0.4945 -> 0.4650 through near-ties. The grid results of Qwen3.5/3.8 models were computed without
+  the kernel (except jobs that started after 2026-10-09 10:08); the efficiency rows were rerun with it: all
+  Qwen3.5/3.8 and triplet systems on DL19/20, `--variant a100 --overwrite` (54 jobs).
+
 ## 2026-10-09 -- RankZephyr reproduces; efficiency run done; triplets set up
 
 - **RankZephyr check passes**: DL19 74.3 / DL20 70.0 (jobs 4377662-4377663) against the published 74.2 / 70.2
