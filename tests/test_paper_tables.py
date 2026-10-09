@@ -70,3 +70,21 @@ def test_triplet_table(tmp_path):
     assert joint[3 + 5] == "\\textbf{70.0}"  # TREC-COVID: best of the backbone in that column
     assert joint[-1] == "-- \\\\"  # zero-shot mean needs all three collections
     assert "\\label{tab:triplets}" in tex and triplet_table({}).count("--") > 0
+
+
+def test_posthoc_table():
+    from cdm.paper_tables import BEIR_DATASETS, DL_DATASETS, posthoc_table
+
+    rows = {}
+    for d in DL_DATASETS:
+        for m, ece, f1 in (("native", "0.30", "0.40"), ("temperature", "0.20", "0.40"), ("platt", "0.10", "0.45")):
+            rows[("qwen3-reranker-8b", d, m)] = {"ECE": ece, "cut_F1@0.5": f1, "cut_regret": "0.05",
+                                                 "ECE_unjudged0": "0.2"}
+    for d in BEIR_DATASETS[:-1]:  # one BEIR collection missing: no BEIR mean
+        rows[("qwen3-reranker-8b", d, "native")] = {"ECE_unjudged0": "0.2"}
+    ece = {("kev-27b-joint", d): 0.15 for d in DL_DATASETS}
+    tex = posthoc_table(rows, {}, ece, {})
+    line = next(x for x in tex.splitlines() if x.startswith("Qwen3-Reranker-8B"))
+    assert line == "Qwen3-Reranker-8B & 0.300 & 0.200 & 0.100 & 40.0 & 45.0 & 5.0 & 5.0 & -- & -- \\\\"
+    kev = next(x for x in tex.splitlines() if x.startswith("Kev-27B joint"))
+    assert kev.startswith("Kev-27B joint & 0.150 & -- & --") and "\\label{tab:posthoc}" in tex

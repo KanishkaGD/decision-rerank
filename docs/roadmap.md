@@ -88,8 +88,10 @@ candidates with p >= 0.5 (0.3 and 0.7 as a sensitivity check); set precision, re
 mean set size, share of empty sets; regret = F1 of the per-dataset oracle cutoff minus F1 at 0.5; baselines fixed
 top-k (5, 10, 20) and the reranker fine-tunes' native probabilities. DL19-23 only (judged non-relevant passages).
 From stored outputs, no new runs. *Calibrated after the fact:* temperature and Platt scaling of each reranker
-fine-tune, fitted on msmarco-dev judged pairs (a subset of about 1,000 queries x BM25 top-100), evaluated with ECE,
-Brier and the cutoff F1 on DL19-23 and with ECE on BEIR (unjudged = non-relevant, as a shift check).
+fine-tune's logit, fitted on the first 1,000 msmarco-dev queries x BM25 top-100 with every candidate labelled
+(msmarco-dev judges only relevant passages, so unjudged = non-relevant), evaluated with ECE, Brier and the cutoff F1
+on DL19-23 and with ECE on BEIR (unjudged = non-relevant, as a shift check). Systems:
+Qwen3-Reranker-0.6B/8B, Prism-0.8B/4B/9B, monoT5-3B, bge-reranker-v2-m3, Set-Encoder-large.
 
 **Main table.** The triplets: per backbone the base model, the decision fine-tunes (joint and isolated) and the
 reranker fine-tune; average over ten datasets and over the zero-shot subset. **Context table:** the other systems on
@@ -121,8 +123,8 @@ runs); the paper says so.
    `results/literature.csv` into `paper/tables/` (`src/cdm/paper_tables.py`); paired tests; joint gain against the
    state length per model (tokens per joint request vs. the length in the model card).
 7. **RQ2**: the cutoff analysis from stored outputs (Part A: `cdm cutoff`, `paper/tables/cutoff.tex`; *done
-   2026-10-09*); reranker fine-tunes on a msmarco-dev subset and the post-hoc scaling (Part C); calibration table;
-   the discussion.
+   2026-10-09*); the trained rerankers on the first 1,000 msmarco-dev queries (`bm25-d100-max1000`) and their
+   post-hoc scaling (Part C: `cdm posthoc`, `paper/tables/posthoc.tex`); calibration table; the discussion.
 8. **Related-work check** for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
    post on arXiv; submit to WSDM.
 

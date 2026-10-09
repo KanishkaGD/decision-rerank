@@ -94,6 +94,7 @@ versions, hardware and configuration.
 | `cdm first-stage <dataset>` | the BM25 top-100 (Pyserini search, or DL21-23's official file), cached for all rerankers |
 | `cdm rerank <system> <dataset>` | rerank the cache, store raw scores, evaluate, write results.csv |
 | `cdm cutoff` | RQ2, Part A: one fixed probability cutoff (p >= 0.3/0.5/0.7) on DL19-23 from the stored outputs -- set precision/recall/F1, oracle cutoff and regret, top-k F1 (`src/cdm/cutoff.py`; rows with `job` = `cutoff`) |
+| `cdm posthoc` | RQ2, Part C: temperature and Platt scaling of the trained rerankers' logits, fitted on a msmarco-dev subset (`bm25-d100-max1000`), evaluated on all test collections (ECE/Brier, Part A's cutoff on DL; `src/cdm/posthoc.py`; rows with `job` = `posthoc`) |
 | `cdm results` | print results.csv as a table |
 | `cdm info` | versions, paths, GPU |
 

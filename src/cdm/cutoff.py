@@ -21,7 +21,7 @@ No model runs: everything comes from the stored outputs (scores.jsonl.gz).
 import gzip
 import json
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -36,11 +36,15 @@ ORACLE_GRID = np.round(np.linspace(0.0, 1.0, 1001), 3)
 
 @dataclass
 class QueryScores:
-    """One query's candidates in ranking order: probabilities and labels (1 relevant, 0 not, -1 unjudged)."""
+    """
+    One query's candidates in ranking order: probabilities, labels (1 relevant, 0 not, -1 unjudged) and the raw
+    ranking scores (for the post-hoc calibration of src/cdm/posthoc.py; None where not read).
+    """
 
     qid: str
     probs: np.ndarray
     labels: np.ndarray
+    scores: Optional[np.ndarray] = None
 
     @property
     def relevant(self) -> np.ndarray:
@@ -67,7 +71,7 @@ def read_scores(path: str, qrels: Qrels, rel_threshold: int) -> List[QueryScores
         probs, scores, ranks, labels = (np.asarray(x, dtype=float) for x in zip(*rows))
         # Ranking order (for top-k): the reranker's score, ties broken by the first-stage rank.
         order = np.lexsort((ranks, -scores))
-        out.append(QueryScores(qid, probs[order], labels[order].astype(int)))
+        out.append(QueryScores(qid, probs[order], labels[order].astype(int), scores[order]))
     return out
 
 
