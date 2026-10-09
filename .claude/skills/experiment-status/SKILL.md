@@ -61,10 +61,13 @@ for recent events, the newest entries of `docs/experiment-log.md`. Then apply th
   (`results/literature.csv`, role `reference`); monoT5-3B on DL19/20 within about one point of 71.83 / 68.89;
   `jev-joint` close to S1Rank's numbers. A miss means the candidates differ -- investigate before running more.
 - **Fixed question**: System One models run with `--phrasings s1rank` only.
-- **RQ2 (joint vs. isolated)** needs both modes of Jev, Clef-Flash, Clef, Kev-4B and Kev-27B on every dataset.
+- **RQ1 (triplets)** needs, per backbone, the base model, the decision fine-tune in both modes (joint and isolated)
+  and the reranker fine-tune on every dataset; the context systems (Jev, Clef, Laya, trained and listwise rerankers)
+  complete the context table. **RQ2** (calibration) adds the reranker fine-tunes on a msmarco-dev subset for
+  post-hoc scaling (`docs/roadmap.md`, step 7).
 - **Kanishka's numbers** (branch `master`) rerank the 1000-candidate official DL19/20 pools, not our candidates:
   not directly comparable; useful as context and for Phase 2 (his QPP work).
-- **Cost**: Jev (TypeSafe) and Qwen3.7-Flash (OpenRouter) cost money -- about $0.005 (joint) and $0.017 (isolated)
+- **Cost**: Jev (TypeSafe, or OpenRouter) costs money -- about $0.005 (joint) and $0.017 (isolated)
   per 1k query-passage pairs for Jev, measured on DL21-23; estimate before proposing and let the user decide.
   A missing API key in `.env` means the run can't start.
 - **Provenance**: numbers meant for the paper must come from a commit (`dirty=false` in the job's REVISION). If the

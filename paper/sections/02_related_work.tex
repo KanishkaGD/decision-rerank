@@ -6,15 +6,18 @@
 \section{Related Work}
 \label{sec:related-work}
 
-\paragraph{Neural rerankers.}
-\TODO{Cross-encoders~\cite{Nogueira2019}, the Set-Encoder~\cite{Schlatt2025SetEncoder}, listwise LLM
-rerankers~\cite{Sun2023RankGPT,Pradeep2023RankZephyr}, and the comparison of
-Abdallah et al.~\cite{Abdallah2025HowGood}.}
+\paragraph{Fine-tuning LLMs for reranking.}
+\TODO{Cross-encoders~\cite{Nogueira2019,Nogueira2020monoT5}, the Set-Encoder~\cite{Schlatt2025SetEncoder},
+LLM reranker fine-tunes on a shared backbone (Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding},
+Prism~\cite{Zhang2026Prism}), listwise LLM rerankers~\cite{Sun2023RankGPT,Pradeep2023RankZephyr}, and
+the comparison of Abdallah et al.~\cite{Abdallah2025HowGood}.}
 
 \paragraph{System One models in retrieval.}
-\TODO{S1Rank~\cite{S1Rank}, jev-rerank~\cite{JevRerank}, LanceDB~\cite{LanceDB2026},
-Elastic~\cite{Elastic2026}, Hindsight~\cite{Hindsight2026}, smriti~\cite{Smriti2026};
-\laya{}'s architecture~\cite{Wu2026LayaJev,LayaNode}. Check for newer work before submitting.}
+\TODO{Decision fine-tuning (RLCD) \FLAG{cite}; S1Rank~\cite{S1Rank}, jev-rerank~\cite{JevRerank},
+LanceDB~\cite{LanceDB2026}, Elastic~\cite{Elastic2026}, Hindsight~\cite{Hindsight2026},
+smriti~\cite{Smriti2026}; \laya{}'s architecture~\cite{Wu2026LayaJev,LayaNode}; the open decision
+fine-tunes Clef~\cite{Clef} and Kev~\cite{Kev,KevCards}. Check for newer work before submitting.}
 
-\paragraph{Calibration.}
-\TODO{Calibration of neural networks~\cite{Guo2017Calibration} and of rerankers.}
+\paragraph{Calibration and score cutoffs.}
+\TODO{Calibration of neural networks~\cite{Guo2017Calibration}, of rerankers and of LLM relevance
+judgments; post-hoc temperature and Platt scaling; truncating a ranked list at a score threshold.}

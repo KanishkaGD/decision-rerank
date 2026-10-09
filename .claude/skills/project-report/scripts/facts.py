@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Facts for the paper project report (.claude/skills/project-report/SKILL.md), printed as Markdown: title and RQs, the
-owner's decisions, results per RQ, cost and efficiency, the roadmap, draft markers in the paper, open items, jobs and
+owner's decisions, results per RQ (RQ1: triplets, joint vs. isolated, context table; RQ2: calibration), cost and efficiency, the roadmap, draft markers in the paper, open items, jobs and
 git state. Standard library plus git/squeue only, so it runs on the login node. Every number comes from
 results/results.csv and results/literature.csv; the report built from this output must not add numbers of its own.
 
@@ -25,11 +25,14 @@ from cdm.paper_tables import DATASETS, FIRST_STAGE, load_cells  # noqa: E402
 DS = [d for d, _ in DATASETS]
 HEAD = {"dl19": "DL19", "dl20": "DL20", "dl21": "DL21", "dl22": "DL22", "dl23": "DL23", "trec-covid": "COVID",
         "nfcorpus": "NFC", "scifact": "SciF", "touche": "Touché", "dbpedia": "DBP"}
-SYSTEM_ONE = ["jev", "clef-flash", "clef", "kev-4b", "kev-27b"]
+SYSTEM_ONE = ["jev", "clef-flash", "clef", "kev-4b", "kev-27b"]  # context table (joint mode)
+# Decision fine-tunes with both modes: joint vs. isolated (part of RQ1).
+DECISION = ["jev", "clef-flash", "clef", "kev-0.6b", "kev-0.8b", "kev-4b", "kev-8b", "kev-9b", "kev-27b"]
 NAMES = {"bm25": "BM25", "rankgpt-4": "RankGPT-4", "rankzephyr-7b": "RankZephyr-7B", "bge-m3": "bge-reranker-v2-m3",
          "monot5-3b": "monoT5-3B", "qwen3-reranker-8b": "Qwen3-Reranker-8B", "set-encoder-large": "Set-Encoder-large",
          "jev": "Jev", "clef-flash": "Clef-Flash", "clef": "Clef", "kev-4b": "Kev-4B",
-         "kev-27b": "Kev-27B", "laya": "Laya"}
+         "kev-27b": "Kev-27B", "laya": "Laya", "kev-0.6b": "Kev-0.6B", "kev-0.8b": "Kev-0.8B",
+         "kev-8b": "Kev-8B", "kev-9b": "Kev-9B"}
 
 
 def sh(cmd):
@@ -78,7 +81,7 @@ def paper_frame():
 
 def main_table():
     cells, cost = load_cells()
-    section("RQ1: nDCG@10 x 100, BM25 top-100 (main table: joint mode; * = literature)")
+    section("RQ1 context table: nDCG@10 x 100, BM25 top-100 (System One in joint mode; * = literature)")
     systems = ["bm25", "rankgpt-4", "rankzephyr-7b", "bge-m3", "monot5-3b", "qwen3-reranker-8b", "set-encoder-large",
                ] + [f"{m}-joint" for m in SYSTEM_ONE] + ["laya"]
     print("| System | " + " | ".join(HEAD[d] for d in DS) + " | Avg | $/1k q |")
@@ -100,8 +103,8 @@ def main_table():
     return cells
 
 
-def rq2(cells):
-    section("RQ2: joint minus isolated, nDCG@10 points (positive = joint better)")
+def joint_vs_isolated(cells):
+    section("RQ1, joint vs. isolated: joint minus isolated, nDCG@10 points (positive = joint better)")
     print("| Model | " + " | ".join(HEAD[d] for d in DS) + " | Avg | joint better |")
     print("|---|" + "---:|" * (len(DS) + 2))
     splits = defaultdict(dict)
@@ -110,7 +113,7 @@ def rq2(cells):
             n = fnum(r.get("window_splits")), fnum(r.get("n_queries"))
             if n[0] is not None and n[1]:
                 splits[r["system"][:-6]][r["dataset"]] = n[0] / n[1]
-    for m in SYSTEM_ONE:
+    for m in DECISION:
         diffs = []
         for d in DS:
             j, i = cells.get((f"{m}-joint", d)), cells.get((f"{m}-isolated", d))
@@ -121,7 +124,7 @@ def rq2(cells):
     print("\nWindow splits per query in joint mode (requests that did not fit and were halved):\n")
     print("| Model | " + " | ".join(HEAD[d] for d in DS) + " |")
     print("|---|" + "---:|" * len(DS))
-    for m in SYSTEM_ONE:
+    for m in DECISION:
         print(f"| {NAMES[m]} | " + " | ".join(f"{splits[m][d]:.1f}" if d in splits[m] else "–" for d in DS) + " |")
     print("\nPaired t-tests: not run yet (roadmap step 5).")
 
@@ -140,7 +143,7 @@ TRIPLETS = [
 
 
 def triplets(cells):
-    section("Triplets: base (zero-shot) | decision fine-tune | reranker fine-tune, nDCG@10 x 100")
+    section("RQ1 main table, the triplets: base (zero-shot) | decision fine-tune | reranker fine-tune, nDCG@10 x 100")
     print("| Backbone | Role | System | " + " | ".join(HEAD[d] for d in DS) + " | Avg | ZS avg |")
     print("|---|---|---|" + "---:|" * (len(DS) + 2))
     zs = ["trec-covid", "touche", "dbpedia"]  # BEIR without training splits: the zero-shot subset
@@ -155,15 +158,16 @@ def triplets(cells):
                 print(f"| {backbone} | {role} | {s} | " + " | ".join(txt) + f" | {avg} | {zavg} |")
 
 
-def rq3():
-    section("RQ3: ECE (15 bins) on judged pairs, DL19-23")
+def rq2():
+    section("RQ2: ECE (15 bins) on judged pairs, DL19-23")
     dl = DS[:5]
     ece = {}
     for r in rows():
         if r["first_stage"] == FIRST_STAGE.get(r["dataset"]) and not r["variant"] and fnum(r.get("ECE")) is not None:
             ece[(r["system"], r["dataset"])] = float(r["ECE"])
-    systems = ["monot5-3b", "qwen3-reranker-8b", "set-encoder-large", "bge-m3"] + [
-        f"{m}-{mode}" for m in SYSTEM_ONE for mode in ("joint", "isolated")] + ["laya"]
+    systems = ["monot5-3b", "set-encoder-large", "bge-m3", "jev-joint", "jev-isolated", "laya"] + [
+        s for _, *groups in TRIPLETS for g in groups for s in g]
+    print("Cutoff analysis (p >= 0.5, set F1, regret) and post-hoc scaling on msmarco-dev: not run yet (roadmap step 7).\n")
     print("| System | " + " | ".join(HEAD[d] for d in dl) + " | mean |")
     print("|---|" + "---:|" * (len(dl) + 1))
     for s in systems:
@@ -172,7 +176,7 @@ def rq3():
         if not ok:
             continue
         base = s.rsplit("-", 1)
-        name = f"{NAMES[base[0]]} ({base[1]})" if base[-1] in ("joint", "isolated") else NAMES.get(s, s)
+        name = f"{NAMES.get(base[0], base[0])} ({base[1]})" if base[-1] in ("joint", "isolated") else NAMES.get(s, s)
         print(f"| {name} | " + " | ".join("–" if x is None else f"{x:.3f}" for x in v) + f" | {mean(ok):.3f} |")
 
 
@@ -243,10 +247,11 @@ def state():
 if __name__ == "__main__":
     print(f"# Facts for the project report ({sh('date +%Y-%m-%d')})")
     paper_frame()
-    cells = main_table()
-    rq2(cells)
+    cells, _ = load_cells()
     triplets(cells)
-    rq3()
+    joint_vs_isolated(cells)
+    main_table()
+    rq2()
     efficiency()
     roadmap()
     markers()

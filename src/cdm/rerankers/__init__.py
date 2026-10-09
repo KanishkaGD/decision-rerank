@@ -126,7 +126,7 @@ SYSTEMS: Dict[str, SystemSpec] = {
         ],
         # Set-Encoder (Schlatt et al., ECIR 2025): a cross-encoder that scores the passages of a query jointly --
         # each passage is its own sequence, but they exchange information through one interaction token each
-        # (permutation-invariant). The trained-reranker counterpart of the System One joint mode (RQ2). Trained on
+        # (permutation-invariant). The trained-reranker counterpart of the System One joint mode (RQ1). Trained on
         # BM25 top-100 lists: at most 100 candidates. Runs in its own container (lightning-ir needs transformers < 5;
         # slurm/config.sh container_for).
         SystemSpec(
@@ -145,7 +145,7 @@ SYSTEMS: Dict[str, SystemSpec] = {
             revision="aa11d9da444ec3490827656c3b961d5c5f3af0eb",
         ),
         # System One models (src/cdm/rerankers/system_one.py), all asked the same state and question, each joint and
-        # isolated (_system_one; RQ2). Jev through the TypeSafe API, pinned version (no alias).
+        # isolated (_system_one; RQ1). Jev through the TypeSafe API, pinned version (no alias).
         *_system_one("jev", "jev-1.13.0", "typesafe"),
         # Laya (open weights). Each question gets its own sequence with the state cut to ~320 tokens, so a candidate
         # list doesn't fit: isolated only, hence no suffix.

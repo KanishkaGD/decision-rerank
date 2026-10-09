@@ -1,9 +1,10 @@
-# RQ3 calibration: proposal and research brief
+# RQ2 calibration: proposal and research brief
 
-Status: **open**. The owner is still deciding how RQ3 should look (`docs/intent/paper-focus.md`, decision 12).
-This document is the starting point for an in-depth investigation by another agent. It collects the motivation,
-three candidate parts with concrete experiments, what the repository already has, open questions, and what the
-investigation should deliver. Nothing here is decided.
+Status: **partly decided (2026-10-09).** Calibration is now RQ2 of the paper, behind the negative result of RQ1
+(reranker fine-tuning beats decision fine-tuning; `docs/intent/paper-focus.md`, decision 4). RQ2 stays an open
+question that the paper argues in a discussion, backed by **Part A** (one fixed cutoff) and **Part C** (calibrated
+after the fact); Part B (QPP) is named in the discussion only and stays Phase 2. The rest of this brief -- metrics,
+related work, threats -- is still to be settled by the investigation.
 
 ## 0. Read first
 
@@ -11,20 +12,20 @@ investigation should deliver. Nothing here is decided.
 | --- | --- |
 | `CLAUDE.md` | conventions; where things run (no computation on the login node); experiment rules (never tune on test splits) |
 | `docs/roadmap.md` | the plan: RQs, setup, systems, triplets |
-| `docs/intent/paper-focus.md` | the owner's decisions (headline, efficiency, triplets, ...) |
+| `docs/intent/paper-focus.md` | the owner's decisions (negative-result headline, RQ2 scope, triplets, ...) |
 | `docs/notes/paper-notes.md` | source register, findings so far, limitations |
 | `docs/notes/decision-rerank-status.md` | latest project report: tables per RQ |
 | `src/cdm/evaluation.py` | `calibration()` (ECE with 15 equal-width bins, Brier), `judged_pairs()` |
 | `src/cdm/cli/rerank.py` | what a run stores |
 
-## 1. The problem with RQ3 as it stands
+## 1. The problem with the calibration RQ as it stood
 
-Current wording: *"Are the relevance probabilities of System One models calibrated, and does joint scoring change
-that?"*. The evidence is ECE and Brier on the judged pairs of DL19-23.
+Wording until 2026-10-09: *"Are the relevance probabilities of System One models calibrated, and does joint
+scoring change that?"*. The evidence is ECE and Brier on the judged pairs of DL19-23.
 
 A reviewer's first question will be: why does a reranker care? Ranking uses only the order of the scores. Any
 monotone transformation (scaling the logits, applying a sigmoid, temperature) leaves nDCG unchanged and moves ECE
-anywhere. Calibration matters only when **the value of the probability is used**. So RQ3 needs to show uses in
+anywhere. Calibration matters only when **the value of the probability is used**. So RQ2 needs to show uses in
 which calibrated probabilities do something that uncalibrated scores cannot do without extra fitting.
 
 What we have so far, as context (snapshot 2026-10-08; regenerate from `results/results.csv`):
@@ -35,12 +36,13 @@ What we have so far, as context (snapshot 2026-10-08; regenerate from `results/r
 - Laya is the best calibrated model (mean 0.131) and the weakest ranker: calibration and ranking quality are
   separate properties.
 
-## 2. Proposed RQ3
+## 2. Proposed RQ2
 
-*"Are the relevance probabilities of System One models calibrated out of the box, and can they be used without
-tuning?"*
+Proposed here: *"Are the relevance probabilities of System One models calibrated out of the box, and can they be
+used without tuning?"* Adopted wording (`paper/rq-macros.tex`): *"Where reranker fine-tuning ranks better, are the
+calibrated probabilities of decision models still of use?"*
 
-The joint-vs-isolated effect on ECE then becomes one finding within RQ3 instead of all of it. The triplets
+The joint-vs-isolated effect on ECE then becomes one finding within RQ2 instead of all of it. The triplets
 (`docs/roadmap.md`) add a controlled axis on the same backbone: base model log-probabilities, decision fine-tuning
 (Kev and Clef are trained and temperature-calibrated for decisions), and reranker fine-tuning (trained for ranking).
 
@@ -139,7 +141,7 @@ non-test set if one exists (an open question for the investigation).
    - QPP from reranker or LLM probabilities.
 
    Which of Parts A-C is new, which is established, and which metrics are standard?
-2. **A recommendation**: which parts belong in the 4-page paper and which go to the arXiv extension, the final RQ3
+2. **A recommendation**: which parts belong in the 4-page paper and which go to the arXiv extension, the final RQ2
    wording, and the exact metrics (with the bin scheme for ECE; consider adaptive bins or a debiased ECE).
 3. **An experiment plan** in this repository's terms: which outputs to read, which new runs (only Part C needs any),
    and the analysis code to write, e.g. a new module `cdm.calibration_analysis` producing tables into `paper/tables/` via

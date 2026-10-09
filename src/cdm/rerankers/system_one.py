@@ -13,7 +13,7 @@ models is not confounded by prompt formatting:
 This is S1Rank's format (github.com/zaesho/S1Rank, s1rank/methods.py), so its Jev numbers can be replicated.
 `window` sets how many candidates share one request: 1 = one per request (isolated), 0 = all of them (joint), k = chunks
 of k. Both are pointwise in S1Rank's sense -- one probability per candidate, ranked by it -- and differ only in what
-else is in the state (RQ2).
+else is in the state (RQ1, joint vs. isolated).
 
 A request that is too long for the model is split in half, recursively (counted as window_splits). A single passage
 that is still too long is truncated by the model and counted (count_truncated). Laya builds one sequence per question

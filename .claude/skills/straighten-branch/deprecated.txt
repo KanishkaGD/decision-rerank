@@ -21,3 +21,14 @@ official-d1000
 top1000
 # Work-package numbering of the original proposal; the roadmap has phases and steps
 \bWP[0-9]\b
+# Narrative changed (2026-10-09): the negative result (reranker vs. decision fine-tuning, RQ1) and the use of
+# calibration (RQ2) replace "open matches closed" and the three RQs; the triplets are the main table
+[Oo]pen matches closed
+Calibrated System One Models as Rerankers
+Decide, then Rank
+\bRQ3\b
+\\RQ\{3\}
+rq3-calibration-proposal
+tables/main\b
+tab:main\b
+05_joint_scoring

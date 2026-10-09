@@ -1,6 +1,7 @@
 # calibrated-decision-models-for-ir
 
-Experiments and paper for *Decide, then Rank: Calibrated System One Models as Rerankers* (working title). The plan
+Experiments and paper for *Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One
+Backbone* (working title). The plan
 -- research questions, setup and order of work -- is [docs/roadmap.md](docs/roadmap.md).
 
 ## Layout
@@ -107,7 +108,7 @@ candidates can stand in for runs; those are in `results/literature.csv`, and `sl
 | Listwise LLM | `rankzephyr-7b` | generates a permutation, sliding window 20/10 (rank_llm's prompt); BEIR from the literature |
 | Triplets: base model | `*-prompted` | the backbone asked S1Rank's question zero-shot, P(yes) from the first token (`prompted.py`) |
 | Triplets: reranker fine-tunes | `qwen3-reranker-0.6b`, `prism-*` | Qwen3-Reranker / Prism-Qwen3.5-Reranker, yes/no logits (`pointwise_lm.py`) |
-| System One | `jev-*`, `clef-flash-*`, `clef-*`, `kev-4b-*`, `kev-27b-*` | each `-joint` (all candidates in one state) and `-isolated` (one per request), both pointwise |
+| System One (decision fine-tunes) | `jev-*`, `clef-flash-*`, `clef-*`, `kev-{0.6b,0.8b,4b,8b,9b,27b}-*` | each `-joint` (all candidates in one state) and `-isolated` (one per request), both pointwise; Kev and Clef are the triplets' decision fine-tunes |
 | System One | `laya` | isolated only (context too short for a list) |
 
 The System One models share one reranker (`src/cdm/rerankers/system_one.py`) and get identical requests with

@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [project]
 name = "cdm"
 version = "0.1.0"
-description = "Calibrated System One decision models as rerankers and retrieval controllers."
+description = "System One decision models vs. reranker fine-tunes as rerankers, and the use of their calibration."
 authors = [{ name = "Michael Dinzinger" }]
 readme = "README.md"
 license = "MIT"

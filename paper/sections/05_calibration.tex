@@ -1,0 +1,25 @@
+% =====================================================================================
+% Section 5 -- Is calibration still of use? (RQ2)
+% Kept as an open question and argued in a discussion (docs/intent/paper-focus.md, decision 4);
+% evidence and proposals: docs/notes/calibration-proposal.md (Parts A and C).
+% =====================================================================================
+\section{Is Calibration Still of Use?}
+\label{sec:calibration}
+
+\PENDING{\RQ{2}: ECE and Brier on DL 2019--2023 for the triplets (decision fine-tunes joint and
+isolated) and the context systems; one reliability diagram.}
+
+\paragraph{One cutoff across collections.}
+\PENDING{Keep every candidate with $p \ge 0.5$: set $F_1$, mean set size and the regret against the
+per-collection oracle cutoff, for decision fine-tunes and for reranker fine-tunes' native
+probabilities; fixed top-$k$ as the baseline.}
+
+\paragraph{Calibrated after the fact.}
+\PENDING{Temperature and Platt scaling of the reranker fine-tunes, fitted on MS~MARCO dev, evaluated
+on DL 2019--2023 and BEIR: does a reranker fine-tune plus one fitted parameter make the decision
+model's calibration redundant?}
+
+\paragraph{Discussion.}
+\TODO{What calibrated probabilities are for in a retrieval pipeline (cutoffs for RAG, query performance
+prediction, ``no relevant passage'' detection); what it costs to obtain them after the fact; whether
+one model can rank like a reranker fine-tune and stay calibrated like a decision model.}

@@ -4,6 +4,8 @@ no number in the paper is typed by hand (CLAUDE.md, "Paper"). Standard library o
 
     python -m cdm.paper_tables            (or: make tables, in paper/)
 
+Two tables: the triplets (RQ1's main table: per backbone the base model, its decision fine-tunes and its reranker
+fine-tune; triplets.tex) and the context table (every other system on the same candidates; context.tex).
 Every reranker is read on its dataset's default candidates (BM25 top-100, docs/roadmap.md "Setup"); cells taken from
 the literature (role `baseline` in results/literature.csv) win over computed ones and are marked with a dagger.
 """
@@ -36,9 +38,75 @@ DL_DATASETS = [d for d, _ in DATASETS if d.startswith("dl")]
 # Candidates reranked per dataset: BM25 top-100, which for DL21-23 is the official top-100 file.
 FIRST_STAGE = {d: get_dataset(d).default_first_stage for d, _ in DATASETS}
 
-# Row groups of the main table: (heading, [(system, display name, mode)]). The plan of record is docs/roadmap.md,
-# "Systems"; systems not listed here (side experiments) are left out.
-MAIN_ROWS: List[Tuple[str, List[Tuple[str, str, str]]]] = [
+# Collections without a training split in any of the fine-tunes' data: the zero-shot subset (docs/roadmap.md).
+ZERO_SHOT = ["trec-covid", "touche", "dbpedia"]
+
+Row = Tuple[str, str, str]  # system, display name, mode
+
+# The triplets (docs/roadmap.md, "Triplets"): (backbone, [(system, display name, objective, mode)]).
+TRIPLETS: List[Tuple[str, List[Tuple[str, str, str, str]]]] = [
+    (
+        "Qwen3-0.6B",
+        [
+            ("qwen3-0.6b-prompted", "Qwen3-0.6B", "base", ""),
+            ("kev-0.6b-joint", "Kev-0.6B", "decision", "joint"),
+            ("kev-0.6b-isolated", "Kev-0.6B", "decision", "isolated"),
+            ("qwen3-reranker-0.6b", "Qwen3-Reranker-0.6B", "reranker", ""),
+        ],
+    ),
+    (
+        "Qwen3-8B",
+        [
+            ("qwen3-8b-prompted", "Qwen3-8B", "base", ""),
+            ("kev-8b-joint", "Kev-8B", "decision", "joint"),
+            ("kev-8b-isolated", "Kev-8B", "decision", "isolated"),
+            ("qwen3-reranker-8b", "Qwen3-Reranker-8B", "reranker", ""),
+        ],
+    ),
+    (
+        "Qwen3.5-0.8B",
+        [
+            ("qwen3.5-0.8b-prompted", "Qwen3.5-0.8B", "base", ""),
+            ("kev-0.8b-joint", "Kev-0.8B", "decision", "joint"),
+            ("kev-0.8b-isolated", "Kev-0.8B", "decision", "isolated"),
+            ("prism-0.8b", "Prism-0.8B", "reranker", ""),
+        ],
+    ),
+    (
+        "Qwen3.5-4B",
+        [
+            ("qwen3.5-4b-prompted", "Qwen3.5-4B", "base", ""),
+            ("kev-4b-joint", "Kev-4B", "decision", "joint"),
+            ("kev-4b-isolated", "Kev-4B", "decision", "isolated"),
+            ("prism-4b", "Prism-4B", "reranker", ""),
+        ],
+    ),
+    (
+        "Qwen3.5-9B",
+        [
+            ("qwen3.5-9b-prompted", "Qwen3.5-9B", "base", ""),
+            ("kev-9b-joint", "Kev-9B", "decision", "joint"),
+            ("kev-9b-isolated", "Kev-9B", "decision", "isolated"),
+            ("clef-flash-joint", "Clef-Flash", "decision", "joint"),
+            ("clef-flash-isolated", "Clef-Flash", "decision", "isolated"),
+            ("prism-9b", "Prism-9B", "reranker", ""),
+        ],
+    ),
+    (
+        "Qwen3.8-27B",
+        [
+            ("qwen3.8-27b-prompted", "Qwen3.8-27B", "base", ""),
+            ("kev-27b-joint", "Kev-27B", "decision", "joint"),
+            ("kev-27b-isolated", "Kev-27B", "decision", "isolated"),
+            ("clef-joint", "Clef", "decision", "joint"),
+            ("clef-isolated", "Clef", "decision", "isolated"),
+        ],
+    ),
+]
+
+# Row groups of the context table: (heading, [(system, display name, mode)]). The plan of record is
+# docs/roadmap.md, "Systems"; systems not listed here (side experiments) are left out.
+CONTEXT_ROWS: List[Tuple[str, List[Row]]] = [
     ("Listwise LLM rerankers", [("rankgpt-4", "RankGPT-4", ""), ("rankzephyr-7b", "RankZephyr-7B", "")]),
     (
         "Cross-encoders and LLM rerankers",
@@ -52,7 +120,7 @@ MAIN_ROWS: List[Tuple[str, List[Tuple[str, str, str]]]] = [
     (
         "System One models",
         [
-            # Joint mode only (docs/intent/paper-focus.md); the isolated runs are in the RQ2 table.
+            # Joint mode only (docs/intent/paper-focus.md); both modes of Kev and Clef are in the triplet table.
             (f"{model}-joint", name, "joint")
             for model, name in [
                 ("jev", "\\jev{}"),
@@ -118,14 +186,80 @@ def _fmt(value: float) -> str:
     return f"{100 * value:.1f}"
 
 
-def main_table(cells: Cells, cost: Costs) -> str:
-    """RQ1: nDCG@10 of every system on every dataset, the mean over all ten, and the API cost."""
+def _mean(cells: Cells, system: str, datasets: List[str]) -> Optional[float]:
+    """Mean over the given datasets, only where every one is available."""
+    values = [cells[(system, d)][0] for d in datasets if (system, d) in cells]
+    return sum(values) / len(values) if values and len(values) == len(datasets) else None
+
+
+def _header(lines: List[str], first: str, extra: List[str]) -> None:
+    """Column groups (TREC DL, BEIR) and headers after `first` leading columns."""
+    n_dl, n = len(DL_DATASETS), len(DATASETS)
+    lines += [
+        "\\toprule",
+        " &" * (first.count("&") + 1) + f" \\multicolumn{{{n_dl}}}{{c}}{{TREC DL}} & "
+        f"\\multicolumn{{{n - n_dl}}}{{c}}{{BEIR}}" + " &" * len(extra) + " \\\\",
+        f"\\cmidrule(lr){{{first.count('&') + 2}-{first.count('&') + 1 + n_dl}}}"
+        f"\\cmidrule(lr){{{first.count('&') + 2 + n_dl}-{first.count('&') + 1 + n}}}",
+        first + " & " + " & ".join(h for _, h in DATASETS) + " & " + " & ".join(extra) + " \\\\",
+    ]
+
+
+def triplet_table(cells: Cells) -> str:
+    """RQ1: the triplets -- per backbone the base model, its decision fine-tunes (both modes) and its reranker
+    fine-tune; nDCG@10 per dataset, the mean over all ten and over the zero-shot subset. Best per backbone in bold."""
     datasets = [d for d, _ in DATASETS]
-    systems = [s for _, rows in MAIN_ROWS for s, _, _ in rows]
+    columns = datasets + ["avg", "zs"]
+
+    def value(system: str, column: str) -> Optional[float]:
+        if column == "avg":
+            return _mean(cells, system, datasets)
+        if column == "zs":
+            return _mean(cells, system, ZERO_SHOT)
+        return cells[(system, column)][0] if (system, column) in cells else None
+
+    ncols = 3 + len(columns)
+    lines = [
+        "% Generated by `python -m cdm.paper_tables` (make tables, in paper/) from results/results.csv -- do not edit",
+        "% by hand.",
+        "\\begin{table*}[t]",
+        "\\caption{Base model, decision fine-tune and reranker fine-tune on the same backbone (nDCG@10, $\\times 100$,",
+        "BM25 top-100). Base: the post-trained release asked S1Rank's question zero-shot. Decision fine-tunes in joint",
+        "and isolated mode. Avg: mean over all ten collections; ZS: mean over the collections without a training split",
+        "(TREC-COVID, Touch\\'e, DBPedia). Best per backbone and column in bold. No reranker fine-tune of the 27B",
+        "backbone exists.}",
+        "\\label{tab:triplets}",
+        "\\centering",
+        "\\scriptsize",
+        "\\setlength{\\tabcolsep}{3pt}",
+        "\\begin{adjustbox}{max width=\\textwidth}",
+        "\\begin{tabular}{lll" + "r" * len(columns) + "}",
+    ]
+    _header(lines, "System & Training & Mode", ["Avg", "ZS"])
+    for backbone, rows in TRIPLETS:
+        best = {
+            c: max((_fmt(v) for v in (value(s, c) for s, _, _, _ in rows) if v is not None), key=float, default=None)
+            for c in columns
+        }
+        lines += ["\\midrule", f"\\multicolumn{{{ncols}}}{{l}}{{\\textit{{{backbone}}}}} \\\\"]
+        for system, name, objective, mode in rows:
+            out = [name, objective, mode]
+            for c in columns:
+                v = value(system, c)
+                text = "--" if v is None else _fmt(v)
+                out.append(f"\\textbf{{{text}}}" if v is not None and text == best[c] else text)
+            lines.append(" & ".join(out) + " \\\\")
+    lines += ["\\bottomrule", "\\end{tabular}", "\\end{adjustbox}", "\\end{table*}", ""]
+    return "\n".join(lines)
+
+
+def context_table(cells: Cells, cost: Costs) -> str:
+    """RQ1 context: nDCG@10 of every other system on every dataset, the mean over all ten, and the API cost."""
+    datasets = [d for d, _ in DATASETS]
+    systems = [s for _, rows in CONTEXT_ROWS for s, _, _ in rows]
 
     def mean(system: str) -> Optional[float]:
-        values = [cells[(system, d)][0] for d in datasets if (system, d) in cells]
-        return sum(values) / len(values) if len(values) == len(datasets) else None
+        return _mean(cells, system, datasets)
 
     # Best reranker per column, compared as printed (ties are all bold).
     best = {
@@ -157,12 +291,12 @@ def main_table(cells: Cells, cost: Costs) -> str:
         "% Generated by `python -m cdm.paper_tables` (make tables, in paper/) from results/results.csv and",
         "% results/literature.csv -- do not edit by hand.",
         "\\begin{table*}[t]",
-        "\\caption{Reranking effectiveness (nDCG@10, $\\times 100$) on the BM25 top-100 of TREC DL 2019--2023 and five",
+        "\\caption{Context: other rerankers (nDCG@10, $\\times 100$) on the BM25 top-100 of TREC DL 2019--2023 and five",
         "BEIR collections; System One models in joint mode (\\laya{} isolated). $^\\dagger$: published number on the",
         "same candidates~\\cite{Abdallah2025HowGood,SetEncoderCard}, not recomputed. Avg: mean over all ten",
         "collections (only where all are available). \\$/1k: mean API cost in US dollars per 1,000 queries over the",
         "collections run. Best reranker per column in bold.}",
-        "\\label{tab:main}",
+        "\\label{tab:context}",
         "\\centering",
         "\\scriptsize",
         "\\setlength{\\tabcolsep}{3pt}",
@@ -177,7 +311,7 @@ def main_table(cells: Cells, cost: Costs) -> str:
         "\\midrule",
         row("bm25", "BM25", ""),
     ]
-    for heading, rows in MAIN_ROWS:
+    for heading, rows in CONTEXT_ROWS:
         lines += ["\\midrule", f"\\multicolumn{{{ncols}}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
         lines += [row(*r) for r in rows]
     lines += ["\\bottomrule", "\\end{tabular}", "\\end{adjustbox}", "\\end{table*}", ""]
@@ -191,10 +325,11 @@ def main(argv: Optional[List[str]] = None) -> None:
     args = parser.parse_args(argv)
     cells, cost = load_cells(args.results)
     os.makedirs(args.out, exist_ok=True)
-    path = os.path.join(args.out, "main.tex")
-    with open(path, "w") as f:
-        f.write(main_table(cells, cost))
-    print(f"Wrote {path}")
+    for name, tex in (("triplets", triplet_table(cells)), ("context", context_table(cells, cost))):
+        path = os.path.join(args.out, f"{name}.tex")
+        with open(path, "w") as f:
+            f.write(tex)
+        print(f"Wrote {path}")
 
 
 if __name__ == "__main__":

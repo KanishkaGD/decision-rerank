@@ -1,9 +1,26 @@
 % =====================================================================================
-% Section 4 -- Reranking effectiveness (RQ1)
+% Section 4 -- Decision vs. reranker fine-tuning (RQ1)
+% Joint vs. isolated is part of RQ1 (docs/intent/paper-focus.md): explained by the state length
+% the model was trained on, not by window splits.
 % =====================================================================================
-\section{Reranking Effectiveness}
+\section{Decision vs.\ Reranker Fine-Tuning}
 \label{sec:reranking}
 
-\input{tables/main}
+\input{tables/triplets}
 
-\PENDING{\RQ{1}: text on Table~\ref{tab:main}, once the grid is complete.}
+\PENDING{\RQ{1}: text on Table~\ref{tab:triplets} once the last triplet cells are in: reranker
+fine-tuning beats decision fine-tuning on every backbone where both exist, on the average and on the
+zero-shot subset; decision fine-tuning within a few points of the base model at every size, reranker
+fine-tuning 5--32 points above it; paired tests.}
+
+\paragraph{Joint vs.\ isolated.}
+\PENDING{Joint minus isolated nDCG@10 per decision fine-tune, with paired tests. Joint scoring helps
+the models trained on long states (\jev{}, Kev-27B) and hurts those trained on short ones (Kev-0.6B to
+Kev-4B, trained on states of at most 7.5k tokens~\cite{KevCards}; a joint state has about 13k tokens on
+TREC DL and 40k or more on BEIR).}
+
+\paragraph{Context.}
+\input{tables/context}
+\PENDING{Table~\ref{tab:context}: the other rerankers on the same candidates. Open decision fine-tunes
+match the closed \jev{}; the 27B decision fine-tune only edges much smaller reranker fine-tunes. Cost
+and latency on one A100.}

@@ -1,5 +1,5 @@
 % =====================================================================================
-% Calibrated System One Models as Rerankers
+% Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One Backbone
 % Working title (docs/roadmap.md). Target: WSDM 2027 short paper (ACM sigconf, 4 pages); still
 % LNCS (llncs v2.24) until the move (roadmap step 5).
 %
@@ -47,8 +47,8 @@
 
 \begin{document}
 
-\title{Calibrated System One Models as Rerankers}
-\titlerunning{Calibrated System One Models as Rerankers}
+\title{Do System One Models Make Better Rerankers? Decision vs.\ Reranker Fine-Tuning on One Backbone}
+\titlerunning{Do System One Models Make Better Rerankers?}
 
 % TODO: authors and affiliations (anonymize for review if the CfP requires it).
 \author{Anonymous}
@@ -59,19 +59,19 @@
 
 \begin{abstract}
 \TODO{Abstract, once the results are in. Contributions:
-(1) System One models, closed and open, against strong trained rerankers on ten datasets;
-(2) joint vs.\ isolated pointwise scoring across five System One models;
-(3) calibration of their relevance probabilities.}
-\keywords{Reranking \and Calibration \and System One Models}
+(1) a controlled comparison of base model, decision fine-tune and reranker fine-tune on six backbones (0.6B--27B)
+and ten datasets, decision fine-tunes in joint and isolated mode -- reranker fine-tuning wins wherever both exist;
+(2) whether the calibrated probabilities of decision models are still of use: one fixed cutoff across collections,
+and reranker fine-tunes calibrated after the fact.}
+\keywords{Reranking \and Calibration \and System One Models \and Fine-Tuning}
 \end{abstract}
 
 \input{sections/01_introduction}
 \input{sections/02_related_work}
 \input{sections/03_setup}
 \input{sections/04_reranking}
-\input{sections/05_joint_scoring}
-\input{sections/06_calibration}
-\input{sections/07_conclusion}
+\input{sections/05_calibration}
+\input{sections/06_conclusion}
 
 \begin{credits}
 \subsubsection{\ackname}

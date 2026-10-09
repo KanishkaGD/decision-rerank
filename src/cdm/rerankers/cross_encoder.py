@@ -1,4 +1,4 @@
-"""Off-the-shelf cross-encoders (sentence-transformers CrossEncoder), the supervised baselines of RQ1/RQ2."""
+"""Off-the-shelf cross-encoders (sentence-transformers CrossEncoder), the supervised baselines (context table of RQ1)."""
 
 import math
 from typing import Any, Dict, List, Optional

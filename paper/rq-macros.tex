@@ -1,27 +1,25 @@
 % =====================================================================================
-% rq-macros.tex -- colour code and boxes for the research questions (RQ1--RQ3)
+% rq-macros.tex -- colour code and boxes for the research questions (RQ1--RQ2)
 % Load in the preamble:   \input{rq-macros}
 % Requires: xcolor, tcolorbox (both in every TeX Live).
 %
 % Usage
 %   \showRQ{2}                         framed box with the question text (defined below)
 %   \showRQ[(Sect.~\ref{...})]{2}      same, with a grey note right-aligned on the last line
-%   \RQ{3}                             inline badge for headings, table cells, and captions,
-%                                      e.g. \paragraph{Answer to \RQ{3}.}; in running prose keep
-%                                      plain "RQ3" so that the badges stay rare and salient
+%   \RQ{2}                             inline badge for headings, table cells, and captions,
+%                                      e.g. \paragraph{Answer to \RQ{2}.}; in running prose keep
+%                                      plain "RQ2" so that the badges stay rare and salient
 %
 % Colour code: each RQ keeps its colour in the boxes, badges, and figures.
-%   RQ1 purple  -- reranking effectiveness of System One models vs. trained rerankers
-%   RQ2 rose    -- joint vs. isolated pointwise scoring
-%   RQ3 amber   -- calibration of the relevance probabilities
-% Keep the data colours of the figures apart from these three; figures carry no RQ badges.
+%   RQ1 purple  -- decision vs. reranker fine-tuning on the same backbone (incl. joint vs. isolated)
+%   RQ2 amber   -- whether the calibrated probabilities of decision models are still of use
+% Keep the data colours of the figures apart from these two; figures carry no RQ badges.
 % Wording of the questions: docs/roadmap.md, "Research questions (paper)".
 % =====================================================================================
 \makeatletter
 
 \definecolor{rq1}{HTML}{6B4C9A}
-\definecolor{rq2}{HTML}{B03A55}
-\definecolor{rq3}{HTML}{A5620C}
+\definecolor{rq2}{HTML}{A5620C}
 
 % ---- inline badge --------------------------------------------------------------------
 \newtcbox{\rq@badge}[1]{on line, nobeforeafter, colback=rq#1, colframe=rq#1,
@@ -50,9 +48,7 @@
 \makeatother
 
 % ---- the research questions (edit wording here only) -----------------------------------
-\defineRQ{1}{Do open System One models rerank BM25 candidates as well as the closed \jev{} and strong trained
-  rerankers?}
-\defineRQ{2}{Does joint pointwise scoring, with all candidates in one state, beat isolated pointwise scoring of
-  each query--passage pair, and does that hold beyond \jev{}?}
-\defineRQ{3}{Are the relevance probabilities of System One models calibrated, and does joint scoring change
-  that?}
+\defineRQ{1}{On the same backbone, does decision fine-tuning make a better reranker than reranker fine-tuning or no
+  fine-tuning?}
+\defineRQ{2}{Where reranker fine-tuning ranks better, are the calibrated probabilities of decision models still of
+  use?}

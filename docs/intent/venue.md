@@ -17,7 +17,7 @@ Facts from the call for papers (read 2026-10-06):
 Consequences:
 
 - The paper moves from LNCS to ACM `sigconf` (anonymised for the WSDM version) -- roadmap step 5.
-- The 4 pages hold the three research questions of `docs/roadmap.md`; Phase 2 (control signal, fine-tuning,
+- The 4 pages hold the two research questions of `docs/roadmap.md`; Phase 2 (control signal, fine-tuning,
   BRIGHT) goes to the arXiv extension or a follow-up.
 
 ## arXiv date

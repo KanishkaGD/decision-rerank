@@ -11,7 +11,7 @@ class Scores:
 
     scores: List[float]  # ranking scores (raw: logits for cross-encoders)
     # Probability of relevance, if the system defines one. For System One models this is the model's own (calibrated)
-    # decision probability -- the quantity RQ2/RQ3 study; for cross-encoders, sigmoid(logit), the baseline it is
+    # decision probability -- the quantity RQ2 studies; for cross-encoders, sigmoid(logit), the baseline it is
     # compared against. prob_kind in describe() says which.
     probs: Optional[List[float]] = None
     # Raw model outputs that don't fit one number per passage, e.g. one record per API request (Jev). The rerank CLI
@@ -22,7 +22,7 @@ class Scores:
 class Reranker(ABC):
     """
     One reranking system. Every system is pointwise -- one score per candidate, ranked by it; `joint` systems compute
-    that score with the whole candidate list in view (System One joint mode, Set-Encoder; RQ2), the others from each
+    that score with the whole candidate list in view (System One joint mode, Set-Encoder; RQ1), the others from each
     (query, passage) pair alone. `uses_phrasing` systems are asked a relevance question (src/cdm/phrasings.py).
     """
 

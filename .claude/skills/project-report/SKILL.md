@@ -2,7 +2,8 @@
 name: project-report
 description: >-
   Project report for the decision-rerank paper: one Markdown overview of where the paper stands -- title, RQs,
-  headline and claims, results per RQ (nDCG@10, joint vs. isolated, calibration, cost and efficiency), sanity checks,
+  headline and claims, results per RQ (triplets, joint vs. isolated, calibration and its uses, cost and efficiency),
+  sanity checks,
   the roadmap with what is done, TODOs and draft markers in the paper, open questions and limitations -- published as
   a Claude artifact (Markdown) and kept in docs/notes/. Use it whenever the user wants an overview or summary of the
   paper project to share or discuss ("project report", "status of the paper", "overview for my meeting with
@@ -23,8 +24,9 @@ python3 .claude/skills/project-report/scripts/facts.py      # login node is fine
 ```
 
 It prints, as Markdown: title, venue and RQs (`paper/rq-macros.tex`); the owner's decisions
-(`docs/intent/paper-focus.md`); the main table (joint mode, literature cells starred, best per column bold); RQ2
-differences with window splits; RQ3 ECE; API cost, literature efficiency numbers and the fixed-GPU efficiency rows
+(`docs/intent/paper-focus.md`); RQ1's triplet table (base / decision fine-tune / reranker fine-tune per backbone,
+with the zero-shot average), the joint-minus-isolated differences with window splits, and the context table (other
+systems, joint mode, literature cells starred); RQ2's ECE; API cost, literature efficiency numbers and the fixed-GPU efficiency rows
 (variant `a100*`); the roadmap; draft markers (`\TODO`, `\PENDING`, `\FLAG`) with file:line; limitations and open
 items (`docs/notes/paper-notes.md`); jobs and git state.
 
@@ -39,18 +41,19 @@ or `results/*.csv` -- never typed from memory, never rounded differently from th
 as such. Keep it to what a reader needs in a 30-minute meeting:
 
 ```markdown
-# Calibrated System One Models as Rerankers -- status <date>
+# <working title from paper/main.tex> -- status <date>
 
 > One paragraph: the paper in one sentence, the headline, where we are (grid done? what is running?), deadline.
 
 ## Research questions and headline
-RQ1-RQ3 verbatim; the headline and the claims we can make now, each with its evidence and how firm it is
+RQ1-RQ2 verbatim; the headline and the claims we can make now, each with its evidence and how firm it is
 (supported / partly / open). Separate claims from hopes.
 
 ## Results
-### RQ1 -- effectiveness       main table (joint mode) from the facts, plus 2-3 sentences of reading
-### RQ2 -- joint vs. isolated   difference table + window splits, 2-3 sentences
-### RQ3 -- calibration          ECE table (or the relevant slice), 2-3 sentences
+### RQ1 -- triplets             base / decision / reranker fine-tune per backbone (Avg, ZS avg), 2-3 sentences
+### RQ1 -- joint vs. isolated    difference table + window splits + state-length reading, 2-3 sentences
+### RQ1 -- context               the other systems (Jev, Clef, trained and listwise rerankers), 2-3 sentences
+### RQ2 -- calibration and use   ECE, cutoff analysis and post-hoc scaling (or "pending"), 2-3 sentences
 ### Cost and efficiency         measured API cost, literature cost/latency, efficiency run (or "pending")
 ### Sanity checks               one line each, pass/fail
 

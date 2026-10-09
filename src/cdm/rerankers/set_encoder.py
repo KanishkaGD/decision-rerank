@@ -5,7 +5,7 @@ through lightning-ir. (Its authors call it listwise; it still outputs one score 
 Each (query, passage) pair is its own sequence, as in a pointwise cross-encoder, but every sequence carries an
 interaction token that the other passages of the same query attend to, so a passage's score depends on the rest of
 the candidate list -- without depending on its order (permutation-invariant). That makes it the trained-reranker
-counterpart of the System One models' joint mode (RQ2), next to the cross-encoders that score each pair alone.
+counterpart of the System One models' joint mode (RQ1), next to the cross-encoders that score each pair alone.
 
 The checkpoints were trained on, and the authors evaluate them with, BM25 top-100 lists (config.depth = 100): a list
 of up to `depth` candidates is scored in one forward pass, a longer one is refused (rerank the official 1000-candidate

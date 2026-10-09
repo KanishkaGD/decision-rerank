@@ -42,58 +42,60 @@ Rank-DistiLLM-type paper -- not on the abstract page; check the full text before
   COVID 85.0 vs 86.5, NFCorpus 38.2 vs 38.3, SciFact 81.0 vs 80.5. COVID is 1.5 points lower -- the only gap above one
   point; possibly passage text/title handling. Check before writing "reproduces".
 
-## 3. Findings so far (snapshot 2026-10-08)
+## 3. Findings so far (snapshot 2026-10-09)
 
-nDCG@10 x 100; Avg over all ten datasets.
+nDCG@10 x 100. Avg = mean over all ten datasets; ZS = mean over TREC-COVID, Touché and DBPedia (no training split in
+any fine-tune's data). Triplet grid 325 of 350 cells; Kev-8B joint (NFCorpus, SciFact) and Kev-9B joint (SciFact)
+still running.
 
-| System | Avg | Notes |
-| --- | ---: | --- |
-| Kev-27B joint | **61.1** | best average; best on DL20, DL23, COVID, SciFact |
-| Jev joint | 60.5 | best on DL21; closed |
-| Kev-27B isolated / Jev isolated | 59.7 / 59.5 | |
-| Qwen3-Reranker-8B | 59.4 | best trained reranker; best on Touché (43.1, still below BM25 44.2) |
-| Set-Encoder-large | 59.0 | best on DL22 (53.4); DL19/20 from the model card |
-| monoT5-3B / bge-m3 | 57.5 / 56.6 | mostly literature cells |
-| Clef joint / isolated | 56.1 / 56.2 | |
-| Clef-Flash isolated / joint | 54.7 / 52.8 | |
-| Qwen3.7-Flash (LLM judge, Jev's price) | 53.0 | dropped from the paper 2026-10-09 (the triplets' base models replace it) |
-| Kev-4B isolated / joint | 51.4 / 49.8 | |
-| Laya | 44.0 | barely above BM25 (43.2) |
-| RankGPT-4 / RankZephyr-7B (literature) | -- | no DL21-23 on BM25 candidates; RankGPT-4 best on DL19 (75.6) |
+**RQ1, triplets (the headline).** Reranker fine-tune vs. the better decision mode vs. base model, Avg / ZS:
 
-**RQ1.** The two strongest System One models (Kev-27B, open; Jev, closed) beat every trained reranker on average and
-match RankGPT-4 on BEIR and DL20, at about 2 points below it on DL19. Smaller open models (Clef-Flash, Kev-4B, Laya)
-fall behind the trained rerankers. Size matters more than the open/closed split. Touché: every reranker is below BM25
-(known effect).
+| Backbone | Base | Decision fine-tune (better mode) | Reranker fine-tune |
+| --- | --- | --- | --- |
+| Qwen3-0.6B | 23.8 / 25.4 | Kev-0.6B isolated 27.0 / 30.9 | Qwen3-Reranker-0.6B **56.1 / 54.9** |
+| Qwen3-8B | 53.3 / 47.1 | Kev-8B isolated 52.7 / 49.1 | Qwen3-Reranker-8B **59.4 / 57.8** |
+| Qwen3.5-0.8B | 37.6 / 37.6 | Kev-0.8B isolated 35.9 / 40.7 | Prism-0.8B **57.1 / 53.8** |
+| Qwen3.5-4B | 52.7 / 47.1 | Kev-4B isolated 51.4 / 48.4 | Prism-4B **58.7 / 54.2** |
+| Qwen3.5-9B | 53.7 / 48.2 | Clef-Flash isolated 54.7 / 48.8; Kev-9B isolated 50.1 / 43.8 | Prism-9B **59.0 / 53.7** |
+| Qwen3.8-27B | 57.4 / 52.8 | Kev-27B joint **61.1 / 57.8** | none exists |
 
-**RQ2 (joint minus isolated, no significance tests yet).** Not uniform:
-- Jev: joint better on 7 of 10, equal on COVID (+1.0 average).
-- Kev-27B: joint better on average (+1.4), large on Touché (+6.6) and DL20/DL23 (+2.2/+2.5).
-- Clef: joint better on all five DL sets (+1.1 to +5.2), isolated better on BEIR (SciFact -9.1, Touché -2.4,
-  NFCorpus -1.5); averages equal (56.1 vs 56.2).
-- Clef-Flash: isolated better on DL20-23 and SciFact (-3.2); average -1.9.
-- Kev-4B: isolated better on average (-1.6), large on COVID (-7.4) and SciFact (-8.3).
-- Reading: joint scoring helps the strongest models everywhere and the mid-sized ones on short passages (DL), but
-  hurts them on long BEIR passages (COVID, NFCorpus, SciFact ~400 tokens, Touché ~860: 100 candidates no longer fit
-  one request and get split). "Joint is what makes Jev work" (S1Rank) therefore holds only for strong models -- a
-  candidate headline for RQ2. To check: window_splits per dataset as the explanatory variable.
+- Reranker fine-tuning wins on every backbone where it exists, by 4-29 points on average and also on the zero-shot
+  subset. Its training data includes MS MARCO (in-domain for DL19-23); Kev's does not -- a caveat for DL, not for ZS.
+- Decision fine-tuning stays within a few points of the base model at every size (better mode minus base, Avg:
+  0.6B +3.2, 8B -0.6, 0.8B -1.7, 4B -1.3, 9B -3.6 Kev / +1.0 Clef-Flash, 27B +3.7); reranker fine-tuning adds 5-32
+  points over the base model.
+- Robustness: Qwen3-8B-Base with a completion prompt reaches 41.4, the post-trained release 53.3 -- the base row uses
+  the post-trained release.
 
-**RQ3 (ECE on DL19-23, 15 bins, unjudged excluded).**
-- Joint scoring lowers ECE for Jev (DL19 0.157 vs 0.192), Clef (0.095 vs 0.174), Kev-27B (0.098 vs 0.203) and
-  Clef-Flash on most sets; Kev-4B is the exception.
-- Trained rerankers are worse calibrated on DL21-23: monoT5-3B 0.36-0.42, Qwen3-Reranker-8B 0.30-0.37, Set-Encoder
-  0.47-0.58 (sigmoid of a logit, never meant as a probability), against 0.16-0.19 for Kev-27B joint.
-- Laya and Qwen3.7-Flash are among the best calibrated (Laya DL19 0.066) despite weak ranking: calibration and
-  ranking quality are separate properties -- worth one sentence.
+**RQ1, joint vs. isolated (no significance tests yet).** Joint helps Jev (+1.0, 7/10) and Kev-27B (+1.4, 8/10); it
+hurts Clef-Flash (-1.9) and Kev-4B (-1.5), and Clef gains on DL but loses on BEIR (SciFact -9.0). Window splits do
+not explain it (Kev-4B never splits on COVID/SciFact yet loses 7-8 points). The state length does: Kev-0.8B/4B were
+trained on states of at most 7,552 tokens, Kev-27B on up to 32,768 (KevCards); a joint DL state is about 13k tokens,
+a BEIR state 40k or more. Kev-0.6B joint does not discriminate at all (AUC 0.49 / 0.47 on DL19/20, p rising with the
+position in the state).
 
-**Cost (measured).** API cost per 1,000 queries: Jev joint $1.18, Jev isolated $2.29, Qwen3.7-Flash $0.82. Whole grid:
-Jev joint $1.62, Jev isolated $3.16, Qwen3.7-Flash $1.13. RankGPT-4 as published: $641 per 1,000 queries (Jin et al.)
+**RQ1, context.** Kev-27B joint 61.1 and Jev joint 60.5 lead on average, ahead of Qwen3-Reranker-8B 59.4,
+Set-Encoder-large 59.0, monoT5-3B 57.5, RankZephyr-7B 57.3 (our DL runs, BEIR from the literature) and bge 56.6.
+Open decision fine-tunes match the closed Jev; the 27B decision fine-tune edges reranker fine-tunes a third its
+size. Laya 44.0 is barely above BM25 (43.2). Every reranker is below BM25 on Touché (known effect).
+
+**RQ2 (ECE on DL19-23, 15 bins, unjudged excluded).**
+- Joint scoring lowers ECE for Jev, Clef, Clef-Flash and Kev-27B (0.156 vs 0.262 mean); Kev-4B is the exception.
+- Reranker fine-tunes' native probabilities are worse calibrated on DL21-23: Qwen3-Reranker-8B 0.30-0.37,
+  monoT5-3B 0.36-0.42, Set-Encoder 0.47-0.58 (sigmoid of a logit, never meant as a probability).
+- Laya is the best calibrated (mean 0.131) and the weakest ranker: calibration and ranking quality are separate
+  properties.
+- Not run yet: the cutoff analysis (p >= 0.5) and post-hoc scaling of the reranker fine-tunes on msmarco-dev
+  (`docs/notes/calibration-proposal.md`, Parts A and C). Without Part C, "just calibrate the reranker" is unanswered.
+
+**Cost (measured).** API cost per 1,000 queries: Jev joint $1.18, Jev isolated $2.29. Whole grid: Jev joint $1.62,
+Jev isolated $3.16. RankGPT-4 as published: $641 per 1,000 queries (Jin et al.)
 -- about 500x Jev joint.
 
-**Latency (measured, not yet comparable).** p50 per query of 100 candidates: Jev joint 0.35 s (API), Jev isolated
-1.7 s, Qwen3-Reranker-8B ~3.4 s, Kev-27B joint 8-15 s, Kev-27B isolated ~24 s, monoT5-3B ~0.8 s, Set-Encoder ~0.2 s.
-Runs used mixed GPUs (L40, L40S, A100-80GB, H200), so these cannot go into the paper as a comparison. RankZephyr:
-2.6-3.1 s on one RTX 4090 (Chen et al.).
+**Latency and energy (A100-SXM4-80GB, DL19, p50 per query).** Set-Encoder 0.24 s / 83 J, monoT5-3B 0.68 s / 258 J,
+Qwen3-Reranker-8B 2.85 s / 1,139 J, Prism-9B 4.28 s / 1,711 J, Kev-27B joint 14.34 s / 3,453 J, Kev-27B isolated
+23.13 s / 4,811 J, RankZephyr 22.30 s / 4,364 J. Joint is faster than isolated for every decision model. Kev is slow
+for its size (Kev-4B joint 10.08 s, slower than Clef at 27B): its exact-dtype path, to check before the table.
 
 ## 4. Cost estimate: a current RankGPT on our candidates (not run)
 
@@ -147,13 +149,15 @@ Fill the blanks from the model cards before the setup table is written.
 
 ## 7. Open questions for the owner
 
-Asked and answered 2026-10-08 (`docs/intent/paper-focus.md`):
+Answered 2026-10-09 (`docs/intent/paper-focus.md`): the headline is the negative result (reranker fine-tuning beats
+decision fine-tuning, 0.6B-9B); joint vs. isolated is part of RQ1; calibration is RQ2, argued in a discussion with
+the cutoff analysis and post-hoc scaling on msmarco-dev; no 27B reranker fine-tune (stated as a limitation); a
+question as the title.
 
-1. Headline: **open matches closed** (Kev-27B vs Jev, both above the trained rerankers).
-2. Efficiency: **API cost plus one fixed-GPU latency/energy run** (DL19/20, A100-SXM-80GB, NVML).
-3. Listwise baseline: **RankZephyr run by us** (DL19-23; BEIR from the literature); RankGPT-4 literature only.
-4. Main table: **joint mode only**; isolated rows in the RQ2 table.
+Still open:
 
-Follow-ups (same day): RQ1 leads with the headline (open vs. the closed Jev); the title stays open, *Calibrated System
-One Models as Rerankers*; Kanishka's QPP results get one paragraph; RQ2's explanation (window splits, passage length)
-goes into the main text.
+1. Citation for RLCD and the release dates of Jev, Clef and Kev (the "matched within weeks" argument).
+2. Rerun the Qwen3.5/3.8 grid cells with the causal-conv1d kernel, or state that most were computed without it?
+3. RQ2 metrics: set F1 at p >= 0.5 as the utility, or precision at the cutoff / a per-passage cost? Which msmarco-dev
+   subset (size, judged pairs only) to fit the scaling on?
+4. Kanishka's QPP results: named in the RQ2 discussion only, or rerun on our BM25 top-100 outputs?

@@ -48,7 +48,7 @@ DATASETS=(
     "dbpedia"    # BEIR dbpedia-entity
 )
 DEV_DATASETS=(
-    "msmarco-dev" # MS MARCO passage dev (small), 6,980 queries: fine-tuning (docs/roadmap.md); never reported
+    "msmarco-dev" # MS MARCO passage dev (small), 6,980 queries: fitting post-hoc calibration (RQ2), fine-tuning (docs/roadmap.md); never reported
 )
 
 # Reranker names as registered in src/cdm/rerankers/__init__.py (`cdm systems` lists them).
@@ -96,7 +96,7 @@ API_SYSTEMS=("jev-isolated" "jev-joint")
 
 # Grid cells we take from published papers instead of computing (results/literature.csv; docs/roadmap.md):
 # slurm/submit.sh skips them unless --include-literature. monoT5-3B is still computed on DL19/20, as the check that
-# our candidate sets reproduce the published numbers, and for its probabilities (calibration, RQ3).
+# our candidate sets reproduce the published numbers, and for its probabilities (calibration, RQ2).
 #   Usage: from_literature <system> <dataset>   (exit status 0 = taken from the literature)
 from_literature() {
     case "$1:$2" in

@@ -12,6 +12,33 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-09 -- New narrative: reranker fine-tuning beats decision fine-tuning; calibration as RQ2
+
+Owner's decision (`docs/intent/paper-focus.md`, rewritten): the headline "open matches closed" is dropped. Open decision
+fine-tunes matching the closed Jev within weeks is read as a sign of a training paradigm (RLCD), not a breakthrough,
+and becomes motivation. The paper now leads with a negative result on the triplets: reranker fine-tuning beats
+decision fine-tuning on every backbone where both exist (0.6B-9B; better decision mode vs. reranker fine-tune, Avg
+nDCG@10: -29.1, -6.7, -21.2, -7.3, -4.3), while decision fine-tuning stays within -3.6 to +3.7 of the zero-shot base
+model. An earlier reading in the project report ("decision fine-tuning gains over the base model only at 27B") was
+wrong: Kev-0.6B isolated is +3.2 over its base and Clef-Flash +1.0 at 9B.
+
+- **RQs:** RQ1 = decision vs. reranker fine-tuning on one backbone, joint vs. isolated folded in (explained by the
+  state length the model was trained on); RQ2 = is calibration still of use, argued in a discussion with Part A
+  (one cutoff p >= 0.5, set F1, regret against the oracle cutoff; stored outputs) and Part C (temperature/Platt
+  scaling of the reranker fine-tunes fitted on msmarco-dev). The three-RQ structure (effectiveness, joint vs.
+  isolated, calibration) is gone.
+- **Scope:** the claim covers 0.6B-9B; no 27B reranker fine-tune exists (limitation, not planned).
+- **Title:** a question, *Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One
+  Backbone* (working title).
+- **Renamed/removed:** `docs/notes/rq3-calibration-proposal.md` -> `docs/notes/calibration-proposal.md` (status and RQ
+  numbering updated); paper sections `05_joint_scoring.tex` removed, `06_calibration` -> `05_calibration`,
+  `07_conclusion` -> `06_conclusion`; `paper/tables/main.tex` replaced by `triplets.tex` (main table, RQ1) and
+  `context.tex` (other systems) from `src/cdm/paper_tables.py`. Stale terms added to the straighten-branch
+  deprecated list. Roadmap: new steps 5-7 (triplet runs, RQ1 analysis, RQ2 analysis incl. msmarco-dev runs); Phase 2
+  fine-tuning reframed as "rank like a reranker fine-tune, stay calibrated like a decision model".
+- Grid and registries unchanged: every system stays (Jev, Clef, Laya and the trained/listwise rerankers form the
+  context table). No queued job is affected.
+
 ## 2026-10-09 -- Triplet runs; why small Kev models fail in joint mode; causal-conv1d
 
 - **Triplet runs** mostly done (325 of 350 cells). 10 failures: GPU memory on long BEIR passages -- the yes/no

@@ -10,8 +10,8 @@ The owner's current decisions; `docs/roadmap.md` turns them into the setup.
   RankGPT/RankZephyr/monoT5 numbers).
 - **Take published numbers where they exist** -- mainly from Abdallah et al. (2025), "How Good are LLM-based
   Rerankers?" -- for RankGPT-4, RankZephyr-7B (not run by us), bge-reranker-v2-m3 and monoT5-3B; compute the rest.
-- **System One models:** Jev (closed), Clef-Flash and Clef, Kev in two sizes (4B, 27B), Laya. Every one joint and
-  isolated, except Laya (isolated only).
+- **System One models:** Jev (closed), Clef-Flash and Clef, Kev on six backbones (0.6B-27B, the decision fine-tunes
+  of the triplets, `docs/intent/paper-focus.md`), Laya. Every one joint and isolated, except Laya (isolated only).
 - **Baselines computed:** monoT5-3B, bge-reranker-v2-m3 (where no published number exists), Qwen3-Reranker-8B,
   Set-Encoder-large. Qwen3.7-Flash (an OpenRouter LLM judge at Jev's price) was run but dropped from the paper on
   2026-10-09: the triplets' base models (`docs/intent/paper-focus.md`) are the better-matched control.
@@ -28,4 +28,6 @@ The owner's current decisions; `docs/roadmap.md` turns them into the setup.
 ## Calibration
 
 - Unjudged documents count as non-relevant (the BEIR convention), stated in the paper.
-- The calibration results (RQ3) come only from the sets with judged non-relevant documents: DL19-DL23.
+- The calibration results (RQ2) come only from the sets with judged non-relevant documents: DL19-DL23.
+- Post-hoc calibration of the reranker fine-tunes (temperature, Platt) is fitted on `msmarco-dev` only, never on a
+  test split (2026-10-09).
