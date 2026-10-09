@@ -26,7 +26,8 @@ GPU_CONSTRAINT="gpumem.48gib"
 gpu_constraint_for() {
     case "$1" in
         clef-isolated | clef-joint | kev-27b-* | qwen3-reranker-8b | qwen3-8b-prompted | qwen3-8b-base-prompted | \
-            qwen3.5-9b-prompted | prism-9b | qwen3.8-27b-prompted | kev-8b-joint | kev-9b-joint)
+            qwen3.5-9b-prompted | prism-9b | qwen3.8-27b-prompted | kev-8b-joint | kev-9b-joint | \
+            qwen3.5-9b-reranker | qwen3.8-27b-reranker)
             echo "gpumem.80gib" ;;
         *) echo "${GPU_CONSTRAINT}" ;;
     esac
@@ -137,13 +138,13 @@ rerank_time_for() {
         # RankZephyr: 9 generated permutations per query with HF generate, roughly 30 s per query (estimate).
         dl*:rankzephyr-7b) echo "02:00:00" ;;
         # Touche's passages are long: Kev-27B isolated 1h27 (4360663), Kev-4B joint over 45 min (4360656, timeout).
-        touche:clef-* | touche:kev-27b-* | touche:qwen3.8-27b-prompted | touche:kev-8b-* | touche:kev-9b-*)
+        touche:clef-* | touche:kev-27b-* | touche:qwen3.8-27b-* | touche:kev-8b-* | touche:kev-9b-*)
             echo "03:00:00" ;;
         touche:*) echo "01:30:00" ;;
         # 100 candidates for <= 82 queries (DL19-23, TREC-COVID). Measured on DL21-23: Kev-27B isolated
         # 29-44 min (4357189-4357191), Clef 27B 7-18 min (4357165-4357170), everything else under 10 min.
         dl*:clef-isolated | dl*:clef-joint | dl*:kev-27b-* | trec-covid:clef-* | trec-covid:kev-27b-* | \
-            dl*:qwen3.8-27b-prompted | trec-covid:qwen3.8-27b-prompted | dl*:kev-8b-* | dl*:kev-9b-* | \
+            dl*:qwen3.8-27b-* | trec-covid:qwen3.8-27b-* | dl*:kev-8b-* | dl*:kev-9b-* | \
             trec-covid:kev-8b-* | trec-covid:kev-9b-*)
             echo "01:30:00" ;;
         dl* | trec-covid:*) echo "00:45:00" ;;
@@ -151,8 +152,8 @@ rerank_time_for() {
         # SciFact 2h51 of 3h (4360655).
         # Qwen3.5-9B prompted on NFCorpus ran out of 3h (4388990): Qwen3.5's linear attention runs the slow reference
         # causal_conv1d path in our container.
-        *:clef-isolated | *:clef-joint | *:kev-27b-* | nfcorpus:qwen3.8-27b-prompted | scifact:qwen3.8-27b-prompted | \
-            dbpedia:qwen3.8-27b-prompted | nfcorpus:qwen3.5-9b-prompted | scifact:qwen3.5-9b-prompted | \
+        *:clef-isolated | *:clef-joint | *:kev-27b-* | nfcorpus:qwen3.8-27b-* | scifact:qwen3.8-27b-* | \
+            dbpedia:qwen3.8-27b-* | nfcorpus:qwen3.5-9b-prompted | scifact:qwen3.5-9b-prompted | \
             dbpedia:qwen3.5-9b-prompted) echo "06:00:00" ;;
         nfcorpus:kev-4b-* | scifact:kev-4b-* | dbpedia:kev-4b-*) echo "05:00:00" ;;
         # Kev-8B/9B: about twice Kev-4B (unmeasured).
@@ -179,12 +180,14 @@ finetune_constraint_for() {
         *) echo "${GPU_CONSTRAINT}" ;;
     esac
 }
-# Estimates from the throughput probes (docs/notes/reranker-27b-plan.md); the job stops with a checkpoint 20 min
-# before the limit, and a chain of jobs with --resume finishes longer runs.
+# Estimates for 100k query groups of 16 (docs/notes/reranker-27b-plan.md, section 6): 9B LoRA measured 1,620 padded
+# tokens/s on one L40 (job 4398134), i.e. ~20 h on 2 x A100-80GB; 27B extrapolated to ~30 h on 4 x A100-80GB (probe
+# 4397306 pending). The job stops with a checkpoint before the limit; a chain of jobs with --resume finishes longer
+# runs. 0.8B: 1,024 groups in 5 min on one L40S (4397261-4397262).
 finetune_time_for() {
     case "$1" in
         qwen3.8-27b-reranker) echo "48:00:00" ;;
-        qwen3.5-9b-reranker) echo "24:00:00" ;;
+        qwen3.5-9b-reranker) echo "30:00:00" ;;
         *) echo "01:00:00" ;;
     esac
 }

@@ -73,6 +73,7 @@ def test_group_loss():
 
 def test_deadline(monkeypatch):
     monkeypatch.delenv("SLURM_JOB_END_TIME", raising=False)
+    monkeypatch.delenv("SLURM_JOB_START_TIME", raising=False)  # set when the tests run inside a Slurm job
     assert deadline(None, 20, 1000.0) is None
     assert deadline(1.0, 20, 1000.0) == 4600.0
     monkeypatch.setenv("SLURM_JOB_END_TIME", "4000")

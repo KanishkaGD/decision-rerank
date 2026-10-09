@@ -86,6 +86,13 @@ def finetune_data(name, negatives, n_queries, exclude, seed):
 @click.option("--lora-r", type=int, default=32, show_default=True)
 @click.option("--lora-alpha", type=int, default=64, show_default=True)
 @click.option("--lora-dropout", type=float, default=0.05, show_default=True)
+@click.option(
+    "--dtype",
+    type=click.Choice(["bfloat16", "float32"]),
+    default="bfloat16",
+    show_default=True,
+    help="Frozen base weights (LoRA weights are fp32 either way; float32 for CPU tests).",
+)
 @click.option("--no-gradient-checkpointing", is_flag=True)
 @click.option("--max-groups", type=int, default=None, help="Train on the first N groups only (smoke tests).")
 @click.option("--max-steps", type=int, default=None, help="Stop after N optimizer steps (throughput probes).")

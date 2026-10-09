@@ -12,6 +12,40 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-09 -- Preparing our own 27B reranker fine-tune (not trained yet)
+
+On the owner's request (in conflict with `docs/intent/paper-focus.md` decision 5, left untouched): everything needed
+to fill the empty reranker cell of the Qwen3.8-27B triplet with our own fine-tune, for approval. Plan and decisions:
+`docs/notes/reranker-27b-plan.md`. Code (commits 1ed5a9b, 2aafe8e, 9f96ce1 and the one with this entry):
+`cdm finetune-data` (`src/cdm/finetune_data.py`), `cdm finetune` (`src/cdm/finetune.py`, LoRA, Qwen3-Reranker prompt,
+listwise/pointwise loss, torchrun data parallel, checkpoint/resume, stop before the Slurm limit),
+`slurm/finetune.{sbatch,interactive.sh}`, adapters in the Qwen3Reranker reader (`cdm rerank --adapter`), systems
+`qwen3.8-27b-reranker`, `qwen3.5-9b-reranker`, `qwen3.5-0.8b-reranker` registered but not in the grid.
+
+- **Framework:** ms-swift 4.5.3 pins transformers < 5.17 and peft < 0.21 (container: 5.19 / 0.21.2; Kev and Clef
+  need >= 5.17), so a small custom trainer instead.
+- **Data** (prefetch job 4395282, 3 min): Tevatron/msmarco-passage-aug and Tevatron/msmarco-passage train files
+  (pinned revisions). `msmarco-mix-100k` (4 min on a CPU node): 100k queries, 1 positive + 8 dense + 7 BM25
+  negatives, text without title. The leakage filter (id, normalised text or bag of words of any DL19-23, BEIR or
+  msmarco-dev topic) removed 197 of 491,007 train queries, among them 12 DL21-23 queries (e.g. "what is Morgellons
+  disease", DL22) and 3 DL19/20 queries that occur verbatim in MS MARCO train.
+- **Smoke tests.** 0.8B on one L40S (exec 4395318; sbatch path 4397261-4397262 with a deadline stop at step 29 and
+  `--resume` to step 64): gradient checkpointing and the backward passes of fla (Gated DeltaNet) and causal-conv1d
+  work on Qwen3_5ForConditionalGeneration; 4.5 s per step of 16 groups, 3.1 GiB, loss from ln 16 = 2.8 to ~1.
+  Scored with the reader (`--adapter`, 5 DL19 queries, `--no-save`): nDCG@10 65.7 after 1,024 training groups vs
+  34.6 for `qwen3.5-0.8b-prompted` and 69.8 for Prism-0.8B -- the adapter loads and has learned (5 queries only).
+  First sbatch attempt (4396726-4396727) stopped after one step: the 20-min safety margin equalled the 20-min job
+  (margin now capped at 10% of the job).
+- **Throughput.** 9B on one L40 (4398134): 22.6 GiB, 9.3 s per step of 4 groups, 1,090 real / 1,620 padded tokens/s
+  (~48% of the L40's dense bf16 peak). Two groups per forward pass: no gain (4398146, L40S); no gradient
+  checkpointing: OOM at 44 GiB. Extrapolated for 100k groups: 9B ~40 A100-hours (2 GPUs, ~20 h), 27B ~120
+  A100-hours (4 GPUs, ~30 h), +-30%.
+- **Not done:** the 27B memory/throughput probe (4397306, 1 x 80 GB, 50 min) and a 2-GPU check of the data-parallel
+  path (4397307) are queued; Slurm estimated the 80 GB probe's start for Oct 13 -- the 80 GB nodes are the
+  bottleneck. The multi-rank code itself was checked on CPU instead (exec 4398196: 2 ranks with gloo, fp32, CUDA
+  kernels hidden; gradient all-reduce, rank-0 checkpoints, resume from step 2 to 4, final adapter); NCCL on GPUs
+  waits for 4397307.
+
 ## 2026-10-09 -- Qwen3.5/3.8 grid rerun on the causal-conv1d image
 
 Owner's decision: rerun every grid cell of a Qwen3.5/3.8-based system on the new container (causal-conv1d kernel),

@@ -168,7 +168,7 @@ def train(cfg: TrainConfig, resume: bool = False) -> Dict:
     rank = int(os.environ.get("RANK", "0"))
     local_rank = int(os.environ.get("LOCAL_RANK", "0"))
     if world > 1:
-        dist.init_process_group("nccl")
+        dist.init_process_group("nccl" if torch.cuda.is_available() else "gloo")  # gloo: CPU tests of this path
     device = torch.device("cuda", local_rank) if torch.cuda.is_available() else torch.device("cpu")
     if device.type == "cuda":
         torch.cuda.set_device(device)
@@ -301,12 +301,14 @@ def train(cfg: TrainConfig, resume: bool = False) -> Dict:
             tokens_log += n_tok
             padded_log += n_pad
         if world > 1:
+            # SUM / world rather than ReduceOp.AVG, which gloo lacks.
             for p in params:
                 if p.grad is not None:
-                    dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)
+                    dist.all_reduce(p.grad)
+                    p.grad /= world
             t = torch.tensor([step_loss], device=device)
-            dist.all_reduce(t, op=dist.ReduceOp.AVG)
-            step_loss = t.item()
+            dist.all_reduce(t)
+            step_loss = t.item() / world
         grad_norm = torch.nn.utils.clip_grad_norm_(params, 1.0).item()
         optimizer.step()
         scheduler.step()
