@@ -131,30 +131,29 @@ class LeakageFilter:
 
 def evaluation_queries(datasets: Sequence[str]) -> Iterator[Tuple[str, str, str]]:
     """
-    (dataset, qid, text) of every query of the given datasets, from their cached first-stage candidates
-    (runs/<dataset>/<default first stage>/candidates.jsonl.gz -- the queries we evaluate on) and, where present, every
-    other cached candidate set of the dataset. Fails if a dataset has no cache: the filter must not silently skip one.
+    (dataset, qid, text) of every query of the given datasets: all topics of the dataset's Pyserini topic file, judged
+    or not (msmarco-dev: all 6,980), plus any query in its cached candidate sets (runs/<dataset>/*/) -- so the filter
+    covers more than we evaluate on, never less. Fails if a topic file can't be read: no dataset is skipped silently.
     """
+    from pyserini.search import get_topics
+
     from cdm.datasets import get_dataset
-    from cdm.runs import read_candidates, run_dir
+    from cdm.runs import RUNS_FOLDER, read_candidates
 
     for name in datasets:
         ds = get_dataset(name)
-        default = os.path.join(run_dir(name, ds.default_first_stage), "candidates.jsonl.gz")
-        parent = os.path.dirname(os.path.dirname(default))
-        paths = sorted(
-            os.path.join(parent, d, "candidates.jsonl.gz")
-            for d in (os.listdir(parent) if os.path.isdir(parent) else [])
-            if os.path.exists(os.path.join(parent, d, "candidates.jsonl.gz"))
-        )
-        if default not in paths:
-            raise FileNotFoundError(f"No cached candidates for {name} ({default}): run `cdm first-stage {name}` first")
         seen = set()
-        for path in paths:
-            for q in read_candidates(path):
-                if q.qid not in seen:
-                    seen.add(q.qid)
-                    yield name, q.qid, q.query
+        for qid, topic in get_topics(ds.topics).items():
+            seen.add(str(qid))
+            yield name, str(qid), topic["title"]
+        parent = os.path.join(RUNS_FOLDER, name)
+        for d in sorted(os.listdir(parent)) if os.path.isdir(parent) else []:
+            path = os.path.join(parent, d, "candidates.jsonl.gz")
+            if os.path.exists(path):
+                for q in read_candidates(path):
+                    if q.qid not in seen:
+                        seen.add(q.qid)
+                        yield name, q.qid, q.query
 
 
 # ---------------------------------------------------------------------------------------------------------- groups
