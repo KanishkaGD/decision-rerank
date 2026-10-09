@@ -14,7 +14,7 @@
 MAIN     := main
 LATEXMK  := latexmk
 FLAGS    := -pdf -interaction=nonstopmode -file-line-error -halt-on-error
-TABLES   := tables/triplets.tex tables/context.tex
+TABLES   := tables/triplets.tex tables/context.tex tables/cutoff.tex
 SOURCES  := $(MAIN).tex rq-macros.tex $(wildcard sections/*.tex) $(TABLES) $(wildcard *.bib) \
             llncs.cls splncs04.bst $(wildcard images/*) $(wildcard figures/*)
 

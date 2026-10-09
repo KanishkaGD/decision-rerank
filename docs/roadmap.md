@@ -120,8 +120,9 @@ runs); the paper says so.
 6. **Analysis for RQ1**: triplet table and context table generated from `results/results.csv` and
    `results/literature.csv` into `paper/tables/` (`src/cdm/paper_tables.py`); paired tests; joint gain against the
    state length per model (tokens per joint request vs. the length in the model card).
-7. **RQ2**: the cutoff analysis from stored outputs (Part A); reranker fine-tunes on a msmarco-dev subset and the
-   post-hoc scaling (Part C); calibration table; the discussion.
+7. **RQ2**: the cutoff analysis from stored outputs (Part A: `cdm cutoff`, `paper/tables/cutoff.tex`; *done
+   2026-10-09*); reranker fine-tunes on a msmarco-dev subset and the post-hoc scaling (Part C); calibration table;
+   the discussion.
 8. **Related-work check** for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
    post on arXiv; submit to WSDM.
 

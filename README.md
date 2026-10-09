@@ -93,6 +93,7 @@ versions, hardware and configuration.
 | `cdm prefetch` | download indexes, topics, qrels and models into the caches |
 | `cdm first-stage <dataset>` | the BM25 top-100 (Pyserini search, or DL21-23's official file), cached for all rerankers |
 | `cdm rerank <system> <dataset>` | rerank the cache, store raw scores, evaluate, write results.csv |
+| `cdm cutoff` | RQ2, Part A: one fixed probability cutoff (p >= 0.3/0.5/0.7) on DL19-23 from the stored outputs -- set precision/recall/F1, oracle cutoff and regret, top-k F1 (`src/cdm/cutoff.py`; rows with `job` = `cutoff`) |
 | `cdm results` | print results.csv as a table |
 | `cdm info` | versions, paths, GPU |
 

@@ -85,8 +85,14 @@ size. Laya 44.0 is barely above BM25 (43.2). Every reranker is below BM25 on Tou
   monoT5-3B 0.36-0.42, Set-Encoder 0.47-0.58 (sigmoid of a logit, never meant as a probability).
 - Laya is the best calibrated (mean 0.131) and the weakest ranker: calibration and ranking quality are separate
   properties.
-- Not run yet: the cutoff analysis (p >= 0.5) and post-hoc scaling of the reranker fine-tunes on msmarco-dev
-  (`docs/notes/calibration-proposal.md`, Parts A and C). Without Part C, "just calibrate the reranker" is unanswered.
+- **Part A (one cutoff, p >= 0.5; `cdm cutoff`, `paper/tables/cutoff.tex`).** The reranker fine-tune has the best
+  set F1 at 0.5 on every backbone where it exists (e.g. Prism-4B 51.0 vs Kev-4B 41.0); Kev-27B joint is best overall
+  (55.1). A low regret (one cutoff fits every collection) is shared by the strong decision models (Kev-27B joint 2.9,
+  Clef joint 3.4) and by Prism (2.7-4.0) and bge-reranker (3.8); Qwen3-Reranker (9.0-14.9), monoT5-3B (9.9) and the
+  Set-Encoder (21.1) need a much higher cutoff (oracle mostly 0.85-0.99). Small and zero-shot base models keep nearly
+  every passage at 0.5.
+- Not run yet: post-hoc scaling of the reranker fine-tunes on msmarco-dev (Part C). Without it, "just calibrate the
+  reranker" is unanswered.
 
 **Cost (measured).** API cost per 1,000 queries: Jev joint $1.18, Jev isolated $2.29. Whole grid: Jev joint $1.62,
 Jev isolated $3.16. RankGPT-4 as published: $641 per 1,000 queries (Jin et al.)

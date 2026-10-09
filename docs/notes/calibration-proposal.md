@@ -3,7 +3,9 @@
 Status: **partly decided (2026-10-09).** Calibration is now RQ2 of the paper, behind the negative result of RQ1
 (reranker fine-tuning beats decision fine-tuning; `docs/intent/paper-focus.md`, decision 4). RQ2 stays an open
 question that the paper argues in a discussion, backed by **Part A** (one fixed cutoff) and **Part C** (calibrated
-after the fact); Part B (QPP) is named in the discussion only and stays Phase 2. The rest of this brief -- metrics,
+after the fact); Part B (QPP) is named in the discussion only and stays Phase 2. **Part A is implemented**
+(`cdm cutoff`, `src/cdm/cutoff.py`, `paper/tables/cutoff.tex`; first results in `docs/experiment-log.md`,
+2026-10-09). The rest of this brief -- metrics,
 related work, threats -- is still to be settled by the investigation.
 
 ## 0. Read first

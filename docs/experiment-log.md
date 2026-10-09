@@ -12,6 +12,35 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-09 -- RQ2 Part A: one fixed cutoff (p >= 0.5) on DL19-23
+
+New: `cdm cutoff` (`src/cdm/cutoff.py`, `src/cdm/cli/cutoff.py`) reads the stored probabilities of every rerank row on
+the default candidates of DL19-23 and writes one `job = cutoff` row per system and dataset to results.csv: set
+precision/recall/F1, size, share of empty sets and of unjudged passages at p >= 0.3/0.5/0.7, the per-dataset oracle
+cutoff (grid of 0.001) with its F1 and the regret of 0.5, and the F1 of the top-5/10/20. Conventions: relevant from
+grade 2, unjudged = non-relevant, recall relative to the relevant candidates, macro means over judged queries.
+bge-m3 and the Set-Encoder on DL19/20 come from the efficiency run (`variant = a100`, same candidates) because their
+default cells are literature numbers. Run with `slurm/exec.sh` on a CPU node (a few minutes, all 39 systems with
+probabilities, including dropped ones whose outputs still exist). Table: `paper/tables/cutoff.tex`.
+
+First reading (means over DL19-23, x 100; F1 at 0.5 / regret against the oracle cutoff):
+- **The reranker fine-tune wins here too.** Per backbone, best F1 at 0.5: Qwen3-Reranker-0.6B 31.8 (Kev-0.6B 20.7),
+  Qwen3-Reranker-8B 46.3 (Kev-8B isolated 40.1), Prism-0.8B 46.9 (Kev-0.8B 24.7), Prism-4B 51.0 (Kev-4B 41.0),
+  Prism-9B 50.7 (Clef-Flash isolated 49.2, Kev-9B 41.0). Kev-27B joint is the best system overall (55.1 / 2.9).
+- **One cutoff fits every collection for some models, not only decision models.** Low regret: Kev-27B joint 2.9,
+  Clef joint 3.4, Clef-Flash joint 2.4, Laya 1.2 -- but also Prism-0.8B/4B/9B 2.7 / 2.9 / 4.0 and bge-reranker
+  3.8, whose oracle cutoffs stay around 0.5-0.8. High regret: Set-Encoder 21.1, Qwen3-Reranker-0.6B 14.9, monoT5-3B
+  9.9, Qwen3-Reranker-8B 9.0, with oracle cutoffs of 0.85-0.99 (Qwen3-Reranker-8B 0.72-0.95): their
+  probabilities are too high.
+- Joint mode lowers the regret of the strong decision models (Kev-27B 2.9 vs 7.9 isolated, Clef 3.4 vs 5.8, Jev 6.2
+  vs 7.8), in line with their lower ECE. Jev's regret (6.2) is higher than the open 27B models'.
+- Small models and zero-shot base models keep almost everything at 0.5 (Qwen3-0.6B, Qwen3.5-0.8B base: ~99 of 100
+  passages); low regret there means a flat F1 curve, not good calibration. Several base models saturate at p = 1.0
+  (oracle cutoff 1.000).
+- So far RQ2 reads: a usable fixed cutoff is a property of some training recipes (decision fine-tuning, Prism, bge),
+  not of decision models alone. Part C (post-hoc scaling of Qwen3-Reranker/monoT5 on msmarco-dev) decides whether
+  the high-regret rerankers are one fitted parameter away.
+
 ## 2026-10-09 -- New narrative: reranker fine-tuning beats decision fine-tuning; calibration as RQ2
 
 Owner's decision (`docs/intent/paper-focus.md`, rewritten): the headline "open matches closed" is dropped. Open decision
