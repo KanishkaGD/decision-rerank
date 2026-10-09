@@ -12,6 +12,17 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-09 -- Qwen3.5/3.8 grid rerun on the causal-conv1d image
+
+Owner's decision: rerun every grid cell of a Qwen3.5/3.8-based system on the new container (causal-conv1d kernel),
+so the paper's numbers come from one implementation. Submitted with `--overwrite` (jobs 4393693-4393880, 188 jobs):
+Clef-Flash, Clef, Kev-4B, Kev-27B, Kev-0.8B, Kev-9B (joint and isolated), Prism-0.8B/4B/9B and the prompted
+Qwen3.5-0.8B/4B/9B and Qwen3.8-27B on all ten datasets. Skipped, because they already ran on the new image: Kev-9B
+joint on SciFact (4392314) and Qwen3.5-9B prompted on NFCorpus (4392309). Everything derived from these outputs
+(main and triplet tables, RQ2 cutoff rows, post-hoc rows that read their probabilities) has to be regenerated when
+the jobs are done. In parallel: a subagent prepares the 27B reranker fine-tune (plan, code, smoke tests; no
+training before the owner's go).
+
 ## 2026-10-09 -- RQ2 Part C: rerankers calibrated after the fact on msmarco-dev
 
 Runs: `cdm first-stage msmarco-dev --max-queries 1000` (job 4393343, 77 s; `runs/msmarco-dev/bm25-d100-max1000`), then
