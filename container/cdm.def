@@ -35,6 +35,9 @@ From: python:3.12-slim-trixie
     pip install --no-cache-dir "cuda-toolkit[nvcc,cccl]==13.0.3.0"
     export CUDA_HOME=/usr/local/lib/python3.12/site-packages/nvidia/cu13
     [ -e "${CUDA_HOME}/lib64" ] || ln -s lib "${CUDA_HOME}/lib64"
+    # The wheels ship only the versioned libcudart.so.13; the linker needs the plain name.
+    [ -e "${CUDA_HOME}/lib/libcudart.so" ] || ln -s "$(basename "$(ls "${CUDA_HOME}"/lib/libcudart.so.1* | head -1)")" \
+        "${CUDA_HOME}/lib/libcudart.so"
     export PATH="${CUDA_HOME}/bin:${PATH}"
     CAUSAL_CONV1D_FORCE_BUILD=TRUE CAUSAL_CONV1D_FORCE_CXX11_ABI=TRUE TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0" \
         MAX_JOBS=8 pip install --no-cache-dir --no-build-isolation "causal-conv1d==1.7.0"
