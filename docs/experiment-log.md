@@ -12,10 +12,10 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
-## 2026-10-09 -- RQ2 Part C: rerankers calibrated after the fact on msmarco-dev (preliminary, Prism-9B pending)
+## 2026-10-09 -- RQ2 Part C: rerankers calibrated after the fact on msmarco-dev
 
 Runs: `cdm first-stage msmarco-dev --max-queries 1000` (job 4393343, 77 s; `runs/msmarco-dev/bm25-d100-max1000`), then
-the eight trained rerankers on it (4393344-4393351; 6-46 min each, Prism-9B still running). `cdm posthoc`
+the eight trained rerankers on it (4393344-4393351; 6 min to 1 h 14 min each). `cdm posthoc`
 (`src/cdm/posthoc.py`) fits temperature (sigmoid(a z)) and Platt (sigmoid(a z + b)) scaling on each reranker's stored
 logit and evaluates them on the ten test collections (rows `job = posthoc`, `variant` = native/temperature/platt;
 table `paper/tables/posthoc.tex`).
@@ -24,7 +24,8 @@ table `paper/tables/posthoc.tex`).
   msmarco-dev judges about one passage per query, and every unjudged candidate counts as non-relevant. Platt
   therefore learns a large negative bias (b = -5.3 to -8.6) and transfers badly to the densely judged DL sets:
   ECE on judged DL pairs ends near 0.23 for every reranker (better than native for Qwen3-Reranker-0.6B 0.511,
-  monoT5-3B 0.312 and Set-Encoder 0.495, worse for Prism-4B 0.218 -> 0.238), and the set at p >= 0.5 is almost
+  monoT5-3B 0.312 and Set-Encoder 0.495; worse for Prism-4B 0.218 -> 0.238 and bge 0.231 -> 0.236; about equal for
+  Prism-0.8B and Prism-9B), and the set at p >= 0.5 is almost
   empty (F1@0.5 5.7-7.4, regret 41-48). ECE with unjudged = non-relevant does improve (e.g. DL23 0.05-0.06), but only
   because that convention matches the sparse fit labels.
 - **Temperature scaling** lowers DL ECE for every reranker (Qwen3-Reranker-0.6B 0.511 -> 0.326, monoT5-3B 0.312 ->

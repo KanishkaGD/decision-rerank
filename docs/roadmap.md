@@ -124,7 +124,8 @@ runs); the paper says so.
    state length per model (tokens per joint request vs. the length in the model card).
 7. **RQ2**: the cutoff analysis from stored outputs (Part A: `cdm cutoff`, `paper/tables/cutoff.tex`; *done
    2026-10-09*); the trained rerankers on the first 1,000 msmarco-dev queries (`bm25-d100-max1000`) and their
-   post-hoc scaling (Part C: `cdm posthoc`, `paper/tables/posthoc.tex`); calibration table; the discussion.
+   post-hoc scaling (Part C: `cdm posthoc`, `paper/tables/posthoc.tex`; *first fit done 2026-10-09, fit data open*);
+   calibration table; the discussion.
 8. **Related-work check** for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
    post on arXiv; submit to WSDM.
 

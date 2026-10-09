@@ -1,14 +1,15 @@
-# Do System One Models Make Better Rerankers? Status 2026-10-09 (new narrative)
+# Do System One Models Make Better Rerankers? Status 2026-10-09 (evening)
 
 > On one backbone at a time, we compare three training objectives: none (the base model asked S1Rank's question
 > zero-shot), decision fine-tuning (System One models: Kev, Clef) and reranker fine-tuning (Qwen3-Reranker,
 > Prism). **Headline: a negative result.** Reranker fine-tuning beats decision fine-tuning on every backbone where
 > both exist (0.6B–9B), by 4–29 nDCG@10 points on average and also on the collections without a training split.
 > Decision fine-tuning moves the base model by only −3.6 to +3.7 points. **RQ2** asks whether the one thing decision
-> models have and reranker fine-tunes lack, calibrated probabilities, is still of use; we argue it in a discussion,
-> backed by a cutoff analysis and post-hoc calibration of the reranker fine-tunes. **Status:** narrative switched on
-> 2026-10-09; the triplet grid has 325 of 350 cells; the RQ2 analyses are not run yet. WSDM 2027 short paper, arXiv
-> first. **Deadline: Nov 17, 2026.**
+> models have and reranker fine-tunes lack, calibrated probabilities, is still of use. **New since the morning:**
+> Part A (one fixed cutoff, p ≥ 0.5) and Part C (eight trained rerankers calibrated after the fact on msmarco-dev)
+> are done. Neither turns RQ2 into a clear win for decision models, and Part C exposes a problem with the fitting
+> data that needs a decision. Triplet grid: 325 of 350
+> cells, 3 still running. **Deadline: Nov 17, 2026.**
 
 ## Research questions and headline
 
@@ -30,7 +31,10 @@ backbone. Open vs. closed is now motivation, not a claim.
 | Decision fine-tuning adds little over the base model | better decision mode minus base, Avg: +3.2, −0.6, −1.7, −1.3, −3.6 (Kev-9B) / +1.0 (Clef-Flash), +3.7 at 27B; reranker fine-tune minus base: +5.3 to +32.3 | supported |
 | At 27B the decision fine-tune is the best system | Kev-27B joint 61.1, ahead of Qwen3-Reranker-8B 59.4 and Prism-9B 59.0 | true, but there is no 27B reranker fine-tune to compare with; stated as a limitation |
 | Joint scoring needs a model trained on long states | joint − isolated: Jev +1.0, Kev-27B +1.4; Kev-4B −1.5, Clef-Flash −1.9; Kev-0.6B joint AUC 0.49 | supported for Kev (trained states ≤ 7.5k tokens vs ~13k joint DL states); tests pending |
-| Decision models are better calibrated out of the box | mean ECE DL19-23: Kev-27B joint 0.156, Clef joint 0.147 vs Qwen3-Reranker-8B 0.257, monoT5-3B 0.312 | supported, but **not yet shown to be useful**: RQ2's cutoff and post-hoc-scaling analyses are open |
+| Decision models are better calibrated out of the box | mean ECE DL19-23: Kev-27B joint 0.156, Clef joint 0.147 vs Qwen3-Reranker-8B 0.257, monoT5-3B 0.312 | supported, but Prism-4B (0.218) and bge (0.231) are close to Jev (0.224) |
+| A calibrated model allows one cutoff across collections | regret of p ≥ 0.5 vs the oracle cutoff: Kev-27B joint 2.9, Clef joint 3.4, but also Prism 2.7–4.0 and bge 3.8; Qwen3-Reranker 9.0–14.9, monoT5-3B 9.9, Set-Encoder 21.1 | partly: a property of some training recipes, not of decision models alone |
+| Even then the reranker fine-tune keeps the better set | best F1 at p ≥ 0.5 per backbone is the reranker fine-tune's (e.g. Prism-4B 51.0 vs Kev-4B 41.0) | supported; extends the negative result to RQ2 |
+| Post-hoc calibration does not close the gap | temperature (fit on msmarco-dev) lowers ECE but not below 0.20; Platt collapses the cutoff (F1@0.5 ≈ 6) | partly: rests on the sparse msmarco-dev labels |
 
 ## Results
 
@@ -88,27 +92,53 @@ average. That is the motivation for the controlled comparison above.
 
 ### RQ2: is calibration still of use?
 
-ECE, 15 bins, judged pairs of DL19-23 (lower is better):
+**ECE** (15 bins, judged pairs of DL19-23, mean; lower is better): decision models Clef-Flash joint 0.140, Clef joint
+0.147, Kev-27B joint 0.156, Jev joint 0.224, Laya 0.131; trained rerankers Prism-4B 0.218, bge 0.231, Prism-0.8B
+0.243, Qwen3-Reranker-8B 0.257, monoT5-3B 0.312, Set-Encoder 0.495, Qwen3-Reranker-0.6B 0.511. (bge and Set-Encoder on
+DL19/20 from our efficiency runs; their published cells have no probabilities.)
 
-| System | DL19 | DL20 | DL21 | DL22 | DL23 | mean |
-|---|---:|---:|---:|---:|---:|---:|
-| monoT5-3B | 0.185 | 0.248 | 0.359 | 0.347 | 0.421 | 0.312 |
-| Qwen3-Reranker-8B | 0.123 | 0.188 | 0.309 | 0.298 | 0.365 | 0.257 |
-| Set-Encoder-large | – | – | 0.474 | 0.547 | 0.580 | 0.534 |
-| Jev joint / isolated | 0.157 / 0.192 | 0.227 / 0.266 | 0.244 / 0.290 | 0.225 / 0.253 | 0.265 / 0.301 | 0.224 / 0.260 |
-| Clef joint / isolated | 0.095 / 0.174 | 0.155 / 0.238 | 0.162 / 0.271 | 0.151 / 0.232 | 0.172 / 0.281 | 0.147 / 0.240 |
-| Kev-4B joint / isolated | 0.174 / 0.137 | 0.259 / 0.214 | 0.243 / 0.234 | 0.297 / 0.244 | 0.283 / 0.249 | 0.251 / 0.216 |
-| Kev-27B joint / isolated | 0.098 / 0.203 | 0.145 / 0.257 | 0.186 / 0.309 | 0.163 / 0.252 | 0.189 / 0.290 | 0.156 / 0.262 |
-| Laya | 0.066 | 0.102 | 0.134 | 0.173 | 0.178 | 0.131 |
+**Part A: one fixed cutoff** (keep p ≥ 0.5; means over DL19-23, × 100; regret = F1 at the per-collection oracle
+cutoff − F1 at 0.5; unjudged passages count as non-relevant):
 
-**Planned evidence** (`docs/notes/calibration-proposal.md`; none run yet):
-- **One cutoff (Part A):** keep every passage with p ≥ 0.5. Report set F1 and the regret against the per-dataset
-  oracle cutoff for the decision fine-tunes and for the reranker fine-tunes' native probabilities, with fixed top-k
-  as the baseline. Uses stored outputs only.
-- **Calibrated after the fact (Part C):** temperature and Platt scaling of the reranker fine-tunes, fitted on a
-  msmarco-dev subset. This needs new runs on msmarco-dev. It answers the reviewer's "just calibrate the reranker".
-- **Discussion:** cutoffs for RAG, QPP (Kanishka's results), "no relevant passage" detection. Can one model rank like
-  a reranker fine-tune and stay calibrated like a decision model? That is roadmap Phase 2.
+| System | F1 at 0.5 | Regret | Oracle cutoff range | Kept at 0.5 | Top-10 F1 |
+| --- | ---: | ---: | --- | ---: | ---: |
+| Kev-27B joint | 55.1 | 2.9 | 0.53–0.82 | 22.7 | 45.6 |
+| Clef joint | 52.2 | 3.4 | 0.47–0.76 | 23.4 | 43.1 |
+| Prism-4B | 51.0 | 2.9 | 0.49–0.65 | 23.1 | 44.2 |
+| Prism-9B | 50.7 | 4.0 | 0.54–0.62 | 26.0 | 44.3 |
+| Jev joint | 49.9 | 6.2 | 0.61–0.81 | 29.1 | 45.5 |
+| bge-reranker-v2-m3 | 48.2 | 3.8 | 0.71–0.81 | 29.3 | 42.2 |
+| Qwen3-Reranker-8B | 46.3 | 9.0 | 0.72–0.95 | 32.2 | 43.5 |
+| monoT5-3B | 42.0 | 9.9 | 0.85–0.99 | 35.6 | 42.7 |
+| Kev-4B isolated | 41.0 | 4.6 | 0.59–0.88 | 30.5 | 36.9 |
+| Kev-8B isolated | 40.1 | 6.4 | 0.87–0.93 | 36.5 | 37.7 |
+| Set-Encoder-large | 31.6 | 21.1 | 0.98–0.99 | 52.2 | 44.7 |
+
+**Part C: calibrated after the fact** (temperature T and Platt P scaling of each reranker's logit, fitted on the
+first 1,000 msmarco-dev queries × 100 candidates; N = native; DL means; BEIR = ECE with unjudged as non-relevant):
+
+| Reranker | ECE DL N / T / P | F1 at 0.5 N / P | Regret N / P | ECE BEIR N / P |
+| --- | --- | --- | --- | --- |
+| Qwen3-Reranker-0.6B | 0.511 / 0.326 / 0.226 | 31.8 / 6.3 | 14.9 / 40.6 | 0.169 / 0.152 |
+| Qwen3-Reranker-8B | 0.257 / 0.237 / 0.227 | 46.3 / 7.4 | 9.0 / 47.5 | 0.095 / 0.152 |
+| Prism-0.8B | 0.243 / 0.229 / 0.237 | 46.9 / 5.7 | 2.7 / 43.7 | 0.247 / 0.147 |
+| Prism-4B | 0.218 / 0.202 / 0.238 | 51.0 / 5.7 | 2.9 / 47.9 | 0.240 / 0.149 |
+| monoT5-3B | 0.312 / 0.257 / 0.232 | 42.0 / 5.8 | 9.9 / 46.0 | – (BEIR from literature) |
+| bge-reranker-v2-m3 | 0.231 / 0.226 / 0.236 | 48.2 / 5.7 | 3.8 / 45.9 | – (BEIR from literature) |
+| Set-Encoder-large | 0.495 / 0.250* / 0.236 | 31.6 / 5.7 | 21.1 / 47.2 | 0.369 / 0.148 |
+| Prism-9B | 0.242 / 0.233 / 0.238 | 50.7 / 5.7 | 4.0 / 48.4 | 0.242 / 0.150 |
+
+\* degenerate: the temperature collapses to a ≈ 0, so every probability is 0.5.
+
+**What it shows:**
+- Part A: a usable fixed cutoff comes with some training recipes (decision fine-tuning, Prism, bge), not with
+  decision models alone, and the reranker fine-tune still has the better set on every backbone.
+- Part C: temperature scaling lowers ECE but leaves every reranker above the strong decision models (0.14–0.16) and
+  cannot change the set at 0.5. Platt scaling learns the base rate of the fit data: only 683 of the 100,000 dev
+  candidates are judged relevant (0.7%), so it pushes all probabilities down, and on densely judged DL almost nothing
+  is kept at 0.5.
+- That supports "decision models are calibrated without labelled fitting data, rerankers are not", but it rests on
+  the fitting data. A fair test needs either a prior correction or a densely judged non-test set (open question 1).
 
 ### Cost and efficiency (DL19, one A100-SXM4-80GB, p50 per query)
 
@@ -148,15 +178,15 @@ on the A100s: Kev-9B isolated and Qwen3.8-27B prompted.
 
 **Runs**
 - [ ] Last triplet cells: Kev-8B joint NFCorpus/SciFact, Kev-9B joint SciFact (running).
-- [ ] RQ2 Part C: reranker fine-tunes (Qwen3-Reranker-0.6B/8B, Prism-0.8B/4B/9B, maybe monoT5-3B) on a msmarco-dev
-  subset. Needs `cdm first-stage msmarco-dev` and an analysis module for the scaling.
+- [x] RQ2 Part A: one fixed cutoff (`cdm cutoff`, `paper/tables/cutoff.tex`).
+- [x] RQ2 Part C, first fit: eight trained rerankers on 1,000 msmarco-dev queries, `cdm posthoc`,
+  `paper/tables/posthoc.tex`.
+- [ ] RQ2 Part C, second fit once the fit data is decided (prior correction or another dev set; open question 1).
 - [ ] Decide on rerunning Qwen3.5/3.8 cells with the causal-conv1d kernel.
 
 **Analysis**
 - [ ] Paired tests: reranker fine-tune vs. the better decision mode per backbone; joint vs. isolated (Holm).
-- [ ] RQ2 Part A from stored outputs: cutoff F1, regret, oracle cutoff per dataset.
 - [ ] Joint gain against state length per model.
-- [ ] Commit `results/results.csv` and regenerate `paper/tables/triplets.tex` and `context.tex`.
 
 **Paper**
 - [ ] Write it: every section is `\TODO`/`\PENDING` (structure now: introduction, related work, setup, decision vs.
@@ -165,20 +195,26 @@ on the A100s: Kev-9B isolated and Qwen3.8-27B prompted.
 
 ## Open questions for the meeting
 
-1. **RLCD source and the "within weeks" claim.** What do we cite, and what are the release dates?
-2. **RQ2 utility.** Is set F1 at p ≥ 0.5 the right measure, or precision at the cutoff, or a cost per passage? Which
-   msmarco-dev subset do we fit the scaling on?
-3. **Kernel change.** Do we rerun the Qwen3.5/3.8 cells (Kev, Clef, Prism, base models) or state it?
-4. **Training-data confound.** The reranker fine-tunes saw MS MARCO. Is the zero-shot subset enough to answer this,
+1. **Part C fit data.** msmarco-dev has 0.7% relevant candidates (sparse judgments), so Platt scaling pushes every
+   probability down and the fixed cutoff collapses on DL. Do we (a) report this as the finding ("rerankers need
+   densely judged labels to be calibrated, decision models don't"), (b) add a prior-corrected Platt fit, or (c) find
+   a densely judged non-test collection to fit on?
+2. **RQ2's message.** Part A says a fixed cutoff works for Prism and bge too, and the reranker fine-tune keeps the
+   better set. Is RQ2 then "calibration is a property of training recipes, not of decision models", and is set F1
+   at p ≥ 0.5 the right utility (vs. precision at the cutoff or a cost per passage)?
+3. **RLCD source and the "within weeks" claim.** What do we cite, and what are the release dates?
+4. **Kernel change.** Do we rerun the Qwen3.5/3.8 cells (Kev, Clef, Prism, base models) or state it?
+5. **Training-data confound.** The reranker fine-tunes saw MS MARCO. Is the zero-shot subset enough to answer this,
    or do we need more?
-5. **Writing split and timeline** up to the arXiv post and Nov 17.
+6. **Writing split and timeline** up to the arXiv post and Nov 17.
 
 ## Risks and limitations
 
 - **No 27B reranker fine-tune:** at the one size where decision fine-tuning leads, the comparison is missing.
 - **Different training data** between the fine-tunes (MS MARCO vs. none); the zero-shot subset has only three
   collections.
-- **RQ2 is unproven so far:** without Part C, "just calibrate the reranker" is unanswered.
+- **RQ2 is weaker than hoped:** some reranker fine-tunes (Prism, bge) allow a fixed cutoff as well, and Part C's
+  answer to "just calibrate the reranker" depends on the fit data.
 - **Mixed code versions** for the Qwen3.5/3.8 cells (kernel).
 - Literature numbers (RankGPT-4, RankZephyr BEIR, part of bge/monoT5/Set-Encoder) have no per-query runs; benchmark
   contamination; Jev is closed and vendor-versioned.
