@@ -68,3 +68,11 @@ def test_without_judged_nonrelevant_pairs_only_unjudged0():
     (q,) = _queries(np.array([1.0, -1.0, 0.5]), np.array([1, -1, -1]), size=3)
     out = evaluate_scaled([q], with_cutoff=False)
     assert "ECE" not in out and "ECE_unjudged0" in out
+
+
+def test_temperature_stays_positive():
+    rng = np.random.default_rng(2)
+    z = rng.uniform(3.0, 6.0, size=2_000)  # uniformly positive logits, few positives: only a < 0 would lower p
+    y = (rng.random(z.size) < 0.01).astype(float)
+    a, b = fit_logistic(z, y, bias=False)
+    assert a > 0 and b == 0.0

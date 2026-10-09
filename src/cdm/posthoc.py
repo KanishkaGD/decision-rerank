@@ -48,7 +48,8 @@ def fit_logistic(z: np.ndarray, y: np.ndarray, bias: bool, iterations: int = 100
     """
     Minimum-NLL (a, b) of p = sigmoid(a z + b) by Newton's method with a backtracking line search (plain Newton
     overshoots from a poor start); b = 0 without bias (temperature scaling, T = 1/a). One or two parameters, so it
-    converges in a few steps; a tiny ridge keeps the Hessian invertible when the classes separate.
+    converges in a few steps; a tiny ridge keeps the Hessian invertible when the classes separate. Without bias the
+    slope is kept positive.
     """
     X = np.stack([z, np.ones_like(z)], axis=1) if bias else z[:, None]
     w = np.zeros(X.shape[1])
@@ -71,6 +72,12 @@ def fit_logistic(z: np.ndarray, y: np.ndarray, bias: bool, iterations: int = 100
         if abs(current - new) < 1e-12 or np.max(np.abs(t * step)) < 1e-10:
             break
         current = new
+    if not bias and w[0] <= 0:
+        # A temperature must be positive (a negative one reverses the ranking). Without a bias, a negative slope is
+        # the only way to push uniformly positive logits down (the Set-Encoder's); take the best positive slope
+        # instead, by a search over log a.
+        grid = np.exp(np.linspace(np.log(1e-4), np.log(100.0), 2001))
+        w = np.array([grid[int(np.argmin([loss(np.array([g])) for g in grid]))]])
     return float(w[0]), float(w[1]) if bias else 0.0
 
 

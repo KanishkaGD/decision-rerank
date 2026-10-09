@@ -12,6 +12,33 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-09 -- RQ2 Part C: rerankers calibrated after the fact on msmarco-dev (preliminary, Prism-9B pending)
+
+Runs: `cdm first-stage msmarco-dev --max-queries 1000` (job 4393343, 77 s; `runs/msmarco-dev/bm25-d100-max1000`), then
+the eight trained rerankers on it (4393344-4393351; 6-46 min each, Prism-9B still running). `cdm posthoc`
+(`src/cdm/posthoc.py`) fits temperature (sigmoid(a z)) and Platt (sigmoid(a z + b)) scaling on each reranker's stored
+logit and evaluates them on the ten test collections (rows `job = posthoc`, `variant` = native/temperature/platt;
+table `paper/tables/posthoc.tex`).
+
+- **The fit data is the problem.** The 1,000 dev queries x 100 candidates have 683 relevant passages (0.7%):
+  msmarco-dev judges about one passage per query, and every unjudged candidate counts as non-relevant. Platt
+  therefore learns a large negative bias (b = -5.3 to -8.6) and transfers badly to the densely judged DL sets:
+  ECE on judged DL pairs ends near 0.23 for every reranker (better than native for Qwen3-Reranker-0.6B 0.511,
+  monoT5-3B 0.312 and Set-Encoder 0.495, worse for Prism-4B 0.218 -> 0.238), and the set at p >= 0.5 is almost
+  empty (F1@0.5 5.7-7.4, regret 41-48). ECE with unjudged = non-relevant does improve (e.g. DL23 0.05-0.06), but only
+  because that convention matches the sparse fit labels.
+- **Temperature scaling** lowers DL ECE for every reranker (Qwen3-Reranker-0.6B 0.511 -> 0.326, monoT5-3B 0.312 ->
+  0.257, Qwen3-Reranker-8B 0.257 -> 0.237) but none reaches the decision models' 0.14-0.16 (Kev-27B joint 0.156,
+  Clef joint 0.147, Clef-Flash joint 0.140), and by construction it leaves the set at 0.5 unchanged.
+- **Bug fixed on the way:** without a bias term the Set-Encoder's uniformly positive logits made the fit choose a
+  negative slope (a = -0.095), which reverses the ranking. The temperature is now constrained positive; for the
+  Set-Encoder it then collapses to a ~ 0 (every probability 0.5) -- degenerate, to be read as "temperature scaling
+  cannot fix it".
+- Reading so far: "just calibrate the reranker" needs densely judged in-domain labels; with what MS MARCO offers,
+  post-hoc scaling does not give the reranker fine-tunes the decision models' out-of-the-box calibration, and Platt
+  makes the fixed cutoff unusable. Whether a fairer fit set exists is open (owner decision): msmarco-dev with a
+  prior correction, or a densely judged non-test collection.
+
 ## 2026-10-09 -- RQ2 Part A: one fixed cutoff (p >= 0.5) on DL19-23
 
 New: `cdm cutoff` (`src/cdm/cutoff.py`, `src/cdm/cli/cutoff.py`) reads the stored probabilities of every rerank row on
