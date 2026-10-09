@@ -120,13 +120,20 @@ def group_loss(z, labels, group_size: int, loss: str):
 
 
 def deadline(max_hours: Optional[float], margin_min: float, start: float) -> Optional[float]:
-    """When to stop: the earlier of start + max_hours and the Slurm job's end minus the margin (None: never)."""
+    """
+    When to stop: the earlier of start + max_hours and the Slurm job's end minus the margin (None: never). The margin
+    is at most a tenth of the job's length, so short jobs (smoke tests) still train.
+    """
     ends = []
     if max_hours:
         ends.append(start + max_hours * 3600)
-    end = os.environ.get("SLURM_JOB_END_TIME")
-    if end and end.isdigit():
-        ends.append(int(end) - margin_min * 60)
+    end = os.environ.get("SLURM_JOB_END_TIME", "")
+    if end.isdigit():
+        begin = os.environ.get("SLURM_JOB_START_TIME", "")
+        margin = margin_min * 60
+        if begin.isdigit():
+            margin = min(margin, 0.1 * (int(end) - int(begin)))
+        ends.append(int(end) - margin)
     return min(ends) if ends else None
 
 

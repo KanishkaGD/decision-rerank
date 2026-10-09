@@ -78,6 +78,8 @@ def test_deadline(monkeypatch):
     monkeypatch.setenv("SLURM_JOB_END_TIME", "4000")
     assert deadline(None, 20, 1000.0) == 2800.0
     assert deadline(1.0, 20, 1000.0) == 2800.0
+    monkeypatch.setenv("SLURM_JOB_START_TIME", "1000")  # a 50-min job: margin capped at 5 min
+    assert deadline(None, 20, 1000.0) == 3700.0
 
 
 def test_latest_checkpoint(tmp_path):
