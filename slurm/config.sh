@@ -20,12 +20,14 @@ GPU_CONSTRAINT="gpumem.48gib"
 
 # The GPU memory feature for one system. The 27B models (Clef: ~55 GB of bf16 weights; Kev-27B: ~51 GB plus ~15 GB
 # of batching buffers) need the A100-80GB/H200 nodes, which are only in the gpu partition (slurm/exec.sh needs
-# --partition gpu for them). So does Qwen3-Reranker-8B: ~32 GB of fp32 weights plus batches of long passages ran out
+# --partition gpu for them). Kev-8B/9B joint ran out of memory on 44 GiB with long BEIR states (4389021-4389046).
+# So does Qwen3-Reranker-8B: ~32 GB of fp32 weights plus batches of long passages ran out
 # of memory on the 44 GiB L40S (jobs 4360571-4360575).
 gpu_constraint_for() {
     case "$1" in
         clef-isolated | clef-joint | kev-27b-* | qwen3-reranker-8b | qwen3-8b-prompted | qwen3-8b-base-prompted | \
-            qwen3.5-9b-prompted | prism-9b | qwen3.8-27b-prompted) echo "gpumem.80gib" ;;
+            qwen3.5-9b-prompted | prism-9b | qwen3.8-27b-prompted | kev-8b-joint | kev-9b-joint)
+            echo "gpumem.80gib" ;;
         *) echo "${GPU_CONSTRAINT}" ;;
     esac
 }
@@ -147,8 +149,11 @@ rerank_time_for() {
         dl* | trec-covid:*) echo "00:45:00" ;;
         # 300-400 queries (NFCorpus, SciFact, DBPedia). Kev-27B isolated up to 2h37 (4360664), Kev-4B joint on
         # SciFact 2h51 of 3h (4360655).
+        # Qwen3.5-9B prompted on NFCorpus ran out of 3h (4388990): Qwen3.5's linear attention runs the slow reference
+        # causal_conv1d path in our container.
         *:clef-isolated | *:clef-joint | *:kev-27b-* | nfcorpus:qwen3.8-27b-prompted | scifact:qwen3.8-27b-prompted | \
-            dbpedia:qwen3.8-27b-prompted) echo "06:00:00" ;;
+            dbpedia:qwen3.8-27b-prompted | nfcorpus:qwen3.5-9b-prompted | scifact:qwen3.5-9b-prompted | \
+            dbpedia:qwen3.5-9b-prompted) echo "06:00:00" ;;
         nfcorpus:kev-4b-* | scifact:kev-4b-* | dbpedia:kev-4b-*) echo "05:00:00" ;;
         # Kev-8B/9B: about twice Kev-4B (unmeasured).
         nfcorpus:kev-8b-* | scifact:kev-8b-* | dbpedia:kev-8b-* | nfcorpus:kev-9b-* | scifact:kev-9b-* | \

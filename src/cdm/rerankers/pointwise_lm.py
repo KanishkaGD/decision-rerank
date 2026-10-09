@@ -206,7 +206,7 @@ class Qwen3Reranker(_YesNoReranker):
         for idx in _length_batches([len(x) for x in ids], self.batch_size):
             enc = self.tokenizer.pad({"input_ids": [ids[i] for i in idx]}, return_tensors="pt").to(self.device)
             with torch.inference_mode():
-                z = self.model(**enc).logits[:, -1, [self.no_id, self.yes_id]].float()
+                z = self.model(**enc, logits_to_keep=1).logits[:, -1, [self.no_id, self.yes_id]].float()
             for i, (z_no, z_yes) in zip(idx, z.cpu().tolist()):
                 out[i] = z_yes - z_no
         return out

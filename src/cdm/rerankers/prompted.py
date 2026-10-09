@@ -94,7 +94,7 @@ class PromptedJudge(_YesNoReranker):
         for idx in _length_batches([len(x) for x in ids], self.batch_size):
             enc = self.tokenizer.pad({"input_ids": [ids[i] for i in idx]}, return_tensors="pt").to(self.device)
             with torch.inference_mode():
-                last = self.model(**enc).logits[:, -1, :].float()
+                last = self.model(**enc, logits_to_keep=1).logits[:, -1, :].float()
                 z_yes = torch.logsumexp(last[:, self.yes_ids], dim=-1)
                 z_no = torch.logsumexp(last[:, self.no_ids], dim=-1)
             for i, d in zip(idx, (z_yes - z_no).cpu().tolist()):
