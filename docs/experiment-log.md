@@ -57,6 +57,14 @@ joint on SciFact (4392314) and Qwen3.5-9B prompted on NFCorpus (4392309). Everyt
 the jobs are done. In parallel: a subagent prepares the 27B reranker fine-tune (plan, code, smoke tests; no
 training before the owner's go).
 
+Outcome (2026-10-10): 186 of 188 jobs completed. Per cell nDCG@10 moved by at most 0.6 points, averages by at most
+0.2 (Clef isolated 56.2 -> 56.4); no conclusion changes. Two cells failed again and were resubmitted: Clef joint on
+Touché ran out of memory on an 80 GB GPU (now an H200, 4409289), Kev-27B joint on DL20 hit 1h30 on kuat2 (now 3 h,
+4409290); their rows still hold the old-image numbers. 27B fine-tune probe (4397306, 1 x A100-80GB, LoRA r 32,
+4 groups of 16 per step): 61.2 GiB peak, ~16 s per step, ~630 real tokens/s, i.e. ~4 s per group -- ~110
+A100-hours for 100k groups, consistent with the plan's extrapolated 120. The 2-GPU check (4397307) hit its 15-minute
+limit; multi-GPU training is still untested on GPUs.
+
 ## 2026-10-09 -- RQ2 Part C: rerankers calibrated after the fact on msmarco-dev
 
 Runs: `cdm first-stage msmarco-dev --max-queries 1000` (job 4393343, 77 s; `runs/msmarco-dev/bm25-d100-max1000`), then
