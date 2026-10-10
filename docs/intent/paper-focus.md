@@ -31,9 +31,14 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
 
    Query performance prediction (Kanishka's results) is named in the discussion as a further use; the study stays
    Phase 2.
-5. **Scope of the claim: 0.6B-9B.** No reranker fine-tune of the 27B backbone exists. The paper says so and notes
-   that Kev-27B (the best system on average) only edges much smaller reranker fine-tunes (Qwen3-Reranker-8B,
-   Prism-9B); a 27B reranker fine-tune is not planned.
+5. **Our own 27B reranker fine-tune** (revised 2026-10-10; before: "not planned"). No published reranker fine-tune
+   of Qwen3.8-27B exists, so we train one with the recipe in `docs/notes/reranker-27b-plan.md` (LoRA on the
+   checkpoint Kev-27B and Clef start from; MS MARCO, 100k queries; ranking + yes/no loss; checkpoints chosen on
+   msmarco-dev only). First a 9B validation run with the same recipe (`qwen3.5-9b-reranker`) against Prism-9B. The
+   27B run (`qwen3.8-27b-reranker`) starts only if the validation succeeds, by the criterion fixed before its results:
+   average nDCG@10 over the ten datasets within 2 points of Prism-9B (>= 57.0) and above every 9B decision fine-tune
+   (Clef-Flash isolated, 54.7). Otherwise the paper keeps the claim at 0.6B-9B and says that no 27B reranker
+   fine-tune exists.
 6. **Triplets, full scale line.** On one backbone: the base model (zero-shot), its decision fine-tune and its
    reranker fine-tune -- Qwen3-0.6B, Qwen3-8B, Qwen3.5-0.8B, Qwen3.5-4B, Qwen3.5-9B and Qwen3.8-27B. Table in
    `docs/roadmap.md`, "Triplets".

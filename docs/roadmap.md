@@ -116,7 +116,7 @@ runs); the paper says so.
 4. **RankZephyr and the efficiency run** (`docs/intent/paper-focus.md`): RankZephyr-7B on DL19-23 with rank_llm's
    prompt (`src/cdm/rerankers/listwise.py`; DL19/20 against the published 74.2 / 70.2); GPU energy from NVML in
    results.csv (`src/cdm/energy.py`); all local models on DL19/20 on one A100-SXM-80GB. *Done 2026-10-09
-   (RankZephyr DL19/20 74.3 / 70.0); reruns with the causal-conv1d kernel queued.*
+   (RankZephyr DL19/20 74.3 / 70.0); reruns with the causal-conv1d kernel done 2026-10-10.*
 5. **Triplet runs** (`slurm/config.sh`, the triplet systems): base models, Kev-0.6B/0.8B/8B/9B, Qwen3-Reranker-0.6B,
    Prism-0.8B/4B/9B on all ten datasets. *325 of 350 cells done 2026-10-09.*
 6. **Analysis for RQ1**: triplet table and context table generated from `results/results.csv` and
@@ -126,16 +126,18 @@ runs); the paper says so.
    2026-10-09*); the trained rerankers on the first 1,000 msmarco-dev queries (`bm25-d100-max1000`) and their
    post-hoc scaling (Part C: `cdm posthoc`, `paper/tables/posthoc.tex`; *first fit done 2026-10-09, fit data open*);
    calibration table; the discussion.
-8. **Related-work check** for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
+8. **Our 27B reranker fine-tune** (`docs/notes/reranker-27b-plan.md`, `docs/intent/paper-focus.md` 5): the 9B
+   validation run against Prism-9B, then -- if it passes -- the 27B run, both scored on all ten datasets.
+9. **Related-work check** for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
    post on arXiv; submit to WSDM.
 
 ### Phase 2 -- after the submission (arXiv extension, follow-up paper)
 
-9. **Probabilities as a control signal**: query performance prediction (Kanishka's QPP results on DL19/20 are the
+10. **Probabilities as a control signal**: query performance prediction (Kanishka's QPP results on DL19/20 are the
    starting point), "no relevant document" detection, adaptive rerank depth. Uses the Phase 1 outputs; little new
    compute.
-10. **Fine-tuning for both**: reranker fine-tuning with a calibration term in the loss, or decision fine-tuning
+11. **Fine-tuning for both**: reranker fine-tuning with a calibration term in the loss, or decision fine-tuning
     followed by reranker fine-tuning, on MS MARCO (`msmarco-dev` for selection) -- can one model rank like a
     reranker fine-tune and stay calibrated like a decision model? Backbone chosen from the Phase 1 triplets.
-11. **BRIGHT**: where fast System One judges fail on reasoning-intensive queries, against an LLM reranker, with an
+12. **BRIGHT**: where fast System One judges fail on reasoning-intensive queries, against an LLM reranker, with an
    error analysis of 20 failure cases.
