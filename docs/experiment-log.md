@@ -12,6 +12,15 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-10 -- 9B validation run of our reranker recipe started
+
+Owner's go (2026-10-10): run the 9B validation; if it succeeds, the 27B fine-tune follows
+(`docs/intent/paper-focus.md` 5, criterion fixed before any result: average nDCG@10 over the ten datasets >= 57.0,
+i.e. within 2 points of Prism-9B's 59.0, and above Clef-Flash isolated, 54.7). `qwen3.5-9b-reranker`: LoRA r 32 on
+Qwen3.5-9B (post-trained), msmarco-mix-100k, `--loss both`, 2 x 80 GB, jobs 4411777 (30 h) and 4411778 (resume
+after it, exits at once if the first finished). Before that: paper tables regenerated after the causal-conv1d
+rerun, with `cdm cutoff` and `cdm posthoc` recomputed on the new probabilities (commit fa96d1e).
+
 ## 2026-10-09 -- Preparing our own 27B reranker fine-tune (not trained yet)
 
 On the owner's request (in conflict with `docs/intent/paper-focus.md` decision 5, left untouched): everything needed
