@@ -90,7 +90,8 @@ SYSTEMS=(
     "kev-9b-isolated"
     "kev-9b-joint"
     "prism-9b"
-    "qwen3.8-27b-prompted" # Qwen3.8-27B | Kev-27B, Clef (above) | no reranker fine-tune exists
+    "qwen3.8-27b-prompted" # Qwen3.8-27B | Kev-27B, Clef (above) | our reranker fine-tune, once trained
+    "qwen3.5-9b-reranker"  # our reranker fine-tune of Qwen3.5-9B (recipe validation vs Prism-9B; reranker-27b-plan.md)
 )
 # Systems served by an external API: slurm/submit.sh runs them on the general (CPU) partition, no GPU.
 API_SYSTEMS=("jev-isolated" "jev-joint")
