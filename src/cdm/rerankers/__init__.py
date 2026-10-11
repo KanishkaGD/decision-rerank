@@ -62,13 +62,16 @@ PRISM_REVISIONS = {
 # Our own reranker fine-tunes (docs/notes/reranker-27b-plan.md, `cdm finetune`): a LoRA adapter on the post-trained
 # release, trained with Qwen3-Reranker's prompt and read like it. The 27B one fills the empty reranker cell of the
 # Qwen3.8-27B triplet; the 9B one validates the recipe against Prism-9B on the same architecture; the 0.8B one is the
-# smoke-test/pilot size. Not in slurm/config.sh until the owner approves the training. (name, base, revision, dtype
+# smoke-test/pilot size. In slurm/config.sh once trained. (name, base, revision, dtype
 # at scoring time, batch size)
 OWN_RERANKERS = [
     ("qwen3.8-27b-reranker", "Qwen/Qwen3.8-27B", "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0", "bfloat16", 16),
     ("qwen3.5-9b-reranker", "Qwen/Qwen3.5-9B", "c202236235762e1c871ad0ccb60c8ee5ba337b9a", "float32", 16),
     ("qwen3.5-0.8b-reranker", "Qwen/Qwen3.5-0.8B", "2fc06364715b967f1860aea9cf38778875588b17", "float32", 64),
 ]
+# The checkpoint each fine-tune is scored with, chosen on msmarco-dev by the rule fixed in the plan (keep `final`
+# unless an earlier checkpoint is more than 1 point better on MRR@10); docs/experiment-log.md records the choice.
+SELECTED_CHECKPOINT = {"qwen3.5-9b-reranker": "checkpoint-800"}
 
 
 def _system_one(name: str, model_id: str, backend: str, revision: Optional[str] = None) -> List["SystemSpec"]:
@@ -140,7 +143,11 @@ SYSTEMS: Dict[str, SystemSpec] = {
                 name,
                 "qwen3-reranker",
                 model_id,
-                {"batch_size": batch, "dtype": dtype, "adapter": f"checkpoints/{name}/final"},
+                {
+                    "batch_size": batch,
+                    "dtype": dtype,
+                    "adapter": f"checkpoints/{name}/{SELECTED_CHECKPOINT.get(name, 'final')}",
+                },
                 revision=rev,
             )
             for name, model_id, rev, dtype, batch in OWN_RERANKERS
