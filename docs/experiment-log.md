@@ -36,6 +36,8 @@ least as strong as Prism's on this backbone. Side finding for RQ2: mean ECE on D
 model (best: Clef-Flash joint 0.140) -- the yes/no BCE term gives a calibrated reranker fine-tune. As decided, the 27B
 run follows.
 
+27B run submitted: `qwen3.8-27b-reranker`, same recipe, 4 x 80 GB, 48 h budget: jobs 4429626 and 4429627 (resume after it).
+
 ## 2026-10-09 -- Preparing our own 27B reranker fine-tune (not trained yet)
 
 On the owner's request (in conflict with `docs/intent/paper-focus.md` decision 5, left untouched): everything needed
