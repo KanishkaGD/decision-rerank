@@ -26,8 +26,15 @@ Training finished: 1,562 steps in 8.3 h on 2 H200s (kuat2), peak 25.7 GiB per GP
 4427685), MRR@10 x 100: step 200 39.6, 400 38.9, 600 40.3, **800 41.8**, 1000 40.1, 1200 39.6, 1400 40.5, final
 40.2. By the rule fixed in the plan (keep `final` unless an earlier checkpoint is more than 1 point better),
 checkpoint-800 (+1.6) is the selected model; the differences are within noise for 200 queries, but the rule was
-fixed in advance. Scored on all ten datasets with `--adapter checkpoints/qwen3.5-9b-reranker/checkpoint-800`
-(4428637-4428646).
+fixed in advance. Scored on all ten datasets (first attempt 4428637-4428646 refused: `--adapter` needs a
+`--variant`; instead the registry now pins the selected checkpoint, `SELECTED_CHECKPOINT`; rerun 4428776-4428785).
+
+**Validation passed.** `qwen3.5-9b-reranker` (nDCG@10 x 100): DL19 73.8, DL20 70.0, DL21 67.3, DL22 52.1, DL23 47.0,
+COVID 84.2, NFC 37.1, SciFact 77.9, Touché 36.5, DBPedia 47.7 -- **Avg 59.4** (criterion >= 57.0; Prism-9B 59.0),
+zero-shot subset 56.1 (Prism-9B 53.7), above every 9B decision fine-tune (Clef-Flash isolated 54.7). Our recipe is at
+least as strong as Prism's on this backbone. Side finding for RQ2: mean ECE on DL19-23 0.111, lower than any decision
+model (best: Clef-Flash joint 0.140) -- the yes/no BCE term gives a calibrated reranker fine-tune. As decided, the 27B
+run follows.
 
 ## 2026-10-09 -- Preparing our own 27B reranker fine-tune (not trained yet)
 
