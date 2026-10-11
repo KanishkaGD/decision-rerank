@@ -21,6 +21,14 @@ Qwen3.5-9B (post-trained), msmarco-mix-100k, `--loss both`, 2 x 80 GB, jobs 4411
 after it, exits at once if the first finished). Before that: paper tables regenerated after the causal-conv1d
 rerun, with `cdm cutoff` and `cdm posthoc` recomputed on the new probabilities (commit fa96d1e).
 
+Training finished: 1,562 steps in 8.3 h on 2 H200s (kuat2), peak 25.7 GiB per GPU, final loss ~0.6; the resume job
+(4411778) found the run finished and exited. Checkpoint selection on the first 200 msmarco-dev queries (4427678-
+4427685), MRR@10 x 100: step 200 39.6, 400 38.9, 600 40.3, **800 41.8**, 1000 40.1, 1200 39.6, 1400 40.5, final
+40.2. By the rule fixed in the plan (keep `final` unless an earlier checkpoint is more than 1 point better),
+checkpoint-800 (+1.6) is the selected model; the differences are within noise for 200 queries, but the rule was
+fixed in advance. Scored on all ten datasets with `--adapter checkpoints/qwen3.5-9b-reranker/checkpoint-800`
+(4428637-4428646).
+
 ## 2026-10-09 -- Preparing our own 27B reranker fine-tune (not trained yet)
 
 On the owner's request (in conflict with `docs/intent/paper-focus.md` decision 5, left untouched): everything needed
