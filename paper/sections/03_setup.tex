@@ -7,36 +7,50 @@
 \label{sec:setup}
 
 \paragraph{Triplets.}
-\TODO{Per backbone (Qwen3-0.6B, Qwen3-8B, Qwen3.5-0.8B/4B/9B, Qwen3.8-27B) three training objectives:
-none (the post-trained release asked S1Rank's question zero-shot, $P(\text{yes})$ of the first answer
-token), decision fine-tuning (Kev~\cite{Kev}; Clef~\cite{Clef} on the 9B and 27B backbones) and reranker
-fine-tuning (Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding}, Prism~\cite{Zhang2026Prism}; none exists
-for 27B). Which checkpoint each fine-tune starts from; training data (the reranker fine-tunes saw
-MS~MARCO, Kev did not). Robustness check: Qwen3-8B-Base with a completion prompt.}
+For each of six backbones (Qwen3-0.6B and 8B, Qwen3.5-0.8B, 4B and 9B, Qwen3.8-27B) we compare three training
+objectives. \emph{None}: the post-trained release, asked the same yes/no question as the decision models in its chat
+format (thinking off), scored by $P(\text{yes})$ at the first answer token. \emph{Decision fine-tuning}: the Kev
+models~\cite{Kev,KevCards} (LoRA on the -Base checkpoints up to 9B, a full fine-tune of the post-trained Qwen3.8-27B),
+and Clef-Flash (9B) and Clef (27B)~\cite{Clef}. \emph{Reranker fine-tuning}: Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding}
+(on Qwen3-*-Base, the checkpoints Kev-0.6B and Kev-8B start from) and Prism~\cite{Zhang2026Prism} (Qwen3.5), which
+read relevance as $P(\text{yes})$ over the logits of ``yes'' and ``no''. No reranker fine-tune of Qwen3.8-27B is
+public. On Qwen3.5-9B we add our own reranker fine-tune (\emph{Ours-9B}), trained without any decision data: LoRA
+($r=32$) on the post-trained release, one epoch over 100k MS~MARCO training queries, each with one judged positive
+and 15 hard negatives (dense-retriever and BM25), with a listwise InfoNCE loss plus a binary cross-entropy on the
+yes/no logit; training queries that match a test or development topic were removed, and the checkpoint was chosen
+on 200 MS~MARCO dev queries. The training data differ: Qwen3-Reranker, Prism and Ours-9B saw MS~MARCO, Kev's
+published sources contain neither MS~MARCO nor BEIR~\cite{KevCards}.
 
-\paragraph{Collections.}
+\paragraph{Collections and candidates.}
 TREC DL 2019--2023~\cite{Craswell2020DL19,Craswell2021DL20} on the MS~MARCO v1 and v2 passage
 corpora~\cite{Nguyen2016MSMARCO}, and TREC-COVID, NFCorpus, SciFact, Touch\'e and DBPedia from
-BEIR~\cite{Thakur2021BEIR}. TREC-COVID, Touch\'e and DBPedia have no training split in any of the
-fine-tunes' data and form the zero-shot subset.
+BEIR~\cite{Thakur2021BEIR}. TREC-COVID, Touch\'e and DBPedia have no training split in any fine-tune's data and form
+the \emph{zero-shot subset} (ZS). Every system reranks the BM25 top-100 of Pyserini~\cite{Lin2021Pyserini} (for DL
+2021--2023 the official top-100 files, the same set) -- the candidates of S1Rank~\cite{S1Rank},
+RankGPT~\cite{Sun2023RankGPT}, RankZephyr~\cite{Pradeep2023RankZephyr} and Abdallah et
+al.~\cite{Abdallah2025HowGood}, whose published numbers we report where we did not recompute them (marked
+$^\dagger$).
 
-\paragraph{Candidates.}
-Every reranker sees the BM25 top-100 of Pyserini~\cite{Lin2021Pyserini} ($k_1=0.9$, $b=0.4$; for
-DL 2021--2023 the official top-100 files, which are the same set) -- the candidates of
-S1Rank~\cite{S1Rank}, RankGPT~\cite{Sun2023RankGPT}, RankZephyr~\cite{Pradeep2023RankZephyr} and
-the comparison of Abdallah et al.~\cite{Abdallah2025HowGood}, whose numbers we report where we do
-not recompute them (marked in the tables).
-
-\paragraph{Decision models and modes.}
-All decision models are asked S1Rank's yes/no question~\cite{S1Rank}, fixed in advance, and score
-each candidate either jointly (all candidates of a query in one state) or in isolation (one
-candidate per request); both are pointwise. \TODO{Context systems: \jev{}, \laya{} (isolated only),
-bge-reranker-v2-m3, monoT5-3B, Set-Encoder-large~\cite{Schlatt2025SetEncoder}, RankZephyr (run by
-us on DL) and RankGPT-4 (literature). Parameters, context length, cost.}
+\paragraph{Decision models.}
+Every decision model is asked S1Rank's question~\cite{S1Rank} (``Is document \texttt{\{doc\}} relevant to the
+\texttt{query}? Relevant means it answers the query or contains information that directly addresses it.''), fixed in
+advance, and returns a probability per candidate. Following S1Rank, the state holds either all 100 candidates of a
+query (\emph{joint}) or one candidate (\emph{isolated}); both modes are pointwise. Besides the triplets we run the
+closed \jev{} (version 1.13.0, both modes), \laya{}~\cite{Laya} (isolated; its context is too short for a joint
+state), monoT5-3B~\cite{Nogueira2020monoT5}, bge-reranker-v2-m3~\cite{Chen2024BGEM3},
+Set-Encoder-large~\cite{Schlatt2025SetEncoder} and the listwise RankZephyr-7B~\cite{Pradeep2023RankZephyr} (DL only).
 
 \paragraph{Metrics.}
-nDCG@10 with ir\_measures~\cite{MacAvaney2022irmeasures}; paired $t$-tests over queries,
-Holm-corrected across collections. Calibration: ECE and Brier score~\cite{Guo2017Calibration} on the
-judged pairs of DL 2019--2023 (relevant from grade 2). \TODO{Cutoff: set precision, recall and $F_1$
-at $p \ge 0.5$ and the regret against the per-collection oracle cutoff; temperature and Platt scaling
-fitted on MS~MARCO dev only. Latency and energy on one A100; API cost.}
+Ranking: nDCG@10 with ir\_measures~\cite{MacAvaney2022irmeasures}. Calibration: expected calibration error
+(ECE, 15 equal-width bins)~\cite{Guo2017Calibration} on the judged pairs of DL 2019--2023 (relevant from grade 2),
+the only collections with judged non-relevant passages. \emph{One cutoff}: per query we keep every candidate with
+$p \ge 0.5$ and report the set's $F_1$ and the regret against the best cutoff of each collection chosen afterwards
+(unjudged passages count as non-relevant). \emph{After the fact}: temperature and Platt
+scaling~\cite{Guo2017Calibration} of each reranker's logit, fitted on the BM25 top-100 of 1,000 MS~MARCO dev queries
+(unjudged as non-relevant), never on a test collection.
+
+\paragraph{Sanity checks.}
+Our BM25 matches Pyserini's two-click reproductions~\cite{Pyserini2CR} on all ten collections; our monoT5-3B and
+RankZephyr runs are within 0.2 points nDCG@10 of the published DL 2019/2020 numbers~\cite{Abdallah2025HowGood}; our
+\jev{} joint runs are within 0.5 points of S1Rank's~\cite{S1Rank} on four of five shared collections (1.5 below on
+TREC-COVID).
