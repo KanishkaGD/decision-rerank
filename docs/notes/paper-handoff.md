@@ -224,7 +224,7 @@ His notes: `docs/notes/kanishka-notes-2026-10-11.md`.
       `answer`) and new base-model prompts in `src/cdm/rerankers/prompted.py`. Submit jev-joint, kev-27b-joint,
       clef-joint, kev-4b-joint and qwen3.8-27b-prompted on DL19–23, plus kev-9b/clef-flash-joint if the 9B triplet is
       to be compared. Results stay apart by phrasing id.
-- [ ] Paired significance tests for RQ1 (he asks for them too).
+- [x] Paired significance tests for RQ1 (he asks for them too): `cdm significance`, marks in the triplet table (2026-10-12).
 - [x] Joint vs. isolated by state length: a paragraph in `04_reranking.tex`.
 - [ ] Efficiency numbers: optional (left out for the 6 pages).
 - [x] Bib: TREC DL 2021–2023 overview papers (Craswell et al. 2021, 2022, 2023), author lists from the papers.

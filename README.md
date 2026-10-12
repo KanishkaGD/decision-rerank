@@ -94,6 +94,7 @@ versions, hardware and configuration.
 | `cdm first-stage <dataset>` | the BM25 top-100 (Pyserini search, or DL21-23's official file), cached for all rerankers |
 | `cdm rerank <system> <dataset>` | rerank the cache, store raw scores, evaluate, write results.csv |
 | `cdm cutoff` | RQ2, Part A: one fixed probability cutoff (p >= 0.3/0.5/0.7) on DL19-23 from the stored outputs -- set precision/recall/F1, oracle cutoff and regret, top-k F1 (`src/cdm/cutoff.py`; rows with `job` = `cutoff`) |
+| `cdm significance` | RQ1: paired t-tests over queries on the stored per-query nDCG@10 (reranker fine-tune vs. best decision fine-tune, that one vs. base, joint vs. isolated), Holm across the ten collections (`src/cdm/significance.py`; rows with `job` = `significance`; marks in the triplet table). Run via `slurm/exec.sh` (needs scipy) |
 | `cdm posthoc` | RQ2, Part C: temperature and Platt scaling of the trained rerankers' logits, fitted on a msmarco-dev subset (`bm25-d100-max1000`), evaluated on all test collections (ECE/Brier, Part A's cutoff on DL; `src/cdm/posthoc.py`; rows with `job` = `posthoc`) |
 | `cdm finetune-data <name>` | training groups for our reranker fine-tunes: MS MARCO train queries, 1 positive + hard negatives, minus every query shared with a test collection or msmarco-dev (`src/cdm/finetune_data.py`; sources via `cdm prefetch --training-data`) |
 | `cdm finetune <system> <data>` | LoRA reranker fine-tune with Qwen3-Reranker's prompt and yes/no readout, scored by the existing reader (`src/cdm/finetune.py`; plan: `docs/notes/reranker-27b-plan.md`) |

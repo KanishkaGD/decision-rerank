@@ -115,3 +115,19 @@ def test_context_short_table():
     tex = context_short_table(cells)
     row = next(x for x in tex.splitlines() if x.startswith("\\jev{} & System One, joint"))
     assert row.split(" & ")[2:] == ["50.0\\rlap{$^\\dagger$}", "50.0", "50.0\\rlap{$^\\dagger$}", "50.0 \\\\"]
+
+
+def test_triplet_table_significance_marks(tmp_path):
+    from cdm.paper_tables import load_significance
+
+    columns = ["job", "system", "dataset", "variant", "subset", "sig_comparison", "sig_holm"]
+    _write(tmp_path / "results.csv", columns, [
+        {"job": "significance", "system": "prism-4b", "dataset": "dl19", "variant": "vs-kev-4b-isolated",
+         "sig_comparison": "reranker-vs-decision", "sig_holm": "1"},
+        {"job": "significance", "system": "prism-4b", "dataset": "dl20", "variant": "vs-kev-4b-isolated",
+         "sig_comparison": "reranker-vs-decision", "sig_holm": "0"},
+    ])
+    marks = load_significance(str(tmp_path))
+    assert marks == {("prism-4b", "dl19"): "\\ast"}
+    tex = triplet_table({("prism-4b", "dl19"): (0.744, False)}, marks)
+    assert "\\textbf{74.4}\\rlap{$^{\\ast}$}" in tex

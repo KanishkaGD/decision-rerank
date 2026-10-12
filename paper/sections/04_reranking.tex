@@ -13,21 +13,23 @@
 On all five backbones where both exist, the reranker fine-tune ranks better than the decision fine-tune in either
 mode (Table~\ref{tab:triplets}; average over ten collections, Qwen3-0.6B: 56.1 vs.\ 27.0; Qwen3-8B: 59.4 vs.\ 52.7;
 Qwen3.5-0.8B: 57.1 vs.\ 36.0; Qwen3.5-4B: 58.7 vs.\ 51.3; at 9B: 59.0 for Prism and 59.4 for Ours-9B vs.\ 54.7
-for Clef-Flash), and on almost every single collection. The zero-shot subset tells the same story (e.g.\ 54.9 vs.\
-30.9 at 0.6B, 56.1 vs.\ 49.0 at 9B), so the gap is not owed to in-domain MS~MARCO training; nor to proprietary data,
-since Ours-9B, trained on MS~MARCO alone, matches Prism-9B. Decision fine-tuning barely moves the zero-shot base
-model -- its better mode lies between 3.5 points below (Kev-9B) and 3.7 above (Kev-27B) the base average -- whereas
-reranker fine-tuning adds 5 to 32 points (no significance tests were run). Only on the backbone without a reranker fine-tune does a decision fine-tune lead: Kev-27B (joint) is the
-best system of the study (61.1), but only edges reranker fine-tunes a third its size (59.4).
+for Clef-Flash). The lead is significant on 46 of the 60 backbone--collection pairs and never significantly
+reversed ($^\ast$). The zero-shot subset tells the same story (e.g.\ 54.9 vs.\ 30.9 at 0.6B, 56.1 vs.\ 49.0 at 9B),
+so the gap is not owed to in-domain MS~MARCO training; nor to proprietary data, since Ours-9B, trained on MS~MARCO
+alone, matches Prism-9B. Decision fine-tuning barely moves the zero-shot base model up to 9B -- its better mode lies
+between 3.5 points below and 3.2 above the base average, with significant differences in both directions on at
+most five collections ($^\dagger$) -- whereas reranker fine-tuning adds 5 to 32 points. Only Kev-27B improves on its
+base (by 3.7, significant on eight collections); on that backbone, without a reranker fine-tune, it is the best
+system of the study (61.1), but only edges reranker fine-tunes a third its size (59.4).
 
 \paragraph{Joint vs.\ isolated.}
-Joint scoring helps only models trained on long states: Kev-27B gains 1.3 points and \jev{} 1.0
-(Table~\ref{tab:context-short}), Kev-9B and Clef stay within 0.3, Kev-4B and Clef-Flash lose about 1.5 to 2, and
-Kev-0.6B, Kev-0.8B and Kev-8B lose 10.7 to 13.9. According to their cards~\cite{KevCards}, Kev-0.8B and Kev-4B were
-trained on states of at most 7,552 tokens and Kev-27B on up to 32,768, whereas a joint state has about 13k tokens on
-TREC DL and 40k or more on BEIR. Beyond the trained length a question is no longer tied to its passage: Kev-0.6B
-joint separates relevant from non-relevant passages at chance level on DL 2019/2020, and its probabilities rise with
-a passage's position in the state. (Kev-8B's card states no training length.)
+Joint scoring helps only models trained on long states, and only slightly: Kev-27B gains 1.3 points and \jev{} 1.0
+(Table~\ref{tab:context-short}; Kev-27B significantly on one collection), Kev-9B and Clef stay within 0.3, Kev-4B and
+Clef-Flash lose about 1.5 to 2, and Kev-0.6B, Kev-0.8B and Kev-8B lose 10.7 to 13.9, significantly on 6 to 10
+collections ($^\ddagger$). Kev-0.8B and Kev-4B were trained on states of at most 7,552 tokens, Kev-27B on up to
+32,768~\cite{KevCards} (Kev-8B's card states none), whereas a joint state has about 13k tokens on TREC DL and 40k or
+more on BEIR. Beyond that length a question is no longer tied to its passage: Kev-0.6B joint separates relevant from
+non-relevant passages at chance level on DL 2019/2020, its probabilities rising with the position in the state.
 
 \input{tables/context-short}
 

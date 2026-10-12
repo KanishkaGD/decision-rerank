@@ -210,9 +210,30 @@ def _header(lines: List[str], first: str, extra: List[str]) -> None:
     ]
 
 
-def triplet_table(cells: Cells) -> str:
+# RQ1 significance marks in the triplet table (`cdm significance` rows): comparison -> superscript on the first system.
+SIGNIFICANCE_MARKS = {"reranker-vs-decision": "\\ast", "decision-vs-base": "\\dagger", "joint-vs-isolated": "\\ddagger"}
+Significance = Dict[Tuple[str, str], str]  # (system, dataset) -> marks of its significant comparisons
+
+
+def load_significance(results_folder: str = RESULTS_FOLDER) -> Significance:
+    """(system, dataset) -> the superscripts of the comparisons in which it differs significantly (Holm)."""
+    marks: Dict[Tuple[str, str], str] = {}
+    with open(os.path.join(results_folder, "results.csv"), newline="") as f:
+        for row in csv.DictReader(f):
+            if row["job"] != "significance" or row.get("sig_holm") != "1":
+                continue
+            mark = SIGNIFICANCE_MARKS.get(row.get("sig_comparison", ""))
+            if mark:
+                key = (row["system"], row["dataset"])
+                marks[key] = marks.get(key, "") + mark
+    return marks
+
+
+def triplet_table(cells: Cells, significance: Optional[Significance] = None) -> str:
     """RQ1: the triplets -- per backbone the base model, its decision fine-tunes (both modes) and its reranker
-    fine-tune; nDCG@10 per dataset, the mean over all ten and over the zero-shot subset. Best per backbone in bold."""
+    fine-tune; nDCG@10 per dataset, the mean over all ten and over the zero-shot subset. Best per backbone in bold;
+    significant differences (`cdm significance`) as superscripts."""
+    significance = significance or {}
     datasets = [d for d, _ in DATASETS]
     columns = datasets + ["avg", "zs"]
 
@@ -231,8 +252,10 @@ def triplet_table(cells: Cells) -> str:
         "\\caption{Base model, decision fine-tune and reranker fine-tune on the same backbone (nDCG@10, $\\times 100$,",
         "BM25 top-100). Base: the post-trained release asked S1Rank's question zero-shot. Decision fine-tunes in joint",
         "and isolated mode. Avg: mean over all ten collections; ZS: mean over the collections without a training split",
-        "(TREC-COVID, Touch\\'e, DBPedia). Best per backbone and column in bold. No reranker fine-tune of the 27B",
-        "backbone exists.}",
+        "(TREC-COVID, Touch\\'e, DBPedia). Best per backbone and column in bold. Paired $t$-test, Holm-corrected over",
+        "the ten collections, $p < 0.05$: $^\\ast$ reranker fine-tune vs.\\ the decision fine-tune with the best Avg,",
+        "$^\\dagger$ that decision fine-tune vs.\\ the base model, $^\\ddagger$ joint vs.\\ isolated. No reranker",
+        "fine-tune of the 27B backbone exists.}",
         "\\label{tab:triplets}",
         "\\centering",
         "\\scriptsize",
@@ -252,7 +275,9 @@ def triplet_table(cells: Cells) -> str:
             for c in columns:
                 v = value(system, c)
                 text = "--" if v is None else _fmt(v)
-                out.append(f"\\textbf{{{text}}}" if v is not None and text == best[c] else text)
+                text = f"\\textbf{{{text}}}" if v is not None and text == best[c] else text
+                mark = significance.get((system, c), "")
+                out.append(text + (f"\\rlap{{$^{{{mark}}}$}}" if mark else ""))
             lines.append(" & ".join(out) + " \\\\")
     lines += ["\\bottomrule", "\\end{tabular}", "\\end{adjustbox}", "\\end{table*}", ""]
     return "\n".join(lines)
@@ -700,7 +725,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     cells, cost = load_cells(args.results)
     os.makedirs(args.out, exist_ok=True)
     tables = {
-        "triplets": triplet_table(cells),
+        "triplets": triplet_table(cells, load_significance(args.results)),
         "context": context_table(cells, cost),
         "cutoff": cutoff_table(load_cutoff(args.results), load_rerank_column("ECE", args.results)),
         "posthoc": posthoc_table(

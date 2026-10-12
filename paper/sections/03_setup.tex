@@ -36,7 +36,8 @@ monoT5-3B~\cite{Nogueira2020monoT5}, bge-reranker-v2-m3~\cite{Chen2024BGEM3}, th
 Set-Encoder~\cite{Schlatt2025SetEncoder} and RankZephyr (DL only).
 
 \paragraph{Metrics.}
-nDCG@10 (ir\_measures~\cite{MacAvaney2022irmeasures}); expected calibration error (ECE, 15
+nDCG@10 (ir\_measures~\cite{MacAvaney2022irmeasures}), with paired $t$-tests over queries, Holm-corrected across
+the ten collections ($p < 0.05$); expected calibration error (ECE, 15
 bins)~\cite{Guo2017Calibration} on the judged pairs of DL 2019--2023 (relevant from grade 2), the only collections
 with judged non-relevant passages. \emph{One cutoff}: keep every candidate with $p \ge 0.5$; set $F_1$ and its regret
 against the best cutoff per collection (unjudged = non-relevant). \emph{After the fact}: temperature and Platt

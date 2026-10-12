@@ -12,6 +12,23 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-12 -- RQ1 significance tests
+
+`cdm significance` (new; `src/cdm/significance.py`, commit 491badb): paired t-test over queries on the stored
+per-query nDCG@10, Holm across the ten collections per comparison, p < 0.05; one `exec.sh` run on a CPU node, seconds
+(from a worktree: needed `APPTAINER_BIND` on the main checkout, since the outputs' paths point there). 210 rows
+(`job = significance`). Significant collections (better / worse, of 10):
+
+- Reranker fine-tune vs. the best decision fine-tune: Qwen3-Reranker-0.6B 10/0, Qwen3-Reranker-8B 7/0, Prism-0.8B
+  10/0, Prism-4B 9/0, Prism-9B 5/0, Ours-9B 5/0 -- 46 of 60, never significantly worse.
+- Best decision fine-tune vs. base: Kev-0.6B 1/0, Kev-8B 1/2, Kev-0.8B 1/0, Kev-4B 1/1, Clef-Flash 4/1, **Kev-27B
+  8/0**. Decision fine-tuning matters significantly only at 27B; the paper now says so.
+- Joint vs. isolated: Kev-0.6B 0/10, Kev-8B 0/6, Kev-0.8B 0/7, Kev-4B 0/3, Kev-9B 1/1, Clef-Flash 0/2, Kev-27B 1/0,
+  Clef 0/1, Jev 1/0.
+
+Triplet table: superscripts per cell (* reranker vs. best decision, dagger decision vs. base, double dagger joint
+vs. isolated); text of Sect. 4 and the setup updated, conclusion condensed to stay at 6 pages.
+
 ## 2026-10-12 -- ECIR draft: Ours-9B at a fixed cutoff; tables cut to fit 6 pages
 
 `cdm cutoff --systems qwen3.5-9b-reranker` (slurm/exec.sh, CPU, a few minutes; 5 rows in results.csv, commit
