@@ -27,6 +27,7 @@ gpu_constraint_for() {
     case "$1" in
         clef-isolated | clef-joint | kev-27b-* | qwen3-reranker-8b | qwen3-8b-prompted | qwen3-8b-base-prompted | \
             qwen3.5-9b-prompted | prism-9b | qwen3.8-27b-prompted | qwen3.8-27b-prompted-answer | \
+            qwen3-8b-prompted-answer | qwen3.5-9b-prompted-answer | \
             kev-8b-joint | kev-9b-joint | \
             qwen3.5-9b-reranker | qwen3.8-27b-reranker)
             echo "gpumem.80gib" ;;

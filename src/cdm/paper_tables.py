@@ -663,18 +663,9 @@ CALIBRATION_GROUPS: List[Tuple[str, List[Tuple[List[str], str, str]]]] = [
 ]
 
 
-# RQ2 with Kanishka's question ("answer", DL19-23 only; docs/notes/paper-changes-answer-question.md): the run that
-# fills the ECE' column of a calibration-table row -- the decision fine-tunes in joint mode, the base model via its
-# own system. Rerankers ask no question and get "--".
-ANSWER_RUNS = {
-    "Kev-4B": "kev-4b-joint",
-    "Kev-9B": "kev-9b-joint",
-    "Clef-Flash": "clef-flash-joint",
-    "Qwen3.8-27B": "qwen3.8-27b-prompted-answer",
-    "Kev-27B": "kev-27b-joint",
-    "Clef": "clef-joint",
-    "\\jev{}": "jev-joint",
-}
+# RQ2 with Kanishka's question ("answer", DL19-23 only; docs/notes/paper-changes-answer-question.md): the ECE' column
+# reads the same system as the row's ECE (decision fine-tunes in the same mode, with phrasing "answer"; base models via
+# their "<name>-answer" system). Rerankers ask no question: their ECE is repeated in brackets.
 
 
 # Groups in the left panel of the calibration table (Qwen3-0.6B to Qwen3.5-4B); the rest goes right.
@@ -688,7 +679,7 @@ def calibration_ece_brier_table(
 ) -> str:
     """RQ2 for the short paper: mean ECE and Brier score over DL 2019-2023, decision fine-tunes in their
     better-calibrated mode (lower ECE); per group the lowest value in bold and the second lowest underlined. ECE':
-    the ECE with Kanishka's question (ANSWER_RUNS), not emphasised."""
+    the ECE with Kanishka's question for the same system (rerankers: their ECE in brackets), not emphasised."""
     ece_answer = ece_answer or {}
     header = [
         "\\begin{tabular}[t]{clrrr}",
@@ -710,7 +701,7 @@ def calibration_ece_brier_table(
                 name += " (j)" if mode == "joint" else " (i)"
             elif objective == "decision":
                 mode = "joint" if system.endswith("-joint") else "isolated"
-            rows.append((_symbol(objective, mode), name, objective, mean_ece, _mean_of(brier, system, DL_DATASETS)))
+            rows.append((_symbol(objective, mode), name, objective, mean_ece, _mean_of(brier, system, DL_DATASETS), system))
 
         def marks(values: List[Optional[float]]) -> Tuple[Optional[str], Optional[str]]:
             printed = sorted({f"{v:.3f}" for v in values if v is not None}, key=float)
@@ -719,12 +710,14 @@ def calibration_ece_brier_table(
         ece_marks = marks([r[3] for r in rows])
         brier_marks = marks([r[4] for r in rows])
         panel += ["\\midrule", f"\\multicolumn{{5}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
-        for symbol, name, objective, e, b in rows:
+        for symbol, name, objective, e, b, system in rows:
             values = [_emphasize(f"{e:.3f}", *ece_marks), "--" if b is None else _emphasize(f"{b:.3f}", *brier_marks)]
-            base_name = name.replace(" (j)", "").replace(" (i)", "")
-            answer = ANSWER_RUNS.get(base_name) if (objective == "decision" or heading == base_name) else None
-            value = None if answer is None else _mean_of(ece_answer, answer, DL_DATASETS)
-            values.append("--" if value is None else f"{value:.3f}")
+            if objective == "reranker":
+                values.append(f"({e:.3f})")
+            else:
+                answer = f"{system}-answer" if objective == "base" else system
+                value = _mean_of(ece_answer, answer, DL_DATASETS)
+                values.append("--" if value is None else f"{value:.3f}")
             panel.append(_shade(objective) + " & ".join([symbol, name] + values) + " \\\\")
     for panel in panels:
         panel += ["\\bottomrule", "\\end{tabular}"]
@@ -736,7 +729,8 @@ def calibration_ece_brier_table(
         "calibration error (15 bins); Brier: mean squared error of the probability against the 0/1 label. Per",
         "foundation model: base model, decision fine-tunes in their better-calibrated mode (j/i: joint/isolated),",
         "reranker fine-tunes; best in bold, second best underlined. ECE$'$: asked whether the passage answers the",
-        "query (joint mode). Symbols and shading as in Table~\\ref{tab:triplets}.}",
+        "query (same mode; rerankers ask no question, their ECE in brackets). Symbols and shading as in",
+        "Table~\\ref{tab:triplets}.}",
         "\\label{tab:calibration}",
         "\\centering",
         "\\scriptsize",
