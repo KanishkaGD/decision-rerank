@@ -58,16 +58,14 @@
 \maketitle
 
 \begin{abstract}
-System One models, decision models that answer a question about a state with a calibrated probability, have been
-proposed as rerankers, and open decision fine-tunes now match the closed original. We ask whether decision
-fine-tuning makes a better reranker than reranker fine-tuning of the same backbone, and whether decision models are
-at least better calibrated. On six Qwen backbones (0.6B--27B) and ten collections, we compare the zero-shot base
-model, its decision fine-tunes (scoring candidates jointly or in isolation) and its reranker fine-tunes, including
-one we trained ourselves. Both answers are negative. Reranker fine-tuning wins on every backbone where both exist,
-also on collections without training data, while decision fine-tuning stays within a few points of the base model;
-joint scoring helps only models trained on long states. Decision models are not consistently better calibrated than
-reranker fine-tunes, do not give better sets at a fixed probability cutoff, and our reranker fine-tune, trained with
-a pointwise loss on its yes/no logit, is the best calibrated system we tested.
+System One models -- decision models that answer a question about a state with a calibrated probability -- have
+been proposed as rerankers, and open decision fine-tunes now match the closed original. On six Qwen backbones
+(0.6B--27B) and ten collections, we compare the zero-shot base model, its decision fine-tunes (scoring candidates
+jointly or in isolation) and its reranker fine-tunes, including one we trained. Reranker fine-tuning wins on every
+backbone where both exist, also on collections without training data, while decision fine-tuning stays within a few
+points of the base model. Nor are decision models consistently better calibrated: reranker fine-tunes give better
+sets at a fixed probability cutoff, and ours, trained with a pointwise loss on its yes/no logit, is the best
+calibrated system we tested.
 \keywords{Reranking \and Calibration \and System One Models \and Fine-Tuning}
 \end{abstract}
 
@@ -78,14 +76,12 @@ a pointwise loss on its yes/no logit, is the best calibrated system we tested.
 \input{sections/05_calibration}
 \input{sections/06_conclusion}
 
-\begin{credits}
-% Acknowledgements are left out of the anonymous submission (ECIR: double-anonymous); add them to the camera-ready.
-
-\subsubsection{\discintname}
-% Mandatory in LNCS since llncs 2.23.
-The authors have no competing interests to declare that are relevant to the content of this
-article.
-\end{credits}
+% Acknowledgements and the disclosure of interests (mandatory in LNCS since llncs 2.23) are left out of the
+% anonymous submission for space (ECIR: double-anonymous); restore them for the camera-ready:
+% \begin{credits}
+% \subsubsection{\discintname}
+% The authors have no competing interests to declare that are relevant to the content of this article.
+% \end{credits}
 
 \bibliographystyle{splncs04}
 \bibliography{sources}

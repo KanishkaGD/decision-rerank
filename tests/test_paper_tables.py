@@ -102,8 +102,8 @@ def test_calibration_table():
     posthoc = {("prism-4b", d, "temperature"): {"ECE": "0.1"} for d in DL_DATASETS}
     tex = calibration_table(cutoff, posthoc, ece)
     lines = tex.splitlines()
-    assert "Kev-27B (j) & decision & 0.150 & -- & -- & 40.0 & -- & 10.0 & 8.0 \\\\" in lines  # better-calibrated mode
-    assert "Prism-4B & reranker & 0.200 & 0.100 & -- & -- & -- & -- & -- \\\\" in lines
+    assert "Kev-27B (j) & 0.150 & -- & -- & 40.0 & -- & 10.0 & 8.0 \\\\" in lines  # better-calibrated mode
+    assert "Prism-4B & 0.200 & 0.100 & -- & -- & -- & -- & -- \\\\" in lines
     assert "\\label{tab:calibration}" in tex
 
 

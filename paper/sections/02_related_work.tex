@@ -11,8 +11,8 @@ Cross-encoders fine-tuned on MS~MARCO~\cite{Nogueira2019,Nogueira2020monoT5} and
 from the logit of a relevance token or a scoring head; recent pointwise LLM rerankers fine-tune open backbones such
 as LLaMA~\cite{Ma2023RankLLaMA}, Qwen3 (Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding}) and Qwen3.5
 (Prism~\cite{Zhang2026Prism}). Listwise rerankers output a ranking instead~\cite{Sun2023RankGPT,Pradeep2023RankZephyr};
-the Set-Encoder lets passages attend to each other while staying permutation-invariant~\cite{Schlatt2025SetEncoder}.
-Abdallah et al.~\cite{Abdallah2025HowGood} compare many of them on the BM25 candidates we use.
+the Set-Encoder lets passages attend to each other~\cite{Schlatt2025SetEncoder}; Abdallah
+et al.~\cite{Abdallah2025HowGood} compare many of them on our candidates.
 
 \paragraph{System One models in retrieval.}
 Decision models are trained to answer questions about a state with a probability (decision fine-tuning,
@@ -24,7 +24,6 @@ recall~\cite{Smriti2026}. None compares decision fine-tuning with reranker fine-
 
 \paragraph{Calibration and cutoffs.}
 Modern neural networks tend to be overconfident, and temperature scaling is a simple post-hoc
-fix~\cite{Guo2017Calibration}; neural rankers are no exception~\cite{Penha2021Calibration}. Calibrated relevance
-probabilities matter wherever a score must be read on an absolute scale, e.g.\ to truncate a ranked list before it
-is passed on~\cite{Bahri2020Choppy}. We test whether decision models offer such probabilities where reranker
-fine-tunes do not.
+fix~\cite{Guo2017Calibration}; neural rankers are no exception~\cite{Penha2021Calibration}. Calibrated
+probabilities matter wherever a score is read on an absolute scale, e.g.\ to truncate a ranked
+list~\cite{Bahri2020Choppy}.

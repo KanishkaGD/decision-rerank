@@ -15,8 +15,8 @@ fine-tunes of Qwen models (Clef~\cite{Clef}, Kev~\cite{Kev}) followed within wee
 decision fine-tuning with RLCD \FLAG{cite and expand RLCD} -- that anyone can apply to an open backbone, and whose
 merits for retrieval are untested.
 
-The fair question is therefore not closed vs.\ open, but decision fine-tuning vs.\ the established alternative,
-reranker fine-tuning, on the same backbone. We hold the backbone fixed and compare \emph{triplets}: the base model
+The fair question is therefore decision fine-tuning vs.\ the established alternative, reranker fine-tuning, on the
+same backbone. We compare \emph{triplets}: the base model
 asked zero-shot, its decision fine-tune (scored jointly or in isolation) and its reranker fine-tune, on six Qwen
 backbones from 0.6B to 27B parameters and ten collections. Since calibrated probabilities are the decision models'
 distinctive feature, we also ask whether they at least deliver that:
@@ -27,9 +27,7 @@ distinctive feature, we also ask whether they at least deliver that:
 Both answers are negative. (1) On every backbone where both exist (0.6B--9B), reranker fine-tuning beats decision
 fine-tuning, also on the collections without training data; decision fine-tuning stays within a few points of the
 untuned base model, and scoring all candidates jointly only helps models trained on long states. (2) Decision
-fine-tunes are not systematically better calibrated than reranker fine-tunes of the same backbone, do not give a
-better set at a fixed cutoff, and a reranker fine-tune with a pointwise loss on the yes/no logit -- our own Qwen3.5-9B
-fine-tune -- is the best calibrated system we tested. Our contributions are the controlled triplet comparison with
-both decision modes, the calibration analysis with a fixed cutoff and post-hoc scaling, and a reranker fine-tune of
-Qwen3.5-9B that ranks like the best published one and is calibrated better than any decision model. Code and raw
-outputs are available.\footnote{\TODO{anonymised link}}
+fine-tunes are not consistently better calibrated than reranker fine-tunes of the same backbone and give no better
+set at a fixed cutoff; our own Qwen3.5-9B reranker fine-tune, trained with a pointwise loss on its yes/no logit,
+ranks like the best published one and is the best calibrated system we tested. Code and raw outputs are
+available.\footnote{\TODO{anonymised link}}
