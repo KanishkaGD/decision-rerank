@@ -12,6 +12,16 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-12 -- RQ2 runs with Kanishka's question ("answer")
+
+Owner's decision: run RQ2 with Kanishka's question. New frozen phrasing `answer` (``Does document `{doc}` answer the
+`query`?``) and the matching base-model templates (`qwen3.8-27b-prompted-answer`); both from
+`docs/notes/kanishka-notes-2026-10-11.md`, not chosen on msmarco-dev (owner override). Rows stay apart by phrasing
+id (and system name for the base model); the paper tables keep reading S1Rank's question (`TABLE_PHRASINGS` in
+`src/cdm/paper_tables.py`); `cdm cutoff` now runs once per system and phrasing. Submitted on DL19-23: jev-joint,
+kev-27b-joint, clef-joint, kev-4b-joint (4451099-4451118) and qwen3.8-27b-prompted-answer (4451119-4451123). When
+done: `slurm/exec.sh -- cdm cutoff` (ECE/Brier are in the rerank rows, the count test in the cutoff rows).
+
 ## 2026-10-12 -- RQ1 significance tests
 
 `cdm significance` (new; `src/cdm/significance.py`, commit 491badb): paired t-test over queries on the stored

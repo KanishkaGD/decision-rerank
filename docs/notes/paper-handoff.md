@@ -220,7 +220,9 @@ His notes: `docs/notes/kanishka-notes-2026-10-11.md`.
       - In the paper since 2026-10-12: column "Count" (count_MAE) of `paper/tables/calibration.tex`, one sentence
         in `05_calibration.tex`. Correction: Ours-9B is the best counter, but not the only one below the median
         reference (8.6) -- Clef joint 8.4 and Kev-27B joint 8.5 are below it too.
-- [ ] If the new question is adopted for RQ2: new frozen phrasing in `src/cdm/phrasings.py` (new id, e.g.
+- [x] **Adopted (2026-10-12): RQ2 runs with the new question** -- jobs 4451099-4451123 (see experiment log); then
+      `cdm cutoff`; the RQ2 text/table needs rows with phrasing `answer` (and `qwen3.8-27b-prompted-answer`), which the
+      current tables do not read. Old note: If the new question is adopted for RQ2: new frozen phrasing in `src/cdm/phrasings.py` (new id, e.g.
       `answer`) and new base-model prompts in `src/cdm/rerankers/prompted.py`. Submit jev-joint, kev-27b-joint,
       clef-joint, kev-4b-joint and qwen3.8-27b-prompted on DL19–23, plus kev-9b/clef-flash-joint if the 9B triplet is
       to be compared. Results stay apart by phrasing id.
