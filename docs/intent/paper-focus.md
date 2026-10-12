@@ -80,3 +80,5 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
 17. **RQ2 wording** (decided 2026-10-12): "Are decision models at least better calibrated than reranker fine-tunes of
     the same backbone?" -- narrower than before: about ECE and the fixed cutoff, not about every use of the
     probabilities.
+16. **The ECIR paper is written from Michael's draft in `paper/`** (decided 2026-10-12); Kanishka's draft
+    (`docs/paper/short/` in his checkout) is a reference.

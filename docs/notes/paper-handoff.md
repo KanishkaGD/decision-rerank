@@ -179,7 +179,8 @@ His notes: `docs/notes/kanishka-notes-2026-10-11.md`.
 
 **Where they differ. These need the owner's decision before writing:**
 
-1. **Two drafts exist.** Kanishka has a six-page LNCS draft in his checkout (`docs/paper/short/`, not pushed),
+1. **Decided 2026-10-12: we continue with Michael's draft in `paper/`** (question title). Kanishka's draft is the
+   reference for wording and structure only. Before: **Two drafts exist.** Kanishka has a six-page LNCS draft in his checkout (`docs/paper/short/`, not pushed),
    titled "Decide, then Rank: Calibrated System One Decision Models as Zero-Shot Rerankers". `paper/` here has the
    question title. Decide which draft is the base and get his pushed (or sent) before writing.
 2. **The question.** He wants a new question ("Does document … answer the query?") for decision models and base
