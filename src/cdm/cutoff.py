@@ -120,6 +120,30 @@ def topk_metrics(queries: Sequence[QueryScores], ks: Sequence[int]) -> Dict[str,
     return _macro([set_metrics(np.arange(len(q.probs))[:, None] < k, q.relevant, q.unjudged) for q in queries])
 
 
+def count_test(queries: Sequence[QueryScores]) -> Dict[str, float]:
+    """
+    RQ2, count test (Kanishka, 2026-10-11): per query, the sum of the probabilities -- the model's own estimate of how
+    many candidates are relevant -- against the true number of relevant candidates. count_MAE (mean absolute error,
+    in passages) and count_ratio (mean estimate / mean truth) are computed on the judged candidates, the population
+    of ECE and Brier; count_MAE_full / count_ratio_full on all candidates with unjudged = non-relevant (reported as a
+    limit: models put probability on passages that were never judged). count_median_ref is the error of always
+    predicting the collection's median count; it uses the labels and is a reference, not a baseline.
+    """
+    if not queries:
+        return {}
+    truth = np.array([q.relevant.sum() for q in queries], dtype=float)
+    judged = np.array([q.probs[~q.unjudged].sum() for q in queries])
+    full = np.array([q.probs.sum() for q in queries])
+    mean_truth = truth.mean()
+    return {
+        "count_MAE": float(np.abs(judged - truth).mean()),
+        "count_ratio": float(judged.mean() / mean_truth) if mean_truth > 0 else float("nan"),
+        "count_MAE_full": float(np.abs(full - truth).mean()),
+        "count_ratio_full": float(full.mean() / mean_truth) if mean_truth > 0 else float("nan"),
+        "count_median_ref": float(np.abs(truth - np.median(truth)).mean()),
+    }
+
+
 def cutoff_analysis(
     queries: Sequence[QueryScores], taus: Sequence[float] = TAUS, ks: Sequence[int] = TOP_KS
 ) -> Dict[str, float]:
@@ -145,5 +169,6 @@ def cutoff_analysis(
         out[f"topk_F1@{k}"] = float(top["F1"][i])
     out["cut_n_queries"] = len(queries)
     out["cut_n_queries_no_rel"] = int(sum(not q.relevant.any() for q in queries))
+    out.update(count_test(queries))
     return out
 

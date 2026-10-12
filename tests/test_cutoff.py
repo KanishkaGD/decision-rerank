@@ -90,3 +90,18 @@ def test_cutoff_table(tmp_path):
     line = next(x for x in tex.splitlines() if x.startswith("Kev-27B & decision & joint"))
     assert line == "Kev-27B & decision & joint & 40.0 & 50.0 & 10.0 & 0.30--0.70 & 8.0 & 35.0 \\\\"
     assert "Prism-4B & reranker &  & -- & -- & -- & -- & -- & -- \\\\" in tex
+
+
+def test_count_test_by_hand():
+    from cdm.cutoff import count_test
+
+    out = count_test([A, B])
+    # A: judged probabilities 0.9 + 0.6 + 0.4 = 1.9 against 2 relevant; all four sum to 2.1
+    # B: judged 0.4 against 0 relevant; both sum to 0.6
+    assert out["count_MAE"] == pytest.approx((0.1 + 0.4) / 2)
+    assert out["count_MAE_full"] == pytest.approx((0.1 + 0.6) / 2)
+    assert out["count_ratio"] == pytest.approx((1.9 + 0.4) / 2)  # mean truth is (2 + 0) / 2 = 1
+    assert out["count_ratio_full"] == pytest.approx((2.1 + 0.6) / 2)
+    assert out["count_median_ref"] == pytest.approx(1.0)  # median count 1, errors 1 and 1
+    assert count_test([]) == {}
+    assert "count_MAE" in cutoff_analysis([A, B])
