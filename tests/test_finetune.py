@@ -13,7 +13,7 @@ from cdm.finetune import (
     step_groups,
     steps_for,
 )
-from cdm.rerankers import SYSTEMS
+from cdm.rerankers import SELECTED_CHECKPOINT, SYSTEMS
 from cdm.rerankers.pointwise_lm import QWEN3_INSTRUCTION, qwen3_reranker_ids
 
 
@@ -111,5 +111,6 @@ def test_own_rerankers_registered():
     for name in ["qwen3.8-27b-reranker", "qwen3.5-9b-reranker", "qwen3.5-0.8b-reranker"]:
         spec = SYSTEMS[name]
         assert spec.kind == "qwen3-reranker" and spec.revision
-        assert spec.params["adapter"] == f"checkpoints/{name}/final"
+        # The checkpoint selected on msmarco-dev where one was (SELECTED_CHECKPOINT), else the final adapter.
+        assert spec.params["adapter"] == f"checkpoints/{name}/{SELECTED_CHECKPOINT.get(name, 'final')}"
     assert SYSTEMS["qwen3.8-27b-reranker"].revision == "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"  # = Kev-27B's base

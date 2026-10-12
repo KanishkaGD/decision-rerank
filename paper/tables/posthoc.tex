@@ -3,7 +3,7 @@
 \begin{table}[t]
 \caption{Calibrated after the fact: temperature (T) and Platt (P) scaling of each reranker's logit, fitted
 on MS~MARCO dev (1,000 queries, unjudged passages as non-relevant), against the native (N) probabilities, and
-decision models as they come. ECE: judged pairs of TREC DL 2019--2023; $F_1$@.5 and regret as in
+our reranker fine-tune and decision models as they come. ECE: judged pairs of TREC DL 2019--2023; $F_1$@.5 and regret as in
 Table~\ref{tab:cutoff} ($\times 100$); BEIR: ECE with unjudged passages as non-relevant, mean over the five
 collections. Temperature scaling keeps the set at $p \ge 0.5$ unchanged.}
 \label{tab:posthoc}
@@ -27,7 +27,8 @@ monoT5-3B & 0.312 & 0.257 & 0.232 & 42.0 & 5.8 & 9.9 & 46.0 & -- & -- \\
 bge-reranker-v2-m3 & 0.231 & 0.226 & 0.236 & 48.2 & 5.7 & 3.8 & 45.9 & -- & -- \\
 Set-Encoder-large & 0.495 & 0.250 & 0.236 & 31.6 & 5.7 & 21.1 & 47.2 & 0.369 & 0.148 \\
 \midrule
-\multicolumn{10}{l}{\textit{Decision models, as they come}} \\
+\multicolumn{10}{l}{\textit{As they come: our reranker fine-tune and decision models}} \\
+Ours-9B (reranker) & 0.111 & -- & -- & 46.6 & -- & 6.4 & -- & 0.115 & -- \\
 Kev-27B joint & 0.156 & -- & -- & 55.1 & -- & 2.8 & -- & 0.171 & -- \\
 Clef joint & 0.147 & -- & -- & 52.5 & -- & 3.1 & -- & 0.167 & -- \\
 Clef-Flash joint & 0.140 & -- & -- & 46.6 & -- & 2.6 & -- & 0.146 & -- \\

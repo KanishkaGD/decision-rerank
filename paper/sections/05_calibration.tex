@@ -10,15 +10,15 @@
 isolated) and the context systems; one reliability diagram.}
 
 \paragraph{One cutoff across collections.}
-\input{tables/cutoff}
-\PENDING{Text on Table~\ref{tab:cutoff}: keep every candidate with $p \ge 0.5$. On every backbone the
+\input{tables/calibration}
+\PENDING{Text on Table~\ref{tab:calibration}: keep every candidate with $p \ge 0.5$. On every backbone the
 reranker fine-tune also gives the best set $F_1$ at 0.5; a low regret (one cutoff fits every collection)
 is shared by the decision fine-tunes, Prism and bge-reranker-v2-m3, while Qwen3-Reranker, monoT5 and the
 Set-Encoder need a much higher one (oracle cutoffs mostly 0.85--0.99). Unjudged passages count as non-relevant.}
 
 \paragraph{Calibrated after the fact.}
-\input{tables/posthoc}
-\PENDING{Text on Table~\ref{tab:posthoc}: temperature and Platt scaling of the reranker fine-tunes,
+
+\PENDING{Text on Table~\ref{tab:calibration}: temperature and Platt scaling of the reranker fine-tunes,
 fitted on MS~MARCO dev, evaluated on DL 2019--2023 and BEIR -- does a reranker fine-tune plus one or two
 fitted parameters make the decision model's calibration redundant?}
 
