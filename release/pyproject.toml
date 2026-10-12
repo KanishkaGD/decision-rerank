@@ -1,0 +1,52 @@
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "cdm"
+version = "0.1.0"
+description = "System One decision models vs. reranker fine-tunes as rerankers, and the use of their calibration."
+authors = [{ name = "Anonymous" }]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10,<3.14"
+# Lower bounds only: the container freezes the resolved versions (/opt/cdm/pip-freeze.txt) and every output
+# manifest records them; requirements-frozen.txt lists the versions behind the paper. Tighten a bound when a result depends on it.
+dependencies = [
+    "click>=8.1",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "scipy>=1.12",
+    "ir-measures>=0.3.7",
+    "pyserini>=0.44",
+    "torch>=2.4",
+    "transformers>=4.48",
+    "sentence-transformers>=4.0",
+    "huggingface-hub>=0.26",
+    "typesafe-sdk>=0.7.2",
+    "laya>=0.3.28",
+    "accelerate>=1.0",  # transformers needs it for device_map (Clef loads straight onto the GPU)
+    # Kev's run-time dependencies. Kev itself (not on PyPI) is installed by container/cdm.def without its declared
+    # dependencies, which pin torch<2.9 and would downgrade the container's torch.
+    "peft>=0.21",
+    "pydantic>=2.9",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "black>=25.1", "isort>=6.0"]
+
+[project.scripts]
+cdm = "cdm.cli:main"
+
+[tool.poetry]
+packages = [{ include = "cdm", from = "src" }]
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
