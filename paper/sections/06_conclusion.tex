@@ -4,7 +4,18 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-\TODO{Answers to RQ1 and RQ2 in one sentence each; limitations (no reranker fine-tune of the 27B
-backbone; the fine-tunes saw different training data; benchmark contamination; closed reference
-model; literature numbers not recomputed); release of code and raw outputs: \TODO{URL / anonymized
-link}.}
+Do System One models make better rerankers? On the same backbone, no: reranker fine-tuning beats decision fine-tuning
+on every backbone where both exist, also on collections without training data, and decision fine-tuning barely
+improves on the untuned base model (RQ1). Nor are decision models at least better calibrated: reranker fine-tunes
+of the same backbone are about as well calibrated, give the better set at a fixed cutoff, and a reranker fine-tune
+with a pointwise loss on the yes/no logit is calibrated better than any decision model (RQ2). For the IR community,
+the probabilities that set decision models apart are a property of the training loss, available to any reranker
+fine-tune.
+
+\paragraph{Limitations.}
+No reranker fine-tune of the 27B backbone exists yet, so at 27B the comparison is open. The fine-tunes saw different
+training data (MS~MARCO for the reranker fine-tunes, not for Kev), which the zero-shot subset only partly controls;
+benchmark contamination of the backbones and of \jev{} cannot be ruled out. Literature numbers are not recomputed
+and not tested; we report no significance tests. Calibration is measured on TREC DL only, the only collections with
+judged non-relevant passages. Other uses of calibrated probabilities, such as query performance prediction, are left
+to future work.
