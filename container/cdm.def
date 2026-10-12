@@ -1,0 +1,68 @@
+Bootstrap: docker
+From: python:3.12-slim-trixie
+
+%files
+    pyproject.toml /opt/cdm/pyproject.toml
+    README.md /opt/cdm/README.md
+    src /opt/cdm/src
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    # Java 21: Pyserini drives Anserini/Lucene in a JVM. git: provenance and pip installs from git. gcc/libc6-dev:
+    # Triton compiles a small C helper at run time (ModernBERT's rotary kernel in Laya on GPU failed without it).
+    # g++: host compiler for building causal-conv1d below.
+    apt-get install -y --no-install-recommends openjdk-21-jre-headless git gcc g++ libc6-dev
+    rm -rf /var/lib/apt/lists/*
+
+    pip install --no-cache-dir --upgrade pip
+    # Installs the dependencies from pyproject.toml, plus the package itself for the `cdm` entry point. At run time
+    # run_all.sh puts src/ first on PYTHONPATH, so the code always comes from the repository and the image only
+    # needs a rebuild when dependencies change. The resolved versions are frozen into the image and
+    # referenced by every output manifest (src/cdm/provenance.py), since there is no lock file.
+    pip install --no-cache-dir /opt/cdm
+    # Kev (github.com/jaredpalmer/kev, pinned commit), for the kev-* rerankers. --no-deps: it declares torch<2.9, but
+    # runs on this torch; its other run-time dependencies (transformers>=5.17, peft, pydantic, accelerate) come from
+    # pyproject.toml. flash-linear-attention at the version Kev's fused kernels check (kev/fused_qwen35.py
+    # FLA_VERSION): the fast path of the Qwen3.5 linear-attention layers in transformers, for Kev and Clef.
+    pip install --no-cache-dir --no-deps "kev @ git+https://github.com/jaredpalmer/kev@5e42a7a03f28134853dd3ff77461457e921e5ec1"
+    pip install --no-cache-dir "flash-linear-attention==0.5.2"
+    # causal-conv1d, the CUDA kernel of the short convolutions in Qwen3.5/3.8's linear-attention layers (Kev, Clef,
+    # Prism, the prompted Qwen3.5/3.8 models). Without it transformers falls back to a slow PyTorch reference
+    # implementation ("causal_conv1d_fn is falling back"). There is no prebuilt wheel or Hub kernel for
+    # torch 2.14 + CUDA 13, so it is compiled here with NVIDIA's pip nvcc at the CUDA version torch was built with,
+    # for A100 (8.0), RTX/A40 (8.6), L40/L40S (8.9) and H100/H200 (9.0) GPUs.
+    pip install --no-cache-dir "cuda-toolkit[nvcc,cccl]==13.0.3.0"
+    export CUDA_HOME=/usr/local/lib/python3.12/site-packages/nvidia/cu13
+    [ -e "${CUDA_HOME}/lib64" ] || ln -s lib "${CUDA_HOME}/lib64"
+    # The wheels ship only the versioned libcudart.so.13; the linker needs the plain name.
+    [ -e "${CUDA_HOME}/lib/libcudart.so" ] || ln -s "$(basename "$(ls "${CUDA_HOME}"/lib/libcudart.so.1* | head -1)")" \
+        "${CUDA_HOME}/lib/libcudart.so"
+    export PATH="${CUDA_HOME}/bin:${PATH}"
+    CAUSAL_CONV1D_FORCE_BUILD=TRUE CAUSAL_CONV1D_FORCE_CXX11_ABI=TRUE TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0" \
+        MAX_JOBS=8 pip install --no-cache-dir --no-build-isolation "causal-conv1d==1.7.0"
+    python -c "import causal_conv1d; print('causal_conv1d', causal_conv1d.__version__)"
+    pip check || true  # prints kev's unmet torch<2.9 pin (expected) and anything unexpected, without failing
+    pip freeze > /opt/cdm/pip-freeze.txt
+
+%environment
+    export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+    export PYTHONUNBUFFERED=1
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export CDM_PIP_FREEZE=/opt/cdm/pip-freeze.txt
+
+%runscript
+    exec cdm "$@"
+
+%labels
+    Author michi_d@gmx.net
+    Project decision-rerank
+
+%help
+    Apptainer image with the dependencies of pyproject.toml. Build from the repository root:
+        apptainer build container/cdm.sif container/cdm.def
+    The code itself comes from the repository via PYTHONPATH (run_all.sh).
+        apptainer exec [--nv] --env PYTHONPATH=$PWD/src cdm.sif cdm --help
+    Environment the code reads (set by run_all.sh): CDM_ROOT, CDM_DATA, CDM_RUNS, CDM_OUTPUTS, CDM_RESULTS,
+    HF_HOME, PYSERINI_CACHE, HF_HUB_OFFLINE.

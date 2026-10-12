@@ -1,0 +1,16 @@
+# Downloads, caches and outputs (run_all.sh)
+.env
+data/
+runs/
+outputs/
+checkpoints/
+container/*.sif
+results/*.lock
+results/*.tmp
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
