@@ -59,3 +59,15 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
 11. **Efficiency: API cost plus one fixed-GPU run.** All local models are timed on DL19/20 on one GPU type
     (A100-SXM-80GB) with an energy reading per run (NVML); the API model (Jev) gets cost and wall-clock time only.
 12. **Qwen3.7-Flash is not in the paper** (2026-10-09); its runs stay in `results/results.csv`.
+
+## ECIR short paper (decided 2026-10-12)
+
+13. **Venue: ECIR 2027 short paper**, deadline 2026-10-13 14:00 (`docs/intent/venue.md`); written with what exists.
+14. **RQ2 is a negative result too.** Overall answer to "are the hyped decision models of use to the IR community?":
+    no -- not as rerankers (RQ1), and not for their calibration either (RQ2), because reranker fine-tunes are
+    partly better calibrated (our Qwen3.5-9B reranker fine-tune: mean ECE 0.111 on DL19-23, below every decision
+    model; Prism-4B 0.218 vs Kev-4B 0.216; Qwen3-Reranker-8B 0.257 vs Kev-8B 0.243) and keep the better set at a
+    fixed cutoff.
+15. **Our 27B reranker fine-tune stays out of the paper** (supersedes 5 for this paper; the run may finish for a later
+    version). **Our 9B fine-tune (`qwen3.5-9b-reranker`) is in**: a second reranker fine-tune of Qwen3.5-9B next to
+    Prism-9B, trained by us without any decision data (Avg 59.4 vs Prism 59.0, Clef-Flash 54.7).

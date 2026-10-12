@@ -1,5 +1,13 @@
 # Venue
 
+**Current decision (owner, 2026-10-12): ECIR 2027 short paper, submission deadline 2026-10-13, 14:00** (as stated
+by the owner). ECIR uses Springer LNCS -- the paper's sources are already LNCS (`llncs.cls`, `splncs04.bst`). Page
+limit and anonymisation to be checked against the official ECIR 2027 call (the ECIR 2025 call allowed short papers
+of up to 6 pages plus references, double-blind; the 2027 call was not found on 2026-10-12). The paper is written
+with what exists, plus at most minor experiments. Handoff for the writing: `docs/notes/paper-handoff.md`.
+
+The WSDM decision below is superseded (kept as the record).
+
 Decided by the owner on 2026-10-06 (open question 1 of the setup session).
 
 **An arXiv preprint, then a WSDM 2027 short paper.** Call for papers: https://www.wsdm-conference.org/2027/cfsp.html

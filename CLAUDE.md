@@ -83,11 +83,11 @@ Two people (and their agents) work in this repository with ordinary git branches
   a reranker that outputs a ranking (RankGPT, RankZephyr).
 - Store raw model outputs (score and probability per query and passage), not just rankings.
 - Fix seeds; record library, model and checkpoint versions (the manifests do this -- keep it that way).
-- Phase 2 of the roadmap (control signal, fine-tuning, BRIGHT) starts after the WSDM submission.
+- Phase 2 of the roadmap (control signal, fine-tuning, BRIGHT) starts after the ECIR submission.
 
 ## Paper (`paper/`)
 
-- Target: WSDM 2027 short paper (ACM sigconf, 4 pages); the sources are still LNCS until the move (roadmap step 5).
+- Target: ECIR 2027 short paper (Springer LNCS; page limit per the official call), deadline 2026-10-13 14:00.
   One file per section in `paper/sections/`; RQ wording only in `paper/rq-macros.tex`; build and check with `make` /
   `make check` in `paper/`.
 - Numbers in the paper come from `results/results.csv` and `results/literature.csv` via generated tables in

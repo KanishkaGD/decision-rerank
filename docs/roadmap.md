@@ -6,8 +6,8 @@ plan as it is, not how it got here (the `straighten-branch` skill does that swee
 
 **Working title:** *Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One Backbone*
 (a question; `docs/intent/paper-focus.md`).
-**Venue:** arXiv preprint, then a WSDM 2027 short paper (4 pages + references, ACM sigconf, anonymised), deadline
-**Nov 17, 2026** (`docs/intent/venue.md`).
+**Venue:** ECIR 2027 short paper (Springer LNCS), deadline **2026-10-13, 14:00** (`docs/intent/venue.md`;
+decided 2026-10-12, replaces WSDM). Writing handoff: `docs/notes/paper-handoff.md`.
 
 ## Contribution
 
@@ -107,7 +107,7 @@ runs); the paper says so.
 
 ## Order of work
 
-### Phase 1 -- the paper (until Nov 17, 2026)
+### Phase 1 -- the paper (ECIR short paper, until 2026-10-13 14:00)
 
 1. **Candidate sets** for all ten datasets; check BM25 against 2CR. *DL21-23 done (exact match).*
 2. **Sanity checks**: monoT5-3B on DL19/20, `jev-joint` against S1Rank.
@@ -126,10 +126,10 @@ runs); the paper says so.
    2026-10-09*); the trained rerankers on the first 1,000 msmarco-dev queries (`bm25-d100-max1000`) and their
    post-hoc scaling (Part C: `cdm posthoc`, `paper/tables/posthoc.tex`; *first fit done 2026-10-09, fit data open*);
    calibration table; the discussion.
-8. **Our 27B reranker fine-tune** (`docs/notes/reranker-27b-plan.md`, `docs/intent/paper-focus.md` 5): the 9B
-   validation run against Prism-9B, then -- if it passes -- the 27B run, both scored on all ten datasets.
-9. **Related-work check** for System One reranking papers newer than Oct 2026; move the paper to ACM sigconf; write;
-   post on arXiv; submit to WSDM.
+8. **Our reranker fine-tunes** (`docs/notes/reranker-27b-plan.md`): the 9B run passed and is in the paper
+   (`qwen3.5-9b-reranker`, *done 2026-10-11*); the 27B run (submitted 2026-10-11) stays out of the ECIR paper
+   (`docs/intent/paper-focus.md` 15).
+9. **Related-work check** for System One reranking papers newer than Oct 2026; write (LNCS); submit to ECIR.
 
 ### Phase 2 -- after the submission (arXiv extension, follow-up paper)
 
