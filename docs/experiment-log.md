@@ -12,6 +12,19 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-13 -- New question on every calibration-table system: RQ2 reading changes
+
+All 50 remaining runs with the `answer` question done (Kev-9B joint 4451209-4451213; 4451247-4451291: Kev-0.6B/0.8B/4B
+isolated, Kev-8B joint, base models `*-prompted-answer`), count test computed, Table 3's ECE' column complete
+(numbers: `docs/notes/paper-changes-answer-question.md`). With the new question the published reranker fine-tunes
+lose the calibration comparison from 4B upwards: Kev-8B vs Qwen3-Reranker-8B ECE .113 vs .257, Brier .177 vs .238,
+count 7.6 vs 12.9; Kev-4B (isolated) vs Prism-4B ECE .132 vs .218, Brier .175 vs .172, count 8.4 vs 11.5; Kev-9B
+.160 and Clef-Flash .112 vs Prism-9B .242. Only 0.6B (tie) and 0.8B (Prism better) hold. Our 9B reranker fine-tune
+matches Clef-Flash (.111 vs .112, Brier .157 vs .158, count 7.3 vs 8.1) and ranks much better. Base models improve
+with the question too (Qwen3-8B .383 -> .231; the 27B base counts best, 5.8). Earlier note (2026-10-12) that Kev-4B
+ties Prism-4B referred to the joint run (.201); the table's isolated mode gives .132. RQ2's "decision models are not
+better calibrated" holds only with S1Rank's question; the owner decides the framing.
+
 ## 2026-10-12 -- RQ2 runs with Kanishka's question ("answer")
 
 Owner's decision: run RQ2 with Kanishka's question. New frozen phrasing `answer` (``Does document `{doc}` answer the

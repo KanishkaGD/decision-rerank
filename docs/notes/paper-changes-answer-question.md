@@ -1,169 +1,113 @@
-# Paper changes for RQ2 after the runs with Kanishka's question
+# Paper changes for RQ2 after the runs with Kanishka's question (updated 2026-10-13)
 
-For Kanishka, who revises the paper on Overleaf. Written 2026-10-12 against the draft in this repository (commit
-446cfcb, `paper/`). The Overleaf copy may have moved on; the sentences quoted below are the ones to look for.
+For Kanishka, who revises the paper on Overleaf. This replaces the version of 2026-10-12: the complete runs
+**change the RQ2 reading**, and the replacement texts of that version are no longer correct.
 
 ## What happened
 
-RQ2 was rerun on TREC DL 2019–23 with Kanishka's question ("Does document … answer the query?", phrasing `answer`)
-instead of S1Rank's. Decision models were run in joint mode. The base model used the same question (system
-`qwen3.8-27b-prompted-answer`). Reranker fine-tunes ask no question, so their numbers do not change.
+RQ2 was run on TREC DL 2019–23 with Kanishka's question ("Does document … answer the query?", phrasing `answer`)
+for every decision model and base model of the calibration table, in the same mode as the table row. Reranker
+fine-tunes ask no question, so their numbers do not change. The runs reproduce Kanishka's local numbers within .002
+ECE.
 
-The cluster runs reproduce Kanishka's local numbers within .002 ECE and 0.1 passages.
+## Numbers (means over DL19–23, judged pairs, relevant = grade ≥ 2)
 
-**Consequence: four claims in the draft are no longer true.** With the new question, Jev, Kev-27B and Clef are
-better calibrated than our 9B reranker fine-tune. RQ2 stays negative, but the argument has to change, from "reranker
-fine-tunes are better calibrated" to:
+ECE and Brier: S1Rank's question / the new question. Count = mean absolute error of the summed probabilities
+against the number of relevant passages, in passages, with the new question (median guess: 8.6). Rerankers:
+question-independent.
 
-1. **Same foundation model, no advantage.**
-   - 4B: Kev-4B vs Prism-4B ties (ECE .201 vs .218, Brier .199 vs .172, count error 11.6 vs 11.5), and Prism-4B ranks
-     10 points better.
-   - 9B: Clef-Flash vs our 9B fine-tune ties (ECE .112 vs .111, Brier .158 vs .157); ours counts better (8.1 vs 7.3)
-     and ranks better.
-2. **Not from decision fine-tuning.** The untuned Qwen3.8-27B gains as much from the better question (ECE .166 →
-   .117) and counts best of all systems (5.8).
-3. **Fragile.** Decision-model calibration depends on the wording of the question (Jev .224 → .075).
+| Foundation model | System (mode) | ECE S1Rank → new | Brier S1Rank → new | Count, new | Same-backbone reranker: ECE / Brier / count |
+| --- | --- | --- | --- | ---: | --- |
+| Qwen3-0.6B | base | .750 → .750 | .750 → .750 | 36.5 | |
+| Qwen3-0.6B | Kev-0.6B (i) | .579 → .503 | .543 → .463 | 24.7 | Qwen3-Reranker-0.6B .511 / .481 / 24.8 |
+| Qwen3-8B | base | .383 → .231 | .380 → .233 | 8.7 | |
+| Qwen3-8B | Kev-8B (j) | .243 → **.113** | .248 → **.177** | **7.6** | Qwen3-Reranker-8B .257 / .238 / 12.9 |
+| Qwen3.5-0.8B | base | .716 → .617 | .694 → .566 | 29.9 | |
+| Qwen3.5-0.8B | Kev-0.8B (i) | .357 → .336 | .309 → .297 | 16.9 | Prism-0.8B **.243 / .193 / 12.7** |
+| Qwen3.5-4B | base | .296 → .181 | .269 → .195 | 9.8 | |
+| Qwen3.5-4B | Kev-4B (i) | .216 → **.132** | .207 → .175 | **8.4** | Prism-4B .218 / **.172** / 11.5 |
+| Qwen3.5-9B | base | .283 → .165 | .265 → .181 | 8.7 | |
+| Qwen3.5-9B | Kev-9B (j) | .237 → .160 | .209 → .177 | 9.5 | Prism-9B .242 / .183 / 12.3 |
+| Qwen3.5-9B | Clef-Flash (j) | .140 → .112 | .165 → .158 | 8.1 | **Ours-9B .111 / .157 / 7.3** |
+| Qwen3.8-27B | base | .166 → .117 | .180 → .144 | **5.8** | |
+| Qwen3.8-27B | Kev-27B (j) | .156 → .076 | .159 → .130 | 6.0 | (none) |
+| Qwen3.8-27B | Clef (j) | .147 → .091 | .157 → .139 | 6.7 | (none) |
+| other | Jev (j) | .224 → .075 | .187 → .127 | 6.3 | |
 
-## Numbers
+Ranking with the new question is slightly lower everywhere, so Table 1 (S1Rank's question) shows the decision
+models at their best. DL mean nDCG@10, S1Rank → new: Kev-27B 63.5 → 63.3, Jev 62.7 → 62.2, Clef 61.1 → 60.6,
+base 27B 59.9 → 59.6, Clef-Flash 57.0 → 56.6, Kev-4B joint 53.4 → 51.9, Kev-9B joint 54.0 → 51.9.
 
-Means over DL19–23 on the judged pairs, relevant = grade ≥ 2. ECE uses 15 bins. Count error = mean absolute error
-of the summed probabilities against the true number of relevant passages per query, in passages. Always guessing
-the median count gives 8.6.
+## What this means for RQ2 -- the reading changes
 
-| Foundation model | System | ECE, S1Rank's question | ECE, new question | Brier, new question | Count error, new question | nDCG@10 (DL), new question |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Qwen3.5-4B | Kev-4B (joint) | .251 | .201 | .199 | 11.6 | 51.9 |
-| Qwen3.5-4B | Prism-4B | .218 | (.218) | (.172) | 11.5 | 62.0 |
-| Qwen3.5-9B | Clef-Flash (joint) | .140 | .112 | .158 | 8.1 | 56.6 |
-| Qwen3.5-9B | Kev-9B (joint) | .237 | *running* | *running* | *running* | *running* |
-| Qwen3.5-9B | Prism-9B | .242 | (.242) | (.183) | 12.3 | 62.4 |
-| Qwen3.5-9B | Ours-9B | .111 | (.111) | (.157) | 7.3 | 62.0 |
-| Qwen3.8-27B | base, zero-shot | .166 | .117 | .144 | 5.8 | 59.6 |
-| Qwen3.8-27B | Kev-27B (joint) | .156 | .076 | .130 | 6.0 | 63.3 |
-| Qwen3.8-27B | Clef (joint) | .147 | .091 | .139 | 6.7 | 60.6 |
-| other | Jev (joint) | .224 | .075 | .127 | 6.3 | 62.2 |
-| other | Qwen3-Reranker-8B | .257 | (.257) | (.238) | 12.9 | 60.7 |
+**With the new question, the published reranker fine-tunes lose the calibration comparison:**
+- **8B:** Kev-8B is better than Qwen3-Reranker-8B on all three measures (ECE .113 vs .257, Brier .177 vs .238, count
+  7.6 vs 12.9).
+- **4B:** Kev-4B has a clearly lower ECE than Prism-4B (.132 vs .218) and counts better (8.4 vs 11.5); Brier ties
+  (.175 vs .172).
+- **9B:** both decision fine-tunes beat Prism-9B.
+- **Small sizes:** only at 0.6B (tie) and 0.8B (Prism better) do the reranker fine-tunes hold.
 
-Values in brackets are reranker fine-tunes, which ask no question; they repeat the S1Rank column.
-- **Kev-9B joint:** jobs 4451209–4451213 are still running. The number goes into `results/results.csv`; run
-  `cdm cutoff` for its count error.
-- **Ranking:** almost unchanged by the question (Kev-27B DL mean 63.3 vs 63.5).
-- **Sources:**
-  - ECE, Brier and nDCG come from the rerank rows of `results/results.csv` with `phrasing = answer` (system
-    `qwen3.8-27b-prompted-answer` for the base model).
-  - Count errors come from the `job = cutoff` rows of the same file.
-  - The repo's generated tables do not show the new question yet.
+The draft's sentence "decision models are not better calibrated than reranker fine-tunes of the same model" is
+therefore **false with the new question**. It is only true with S1Rank's question.
 
-## Text changes
+**What still holds, under both questions:**
+1. **Ranking (RQ1):** reranker fine-tunes rank 4–29 points better.
+2. **Our own reranker fine-tune** is as well calibrated as the best decision fine-tune of the same model (Ours-9B vs
+   Clef-Flash: ECE .111 vs .112, Brier .157 vs .158, count 7.3 vs 8.1). It also ranks much better (62.0 vs 56.6
+   DL mean). The calibration advantage is thus a property of the training loss, not of decision fine-tuning, and a
+   reranker can have both.
+3. **The question matters, for decision and base models alike.** Every base model improves with the new question
+   (e.g. Qwen3-8B .383 → .231, Qwen3.5-9B .283 → .165). The base Qwen3.8-27B counts best of all (5.8). Decision
+   fine-tuning adds calibration on top of that from 4B upwards (Kev-8B .113 vs its base .231).
 
-### Abstract (`main.tex`)
+**Proposed RQ2 answer (an honest, less negative version):**
+> Decision models are better calibrated than the published reranker fine-tunes of the same model, but only when the
+> question matches the relevance definition being scored. That advantage is not specific to decision fine-tuning: a
+> reranker fine-tune trained with a probability loss (ours) is equally well calibrated and ranks much better.
 
-Replace the last sentence:
-> Decision models are not better calibrated either: with a fixed probability threshold, reranker fine-tunes select
-> better passages, and our own reranker fine-tune gives the most reliable probabilities of all systems we tested.
+**Overall answer to "are decision models of use to IR?":** as rerankers, no. Their calibration is a real but
+replaceable property: it needs the right question, and a reranker fine-tune can have it too. The owner should decide
+whether the headline "negative on both counts" still stands; it is now negative on RQ1 and "not specific" on RQ2.
 
-with:
-> Decision models are not better calibrated either: on the same foundation model they are no better calibrated than
-> reranker fine-tunes, their calibration depends on how the question is worded, and the untuned model profits just
-> as much from a better question.
+## Text changes (to adapt to the decision above)
 
-### Introduction (`sections/01_introduction.tex`), finding (2)
+Quoted sentences are from the repo draft (commit 446cfcb); the Overleaf text may differ.
 
-Replace:
-> (2) Decision models are not better calibrated than reranker fine-tunes of the same model. Our own reranker
-> fine-tune of Qwen3.5-9B ranks as well as the best published one and is the best calibrated system we tested.
+- **Abstract, last sentence** (currently: "Decision models are not better calibrated either: … our own reranker
+  fine-tune gives the most reliable probabilities of all systems we tested.") Proposal:
+  > Decision models are better calibrated than published reranker fine-tunes only if the question matches the
+  > relevance being scored, and a reranker fine-tune trained with a probability loss, as ours is, matches their
+  > calibration while ranking better.
+- **Introduction, finding (2)** (currently: "Decision models are not better calibrated than reranker fine-tunes of the
+  same model. … is the best calibrated system we tested.") Proposal:
+  > (2) Decision models can be better calibrated than reranker fine-tunes of the same model, but only with a question
+  > that matches the relevance definition, and not better than our own reranker fine-tune of Qwen3.5-9B, which is
+  > as well calibrated as the best decision model of its size and ranks as well as the best published reranker.
+- **RQ2 wording** ("Are decision models at least better calibrated than reranker fine-tunes of the same foundation
+  model?") can stay; the answer becomes "yes, with the right question, but not specifically".
+- **Sect. 5:**
+  - First paragraph: drop "Ours-9B has the lowest ECE of the study (…below every decision model including the 27B
+    ones and Jev)"; instead: "Ours-9B is as well calibrated as Clef-Flash and better than Prism-9B."
+  - New paragraph "The question matters", with the table above in short form (Table 3 now has the column ECE′).
+  - In "Uses of calibration", replace "best for Ours-9B" with the count numbers above. With the new question Kev-8B
+    and Kev-4B count better than their published reranker fine-tunes; the base 27B counts best of all.
+- **Conclusion** (currently: "Their calibration is no advantage either: reranker fine-tunes are as well calibrated,
+  select better passages at a fixed threshold, and can be trained to be better calibrated than any decision model.")
+  Proposal:
+  > Their calibration is real but not unique: it depends on asking the right question, and a reranker fine-tune
+  > trained with a probability loss reaches it while ranking better.
+- **Setup:** one sentence on the second question. Add one limitation sentence: it was fixed before any run, but not
+  chosen on a development set, and it was only evaluated on TREC DL.
 
-with:
-> (2) Decision models are not better calibrated than reranker fine-tunes of the same model. How well they are
-> calibrated depends on how the question is worded, and the untuned model profits from a better question as much as
-> they do. Our own reranker fine-tune of Qwen3.5-9B ranks as well as the best published one and is as well
-> calibrated as the best decision model of the same size.
+## Table 3 (`paper/tables/calibration.tex`, generated in the repo)
 
-### Sect. 5 (`sections/05_calibration.tex`), first paragraph
+- The column **ECE′** is complete for every decision model and base model. Reranker cells show their own ECE in
+  brackets.
+- The caption explains ECE′.
+- Copy the whole file into Overleaf.
+- **Suggested in the chat but not yet done:** group headers ("S1Rank's question" over ECE/Brier, "answers the query"
+  over ECE′).
 
-Replace:
-> Only at 9B is Clef-Flash better than Prism (ECE 0.140 vs. 0.242), and there Ours-9B has the lowest ECE of the
-> study (0.111, below every decision model including the 27B ones and Jev) and a Brier score as low as the best
-> decision model (0.157). Good calibration thus comes from a loss that treats the score as a probability, not from
-> decision fine-tuning.
-
-with:
-> Only at 9B is Clef-Flash better than Prism (ECE 0.140 vs. 0.242), and there Ours-9B is better calibrated than
-> both (0.111, Brier 0.157). A loss that treats the score as a probability thus gives a calibrated reranker without
-> any decision fine-tuning.
-
-### Sect. 5, new paragraph after the first
-
-> **The question matters.** S1Rank's question also counts passages that only partly address the query, while we
-> score relevance from grade 2 (the passage answers the query). Asking whether the passage *answers* the query
-> improves the decision models' calibration a lot (Table X: Jev 0.224 → 0.075, Kev-27B 0.156 → 0.076) and leaves
-> their ranking almost unchanged. With this question the 27B decision models and Jev are the best calibrated systems
-> of the study. But the untuned Qwen3.8-27B improves as well (0.166 → 0.117). On the same foundation model, decision
-> fine-tuning still brings no advantage: Kev-4B is not better than Prism-4B (ECE 0.201 vs. 0.218, Brier 0.199 vs.
-> 0.172), and Clef-Flash is not better than Ours-9B (0.112 vs. 0.111, Brier 0.158 vs. 0.157). The calibration of
-> decision models is thus a property of model size and of the question's wording, not of decision fine-tuning.
-
-Add the Kev-9B joint numbers once its runs are in. Bold or underline them only if they change the reading.
-
-### Sect. 5, "Uses of calibration"
-
-Replace:
-> Summing a query's probabilities estimates its number of relevant passages about equally well for decision and
-> reranker fine-tunes, and best for Ours-9B.
-
-with:
-> Summing a query's probabilities estimates its number of relevant passages about equally well for decision and
-> reranker fine-tunes of the same model (with the new question: Kev-4B 11.6 vs. Prism-4B 11.5 passages off, Clef-Flash
-> 8.1 vs. Ours-9B 7.3); the untuned Qwen3.8-27B counts best of all (5.8), so counting well comes with model size.
-
-Also, last sentence of the paragraph, replace:
-> A well calibrated model is better, but it need not be a decision model, as Ours-9B shows.
-
-with:
-> A well calibrated model helps, but it need not be a decision model.
-
-### Conclusion (`sections/06_conclusion.tex`)
-
-Replace:
-> Their calibration is no advantage either: reranker fine-tunes are as well calibrated, select better passages at a
-> fixed threshold, and can be trained to be better calibrated than any decision model.
-
-with:
-> Their calibration is no advantage either: on the same foundation model reranker fine-tunes match it, it depends
-> on how the question is worded, and a reranker can be trained to be calibrated.
-
-Add to the limitations, if there is a sentence for them:
-> The second question was fixed before any run but not chosen on a development set, and it was only evaluated on
-> TREC DL.
-
-### Setup (`sections/03_setup.tex`)
-
-Where the question is introduced (S1Rank's question for all System One models), add:
-> For RQ2 we additionally ask whether the passage answers the query ("Does document … answer the query?"), matching
-> relevance grade 2; base models get the same question in their chat prompt.
-
-## Table change -- done in the repo
-
-`paper/tables/calibration.tex` (generated, commit after this note) now has the column **ECE$'$** and a shortened
-caption; copy the whole file into Overleaf. With tighter column spacing both panels still fit side by side and the
-body still ends on page 6 (built here). Kev-9B's ECE$'$ shows "--" until its runs are done; the file is regenerated
-then. What was planned:
-
-Add one column, **ECE with the new question**, to the calibration table (Table 3, `tables/calibration.tex`). Show it
-for the rows that have it: Kev-4B, Clef-Flash, Kev-9B (when done), the base Qwen3.8-27B, Kev-27B, Clef and Jev.
-Reranker rows repeat their value in brackets, or get "--" with a caption note "rerankers ask no question". The
-caption needs one more sentence: "ECE′: with the question whether the passage answers the query (Sect. 5)."
-
-**Caveat on mode:** Table 3 shows each decision model in its better-calibrated mode. For Kev-4B that is isolated
-(0.216), but the new-question runs are joint, so their S1Rank reference is joint (.251).
-
-If space is too tight for a column: no new table; put the numbers only in the new paragraph above.
-
-**Page budget:** the body currently ends on page 6 and the references start on page 7. The new paragraph adds about
-8–9 lines. It may need trimming elsewhere, e.g. the cutoff sentences in "Uses of calibration".
-
-## Not to forget
-
-- The code and results are pushed on `dev-michael`: phrasing `answer` in `src/cdm/phrasings.py`, the base-model
-  templates in `src/cdm/rerankers/prompted.py`, and the log entry of 2026-10-12 in `docs/experiment-log.md`.
-- Kev-9B joint with the new question is still running (jobs 4451209–4451213).
+**Page budget:** with the column filled, the conclusion's last two lines spill onto page 7 (the table needs tighter
+spacing, 2pt). The text changes above will need some trimming anyway.

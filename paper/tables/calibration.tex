@@ -10,29 +10,29 @@ Table~\ref{tab:triplets}.}
 \label{tab:calibration}
 \centering
 \scriptsize
-\setlength{\tabcolsep}{2.5pt}
+\setlength{\tabcolsep}{2pt}
 \begin{tabular}[t]{clrrr}
 \toprule
  & System & ECE & Brier & ECE$'$ \\
 \midrule
 \multicolumn{5}{l}{\textit{Qwen3-0.6B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3-0.6B & 0.750 & 0.750 & -- \\
-\rowcolor{rowdecision}$\triangle$ & Kev-0.6B (i) & \underline{0.579} & \underline{0.543} & -- \\
+\rowcolor{rowbase}$\circ$ & Qwen3-0.6B & 0.750 & 0.750 & 0.750 \\
+\rowcolor{rowdecision}$\triangle$ & Kev-0.6B (i) & \underline{0.579} & \underline{0.543} & 0.503 \\
 \rowcolor{rowreranker}$\blacksquare$ & Qwen3-Reranker-0.6B & \textbf{0.511} & \textbf{0.481} & (0.511) \\
 \midrule
 \multicolumn{5}{l}{\textit{Qwen3-8B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3-8B & 0.383 & 0.380 & -- \\
-\rowcolor{rowdecision}$\blacktriangle$ & Kev-8B (j) & \textbf{0.243} & \underline{0.248} & -- \\
+\rowcolor{rowbase}$\circ$ & Qwen3-8B & 0.383 & 0.380 & 0.231 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-8B (j) & \textbf{0.243} & \underline{0.248} & 0.113 \\
 \rowcolor{rowreranker}$\blacksquare$ & Qwen3-Reranker-8B & \underline{0.257} & \textbf{0.238} & (0.257) \\
 \midrule
 \multicolumn{5}{l}{\textit{Qwen3.5-0.8B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3.5-0.8B & 0.716 & 0.694 & -- \\
-\rowcolor{rowdecision}$\triangle$ & Kev-0.8B (i) & \underline{0.357} & \underline{0.309} & -- \\
+\rowcolor{rowbase}$\circ$ & Qwen3.5-0.8B & 0.716 & 0.694 & 0.617 \\
+\rowcolor{rowdecision}$\triangle$ & Kev-0.8B (i) & \underline{0.357} & \underline{0.309} & 0.336 \\
 \rowcolor{rowreranker}$\blacksquare$ & Prism-0.8B & \textbf{0.243} & \textbf{0.193} & (0.243) \\
 \midrule
 \multicolumn{5}{l}{\textit{Qwen3.5-4B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3.5-4B & 0.296 & 0.269 & -- \\
-\rowcolor{rowdecision}$\triangle$ & Kev-4B (i) & \textbf{0.216} & \underline{0.207} & -- \\
+\rowcolor{rowbase}$\circ$ & Qwen3.5-4B & 0.296 & 0.269 & 0.181 \\
+\rowcolor{rowdecision}$\triangle$ & Kev-4B (i) & \textbf{0.216} & \underline{0.207} & 0.132 \\
 \rowcolor{rowreranker}$\blacksquare$ & Prism-4B & \underline{0.218} & \textbf{0.172} & (0.218) \\
 \bottomrule
 \end{tabular}
@@ -42,8 +42,8 @@ Table~\ref{tab:triplets}.}
  & System & ECE & Brier & ECE$'$ \\
 \midrule
 \multicolumn{5}{l}{\textit{Qwen3.5-9B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3.5-9B & 0.283 & 0.265 & -- \\
-\rowcolor{rowdecision}$\blacktriangle$ & Kev-9B (j) & 0.237 & 0.209 & -- \\
+\rowcolor{rowbase}$\circ$ & Qwen3.5-9B & 0.283 & 0.265 & 0.165 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-9B (j) & 0.237 & 0.209 & 0.160 \\
 \rowcolor{rowdecision}$\blacktriangle$ & Clef-Flash (j) & \underline{0.140} & \underline{0.165} & 0.112 \\
 \rowcolor{rowreranker}$\blacksquare$ & Prism-9B & 0.242 & 0.183 & (0.242) \\
 \rowcolor{rowreranker}$\blacksquare$ & \textit{Ours-9B} & \textbf{0.111} & \textbf{0.157} & (0.111) \\

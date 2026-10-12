@@ -734,7 +734,7 @@ def calibration_ece_brier_table(
         "\\label{tab:calibration}",
         "\\centering",
         "\\scriptsize",
-        "\\setlength{\\tabcolsep}{2.5pt}",
+        "\\setlength{\\tabcolsep}{2pt}",
     ]
     lines += panels[0] + ["\\hspace{1em}"] + panels[1]
     lines += ["\\end{table}", ""]
