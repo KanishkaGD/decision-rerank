@@ -209,8 +209,15 @@ His notes: `docs/notes/kanishka-notes-2026-10-11.md`.
 
 **TODOs (the minor ones are doable today):**
 - [ ] Owner: items 1–3 above (base draft; question; RQ2 evidence).
-- [ ] Add his **count test** to `cdm cutoff` (code in his notes; one function, one call, one test), run it on the
-      existing outputs (CPU, minutes) for all systems incl. `qwen3.5-9b-reranker`, regenerate the tables.
+- [x] His **count test** is in `cdm cutoff` and ran on all existing outputs (2026-10-12). The columns `count_MAE`,
+      `count_ratio`, `count_MAE_full`, `count_ratio_full` and `count_median_ref` are in the `job = cutoff` rows of
+      results.csv; the summary is in `docs/experiment-log.md`, 2026-10-12.
+      - Our 9B reranker fine-tune counts best of all systems: MAE 7.3, ratio 0.86, the only one below the median
+        reference of 8.6.
+      - Decision models over-count with S1Rank's question (ratio 1.6–2.2).
+      - Same-backbone ties: Kev-4B 11.5 = Prism-4B 11.5; Kev-27B 8.5 vs its base 8.9.
+      - Not yet in any paper table. Add a count column to the cutoff table or a small RQ2 table
+        (`src/cdm/paper_tables.py`).
 - [ ] If the new question is adopted for RQ2: new frozen phrasing in `src/cdm/phrasings.py` (new id, e.g.
       `answer`) and new base-model prompts in `src/cdm/rerankers/prompted.py`. Submit jev-joint, kev-27b-joint,
       clef-joint, kev-4b-joint and qwen3.8-27b-prompted on DL19–23, plus kev-9b/clef-flash-joint if the 9B triplet is

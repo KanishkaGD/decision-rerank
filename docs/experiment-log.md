@@ -12,6 +12,29 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-12 -- Count test (Kanishka's RQ2 measure) on the existing outputs
+
+`cdm cutoff` now also writes Kanishka's count test (`count_test` in `src/cdm/cutoff.py`, his code from
+`docs/notes/kanishka-notes-2026-10-11.md`; 71 tests pass): per query the sum of the probabilities on the judged
+candidates against the number of relevant ones (grade >= 2). Rerun on every stored output (S1Rank's question; 187
+cutoff rows). Mean over DL19-23, count MAE in passages (ratio = mean estimate / mean truth); reference: always
+predicting the median count, 8.6:
+
+| System | MAE | ratio | | System | MAE | ratio |
+| --- | ---: | ---: | --- | --- | ---: | ---: |
+| **qwen3.5-9b-reranker (ours)** | **7.3** | 0.86 | | prism-9b | 12.3 | 2.10 |
+| clef-joint | 8.4 | 1.67 | | prism-4b | 11.5 | 2.00 |
+| kev-27b-joint | 8.5 | 1.71 | | kev-4b-isolated | 11.5 | 2.00 |
+| qwen3.8-27b-prompted | 8.9 | 1.69 | | qwen3-reranker-8b | 12.9 | 2.19 |
+| clef-flash-joint | 8.9 | 1.65 | | kev-8b-joint | 12.8 | 2.08 |
+| laya | 9.3 | 1.59 | | jev-joint | 11.3 | 2.02 |
+
+With S1Rank's question every decision model over-counts (ratio 1.6-2.2): it answers at grade >= 1, as Kanishka
+argued. Our 9B reranker fine-tune is the best counter of all systems (7.3, ratio 0.86) and the only one below the
+median reference, ahead of every decision model. Same-backbone ties as in his runs: Kev-4B 11.5 vs Prism-4B 11.5;
+Kev-27B joint 8.5 vs its base 8.9. His new-question numbers for the 27B models (Jev 6.2, Kev-27B 6.0, base 5.8) are
+lower; they need the new phrasing on the cluster to be comparable.
+
 ## 2026-10-10 -- 9B validation run of our reranker recipe started
 
 Owner's go (2026-10-10): run the 9B validation; if it succeeds, the 27B fine-tune follows
