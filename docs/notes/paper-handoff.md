@@ -165,3 +165,57 @@ The negative-result reading:
 > Read `docs/notes/paper-handoff.md` and follow it: we write the ECIR 2027 short paper today (deadline 2026-10-12
 > 23:59 AoE = 2026-10-13 13:59 CEST). Start with work-list items 1–2, then draft the sections in order. Ask me before changing the RQ wording or
 > the title.
+
+## 8. Kanishka's notes (2026-10-11) and what follows from them
+
+His notes: `docs/notes/kanishka-notes-2026-10-11.md`.
+
+**Where they agree with ours:**
+- RQ1 is our triplet table (numbers from before the kernel rerun). Since then, Kev-8B joint 38.8 and Kev-9B joint 50.2
+  are complete, and other averages moved ≤ 0.2.
+- Both RQs are negative.
+- Kev-4B vs Prism-4B is a tie on calibration, in his runs and ours.
+- His local runs reproduce our nDCG@10 within 0.5.
+
+**Where they differ. These need the owner's decision before writing:**
+
+1. **Two drafts exist.** Kanishka has a six-page LNCS draft in his checkout (`docs/paper/short/`, not pushed),
+   titled "Decide, then Rank: Calibrated System One Decision Models as Zero-Shot Rerankers". `paper/` here has the
+   question title. Decide which draft is the base and get his pushed (or sent) before writing.
+2. **The question.** He wants a new question ("Does document … answer the query?") for decision models and base
+   models. It moves calibration a lot (Jev ECE .224 → .073, Kev-27B .179 → .092 on DL21–23) and ranking hardly at
+   all.
+   - Rerunning the **whole RQ1 grid** with it (~230 jobs; BEIR runs of Kev-8B/9B/27B take hours each, and the 27B
+     training holds 4 of the 80 GB GPUs) is **not realistic before the deadline**.
+   - Rerunning **RQ2 on DL19–23 only** (5 systems × 5 years = 25 jobs, mostly 5–30 min; Jev via API for cents) is
+     realistic if the queue allows.
+   - Proposal: RQ1 keeps S1Rank's question (the established one, and fair to Jev); RQ2 uses the new question on
+     DL; the setup states both.
+   - Alternative: keep S1Rank's question everywhere and report the wording effect as an RQ2 finding. Decision-model
+     calibration that a few words of prompt shift threefold is itself an argument against relying on it.
+   - **Caveat:** the wording was not chosen on msmarco-dev (CLAUDE.md rule; he overrides it). His draft does not
+     report the wording effect. Reporting it, at least in one sentence, is the transparent option.
+3. **RQ2's evidence.** He replaces Part A (cutoff) and Part C (post-hoc) with ECE/Brier plus a **count test**.
+   - Under his new question the large decision models are the best calibrated: Jev .073 and Kev-27B .077, against
+     our 9B reranker fine-tune .111 (Qwen3-Reranker prompt). So the owner's sentence "rerankers are partially even
+     better calibrated" holds only partly.
+   - Below 27B it holds: Prism-4B ≈ Kev-4B, and our 9B fine-tune .111 beats Kev-9B/Clef-Flash under S1Rank's
+     question.
+   - The safe negative claim, which both sets of numbers support: calibration comes with model size and with the
+     training loss (BCE), not with decision fine-tuning. Kev-27B vs its base gives no difference in the count test.
+     A reranker fine-tune can be trained calibrated (our 9B: .111). And the same-backbone comparisons show no
+     usable advantage.
+   - Our 9B fine-tune is not in his draft yet.
+
+**TODOs (the minor ones are doable today):**
+- [ ] Owner: items 1–3 above (base draft; question; RQ2 evidence).
+- [ ] Add his **count test** to `cdm cutoff` (code in his notes; one function, one call, one test), run it on the
+      existing outputs (CPU, minutes) for all systems incl. `qwen3.5-9b-reranker`, regenerate the tables.
+- [ ] If the new question is adopted for RQ2: new frozen phrasing in `src/cdm/phrasings.py` (new id, e.g.
+      `answer`) and new base-model prompts in `src/cdm/rerankers/prompted.py`. Submit jev-joint, kev-27b-joint,
+      clef-joint, kev-4b-joint and qwen3.8-27b-prompted on DL19–23, plus kev-9b/clef-flash-joint if the 9B triplet is
+      to be compared. Results stay apart by phrasing id.
+- [ ] Paired significance tests for RQ1 (he asks for them too).
+- [ ] Joint vs. isolated by state length: one sentence in the paper.
+- [ ] Efficiency numbers: optional.
+- [ ] Bib: TREC DL 2021–2023 overview papers (Craswell et al. 2021, 2022, 2023).
