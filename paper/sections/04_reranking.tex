@@ -12,13 +12,12 @@
 \paragraph{Reranker fine-tuning wins on every backbone.}
 On all five backbones where both exist, the reranker fine-tune ranks better than the decision fine-tune in either
 mode (Table~\ref{tab:triplets}; average over ten collections, Qwen3-0.6B: 56.1 vs.\ 27.0; Qwen3-8B: 59.4 vs.\ 52.7;
-Qwen3.5-0.8B: 57.1 vs.\ 36.0; Qwen3.5-4B: 58.7 vs.\ 51.3; Qwen3.5-9B: 59.0 for Prism and 59.4 for Ours-9B vs.\ 54.7
+Qwen3.5-0.8B: 57.1 vs.\ 36.0; Qwen3.5-4B: 58.7 vs.\ 51.3; at 9B: 59.0 for Prism and 59.4 for Ours-9B vs.\ 54.7
 for Clef-Flash), and on almost every single collection. The zero-shot subset tells the same story (e.g.\ 54.9 vs.\
 30.9 at 0.6B, 56.1 vs.\ 49.0 at 9B), so the gap is not owed to in-domain MS~MARCO training; nor to proprietary data,
 since Ours-9B, trained on MS~MARCO alone, matches Prism-9B. Decision fine-tuning barely moves the zero-shot base
 model -- its better mode lies between 3.5 points below (Kev-9B) and 3.7 above (Kev-27B) the base average -- whereas
-reranker fine-tuning adds 5 to 32 points. We ran no significance tests; the gaps are several points on every
-backbone. Only on the backbone without a reranker fine-tune does a decision fine-tune lead: Kev-27B (joint) is the
+reranker fine-tuning adds 5 to 32 points (no significance tests were run). Only on the backbone without a reranker fine-tune does a decision fine-tune lead: Kev-27B (joint) is the
 best system of the study (61.1), but only edges reranker fine-tunes a third its size (59.4).
 
 \paragraph{Joint vs.\ isolated.}

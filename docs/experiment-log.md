@@ -12,6 +12,20 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-12 -- ECIR draft: Ours-9B at a fixed cutoff; tables cut to fit 6 pages
+
+`cdm cutoff --systems qwen3.5-9b-reranker` (slurm/exec.sh, CPU, a few minutes; 5 rows in results.csv, commit
+b8bb0ba). Surprise for RQ2: Ours-9B has the lowest ECE of any system (0.111) but is underconfident on DL -- at
+p >= 0.5 it keeps 8.7 passages per query (Prism-9B 26.0), its oracle cutoffs are 0.09-0.41, set F1 at 0.5 46.6
+(Prism-9B 50.7, Clef-Flash joint 46.6), regret 6.4. The paper says so: low ECE alone does not make a good fixed
+cutoff. No post-hoc rows for Ours-9B (no 1,000-query msmarco-dev run; not needed, it is calibrated as trained).
+
+Owner's decisions (paper-focus.md 16-17): RQ2 reworded to "Are decision models at least better calibrated than
+reranker fine-tunes of the same backbone?"; the paper keeps the full triplet table, one RQ2 table
+(`calibration.tex`: ECE N/T/P, F1@.5 N/P, regret, set size; decision fine-tunes in their better-calibrated mode) and a
+means-only context table (`context-short.tex`). Draft on branch `paper/ecir-draft` (worktree), body at 6 pages.
+No paired significance tests were run (work-list item 3 skipped for time); the text says so.
+
 ## 2026-10-10 -- 9B validation run of our reranker recipe started
 
 Owner's go (2026-10-10): run the 9B validation; if it succeeds, the 27B fine-tune follows

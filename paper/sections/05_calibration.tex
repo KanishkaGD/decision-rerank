@@ -14,8 +14,8 @@ but so does reranker fine-tuning, and against the reranker fine-tune of the same
 no consistent edge: it is worse at Qwen3-0.6B (0.579 vs.\ 0.511) and Qwen3.5-0.8B (0.357 vs.\ 0.243), on par at
 Qwen3.5-4B (0.216 vs.\ 0.218) and Qwen3-8B (0.243 vs.\ 0.257), and better only at Qwen3.5-9B against Prism (Clef-Flash
 0.140 vs.\ 0.242). On that backbone, Ours-9B is the best calibrated system of the study (0.111), below every
-decision model including the 27B ones (0.147--0.156) and \jev{} (0.224). A binary cross-entropy on the yes/no logit is
-all it takes: calibration follows from a pointwise probabilistic loss, not from decision fine-tuning.
+decision model including the 27B ones (0.147--0.156) and \jev{} (0.224): calibration follows from a pointwise
+probabilistic loss, not from decision fine-tuning.
 
 \paragraph{One cutoff for every collection.}
 Calibration should allow one threshold for all collections, e.g.\ to decide which passages reach a generator.
