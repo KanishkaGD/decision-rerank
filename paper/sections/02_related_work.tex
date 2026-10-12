@@ -6,18 +6,25 @@
 \section{Related Work}
 \label{sec:related-work}
 
-\paragraph{Fine-tuning LLMs for reranking.}
-\TODO{Cross-encoders~\cite{Nogueira2019,Nogueira2020monoT5}, the Set-Encoder~\cite{Schlatt2025SetEncoder},
-LLM reranker fine-tunes on a shared backbone (Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding},
-Prism~\cite{Zhang2026Prism}), listwise LLM rerankers~\cite{Sun2023RankGPT,Pradeep2023RankZephyr}, and
-the comparison of Abdallah et al.~\cite{Abdallah2025HowGood}.}
+\paragraph{Fine-tuned rerankers.}
+Cross-encoders fine-tuned on MS~MARCO~\cite{Nogueira2019,Nogueira2020monoT5} and their LLM successors read relevance
+from the logit of a relevance token or a scoring head; recent pointwise LLM rerankers fine-tune open backbones such
+as LLaMA~\cite{Ma2023RankLLaMA}, Qwen3 (Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding}) and Qwen3.5
+(Prism~\cite{Zhang2026Prism}). Listwise rerankers output a ranking instead~\cite{Sun2023RankGPT,Pradeep2023RankZephyr};
+the Set-Encoder lets passages attend to each other while staying permutation-invariant~\cite{Schlatt2025SetEncoder}.
+Abdallah et al.~\cite{Abdallah2025HowGood} compare many of them on the BM25 candidates we use.
 
 \paragraph{System One models in retrieval.}
-\TODO{Decision fine-tuning (RLCD) \FLAG{cite}; S1Rank~\cite{S1Rank}, jev-rerank~\cite{JevRerank},
-LanceDB~\cite{LanceDB2026}, Elastic~\cite{Elastic2026}, Hindsight~\cite{Hindsight2026},
-smriti~\cite{Smriti2026}; \laya{}'s architecture~\cite{Wu2026LayaJev,LayaNode}; the open decision
-fine-tunes Clef~\cite{Clef} and Kev~\cite{Kev,KevCards}. Check for newer work before submitting.}
+Decision models are trained to answer questions about a state with a probability (decision fine-tuning,
+RLCD \FLAG{cite}); open fine-tunes exist as Clef~\cite{Clef} and Kev~\cite{Kev,KevCards}, and \laya{} is another
+open System One model~\cite{Laya}. Their use as rerankers has so far been studied only in non-peer-reviewed reports: S1Rank and
+jev-rerank score BM25 candidates with \jev{}~\cite{S1Rank,JevRerank}, blog posts report on \jev{} as a
+reranker~\cite{LanceDB2026,Elastic2026,Hindsight2026}, and \laya{} has been used as a relevance gate before
+recall~\cite{Smriti2026}. None compares decision fine-tuning with reranker fine-tuning on the same backbone.
 
-\paragraph{Calibration and score cutoffs.}
-\TODO{Calibration of neural networks~\cite{Guo2017Calibration}, of rerankers and of LLM relevance
-judgments; post-hoc temperature and Platt scaling; truncating a ranked list at a score threshold.}
+\paragraph{Calibration and cutoffs.}
+Modern neural networks tend to be overconfident, and temperature scaling is a simple post-hoc
+fix~\cite{Guo2017Calibration}; neural rankers are no exception~\cite{Penha2021Calibration}. Calibrated relevance
+probabilities matter wherever a score must be read on an absolute scale, e.g.\ to truncate a ranked list before it
+is passed on~\cite{Bahri2020Choppy}. We test whether decision models offer such probabilities where reranker
+fine-tunes do not.
