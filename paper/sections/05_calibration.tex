@@ -1,34 +1,31 @@
 % =====================================================================================
 % Section 5 -- Calibration (RQ2)
-% Negative result (docs/intent/paper-focus.md 14, 17); evidence: docs/notes/calibration-proposal.md
-% (Parts A and C). Every number quoted here is in tables/calibration.tex.
+% Negative result (docs/intent/paper-focus.md 14, 17). Every number quoted here is in tables/calibration.tex
+% (ECE and Brier); the fixed cutoff, the count test and post-hoc scaling are described without numbers (full
+% table: tables/calibration-full.tex, for the arXiv version).
 % =====================================================================================
 \section{Are Decision Models Better Calibrated?}
 \label{sec:calibration}
 
 \input{tables/calibration}
 
-A model is well calibrated if its probabilities match how often passages are actually relevant; ECE measures the
-gap. Calibration is the main selling point of decision models, and the base models are indeed poorly calibrated
-(Table~\ref{tab:calibration}; ECE up to 0.750). Decision fine-tuning lowers their ECE on every model, but so does
-reranker fine-tuning. Compared with the reranker fine-tune of the same model, the decision fine-tune is worse
-calibrated at Qwen3-0.6B (0.579 vs.\ 0.511) and Qwen3.5-0.8B (0.357 vs.\ 0.243), about equal at Qwen3.5-4B (0.216
-vs.\ 0.218) and Qwen3-8B (0.243 vs.\ 0.257), and better only at Qwen3.5-9B against Prism (Clef-Flash 0.140 vs.\
-0.242). For the same model, Ours-9B is the best calibrated system in our study (0.111), better than every decision
-model, including the 27B ones (0.147 and 0.156) and \jev{} (0.224). Good calibration thus comes from a loss that
-treats the score as a probability, not from decision fine-tuning. A count test, which compares the sum of a
-query's probabilities with its number of relevant passages, agrees: decision and reranker fine-tune tie at 4B and 8B,
-and Ours-9B counts best of all systems (7.3; Clef 8.4, Kev-27B 8.5, \jev{} 11.3).
+A model is well calibrated if its probabilities match how often passages are actually relevant. We report two
+measures (Table~\ref{tab:calibration}). The expected calibration error (ECE) measures only this match. The Brier
+score, the mean squared error of the probabilities, also rewards a model that separates relevant from non-relevant
+passages well. Calibration is the main selling point of decision models, and the base models are indeed poorly
+calibrated (ECE up to 0.750). Decision fine-tuning improves both measures for every model, but so does reranker
+fine-tuning. Compared with the reranker fine-tune of the same model, the decision fine-tune has a higher Brier score
+at 0.6B, 0.8B, 4B and 8B (e.g.\ Kev-4B 0.207 vs.\ Prism-4B 0.172) and a higher or similar ECE (Kev-4B 0.216 vs.\
+0.218). Only at 9B is Clef-Flash better than Prism (ECE 0.140 vs.\ 0.242), and there Ours-9B has the lowest ECE of
+the study (0.111, below every decision model including the 27B ones and \jev{}) and a Brier score as low as the
+best decision model (0.157). Good calibration thus comes from a loss that treats the score as a probability, not from decision
+fine-tuning.
 
-\paragraph{One cutoff for every collection.}
-A practical use of calibration is to keep every passage with $p \ge 0.5$, e.g.\ to decide which passages reach a
-generator. With this rule, the best reranker fine-tune selects the better set for every model where both exist
-($F_1$@.5, e.g.\ Prism-4B 51.0 vs.\ Kev-4B 41.0, Prism-9B 50.7 vs.\ Clef-Flash 46.6). Decision models are also not
-the only ones for which 0.5 is close to the best cutoff (low regret): Prism (2.8 to 4.0), bge (3.8) and the base
-Qwen3.8-27B (2.4) are as close as Clef-Flash (2.6), Kev-27B (2.8) and Clef (3.1), and closer than \jev{} (6.2). A low ECE alone is not enough, though: Ours-9B is too cautious on TREC DL, keeps only 8.7 passages per query and has a regret of 6.4.
-
-\paragraph{Calibrated after training.}
-Fitted on MS~MARCO dev, temperature scaling lowers every reranker's ECE (e.g.\ Qwen3-Reranker-0.6B from 0.511 to
-0.326), but none gets below 0.20. Platt scaling brings all of them to about 0.23 but empties the set at 0.5
-($F_1$@.5 of 5.7 to 7.4), because MS~MARCO dev judges only about one passage per query. A well calibrated model is
-better, but it need not be a decision model, as Ours-9B shows.
+\paragraph{Uses of calibration.}
+The same picture holds for practical uses of the probabilities (results in our repository). If every passage with
+$p \ge 0.5$ is kept, e.g.\ to decide which passages reach a generator, the best reranker fine-tune selects the better
+set for every model where both exist, and a fixed threshold works across collections for Prism and bge as well as
+for the decision models. Summing a query's probabilities estimates its number of relevant passages about equally
+well for decision and reranker fine-tunes, and best for Ours-9B. Calibrating a reranker after training with
+temperature or Platt scaling on MS~MARCO dev does not reach the decision models, because MS~MARCO judges only about
+one passage per query. A well calibrated model is better, but it need not be a decision model, as Ours-9B shows.

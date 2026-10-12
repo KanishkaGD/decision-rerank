@@ -89,3 +89,8 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
     conclusion gives a clear negative answer. Framing: Kev and Clef are open alternatives with Jev's kind of output,
     not reproductions of Jev's training (RLCD is unpublished; Kev uses a cross-entropy fine-tune), so "decision
     fine-tuning" means fine-tuning an open model to give Jev's kind of output.
+19. **Table design** (decided 2026-10-12): rows of Tables 1-3 shaded by training (base grey, decision fine-tune red,
+    reranker fine-tune blue; Table 1 without the Training column), our fine-tune set in italics (*Ours-9B*), Avg/ZS
+    grouped under "Mean". Table 3 reduced to ECE and Brier (ECE: calibration only; Brier: calibration plus
+    separation); the fixed cutoff, count test and post-hoc scaling stay in the text without numbers, the full table
+    (`calibration-full.tex`) is kept for the arXiv version.

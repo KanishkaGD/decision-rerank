@@ -38,6 +38,12 @@
 \renewcommand\UrlFont{\color{blue}\rmfamily}
 \urlstyle{rm}
 
+% Row shading of the generated tables by training objective (src/cdm/paper_tables.py, ROW_COLORS); light tints,
+% kept apart from the RQ colours (rq-macros.tex).
+\colorlet{rowbase}{black!7}
+\colorlet{rowdecision}{red!9}
+\colorlet{rowreranker}{blue!8}
+
 % Draft markers
 \newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
 \newcommand{\PENDING}[1]{\textcolor{orange}{[PENDING: #1]}}

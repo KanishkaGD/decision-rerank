@@ -1,4 +1,5 @@
 import csv
+import re
 
 from cdm.paper_tables import context_table, main, triplet_table
 
@@ -62,12 +63,15 @@ def test_triplet_table(tmp_path):
     _write(tmp_path / "literature.csv", ["system", "dataset", "metric", "value", "candidates", "role"], [])
     main(["--results", str(tmp_path), "--out", str(tmp_path)])
     tex = (tmp_path / "triplets.tex").read_text()
-    lines = {tuple(line.split(" & ")[:3]): line.split(" & ") for line in tex.splitlines() if line.count(" & ") > 5}
-    reranker = lines[("Qwen3-Reranker-0.6B", "reranker", "")]
+    # Rows start with their shading (\rowcolor{...}); the Training column is gone, the shading encodes it.
+    rows = [re.sub(r"^\\rowcolor\{\w+\}", "", line).split(" & ") for line in tex.splitlines() if line.count(" & ") > 5]
+    assert "\\rowcolor{rowreranker}Qwen3-Reranker-0.6B & " in tex
+    lines = {tuple(cells[:2]): cells for cells in rows}
+    reranker = lines[("Qwen3-Reranker-0.6B", "")]
     assert reranker[-1] == "\\textbf{60.0} \\\\"  # ZS mean, best of the backbone
     assert reranker[-2] == "--"  # no mean over all ten without every dataset
-    joint = lines[("Kev-0.6B", "decision", "joint")]
-    assert joint[3 + 3] == "\\textbf{70.0}"  # TREC-COVID (DL20, DL22 hidden): best of the backbone in that column
+    joint = lines[("Kev-0.6B", "joint")]
+    assert joint[2 + 3] == "\\textbf{70.0}"  # TREC-COVID (DL20, DL22 hidden): best of the backbone in that column
     assert joint[-1] == "-- \\\\"  # zero-shot mean needs all three collections
     assert "\\label{tab:triplets}" in tex and triplet_table({}).count("--") > 0
 
@@ -105,7 +109,21 @@ def test_calibration_table():
     lines = tex.splitlines()
     assert "Kev-27B (j) & 0.150 & -- & -- & 40.0 & -- & 10.0 & 8.0 & 7.0 \\\\" in lines  # better-calibrated mode
     assert "Prism-4B & 0.200 & 0.100 & -- & -- & -- & -- & -- & -- \\\\" in lines
-    assert "\\label{tab:calibration}" in tex and "median count: 8.6" in tex
+    assert "\\label{tab:calibration-full}" in tex and "median count: 8.6" in tex
+
+
+def test_calibration_ece_brier_table():
+    from cdm.paper_tables import DL_DATASETS, calibration_ece_brier_table
+
+    ece = {("kev-4b-joint", d): 0.25 for d in DL_DATASETS}
+    ece.update({("kev-4b-isolated", d): 0.2 for d in DL_DATASETS})
+    ece.update({("prism-4b", d): 0.3 for d in DL_DATASETS})
+    brier = {("kev-4b-isolated", d): 0.21 for d in DL_DATASETS}
+    brier.update({("prism-4b", d): 0.17 for d in DL_DATASETS})
+    lines = calibration_ece_brier_table(ece, brier).splitlines()
+    # Better-calibrated mode chosen by ECE; per group the lowest value bold, the second lowest underlined.
+    assert "\\rowcolor{rowdecision}Kev-4B (i) & \\textbf{0.200} & \\underline{0.210} \\\\" in lines
+    assert "\\rowcolor{rowreranker}Prism-4B & \\underline{0.300} & \\textbf{0.170} \\\\" in lines
 
 
 def test_context_short_table():
@@ -113,7 +131,7 @@ def test_context_short_table():
 
     cells = {("jev-joint", d): (0.5, d == "dl19") for d, _ in DATASETS}
     tex = context_short_table(cells)
-    row = next(x for x in tex.splitlines() if x.startswith("\\jev{} & System One, joint"))
+    row = next(x for x in tex.splitlines() if x.startswith("\\rowcolor{rowdecision}\\jev{} & System One, joint"))
     # The only reranker in the table: best in every column (bold), dagger where a published number is included.
     assert row.split(" & ")[2:] == ["\\textbf{50.0}\\rlap{$^\\dagger$}", "\\textbf{50.0}",
                                     "\\textbf{50.0}\\rlap{$^\\dagger$}", "\\textbf{50.0} \\\\"]
