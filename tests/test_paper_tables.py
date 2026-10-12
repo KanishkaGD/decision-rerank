@@ -97,14 +97,15 @@ def test_calibration_table():
     ece.update({("kev-27b-isolated", d): 0.25 for d in DL_DATASETS})
     ece.update({("prism-4b", d): 0.2 for d in DL_DATASETS})
     cutoff = {("kev-27b-joint", d): {"cut_F1@0.5": "0.4", "cut_F1@oracle": "0.5", "cut_regret": "0.1",
-                                     "cut_oracle_tau": "0.5", "cut_size@0.5": "8", "topk_F1@10": "0.3"}
+                                     "cut_oracle_tau": "0.5", "cut_size@0.5": "8", "topk_F1@10": "0.3",
+                                     "count_MAE": "7", "count_median_ref": "8.6"}
               for d in DL_DATASETS}
     posthoc = {("prism-4b", d, "temperature"): {"ECE": "0.1"} for d in DL_DATASETS}
     tex = calibration_table(cutoff, posthoc, ece)
     lines = tex.splitlines()
-    assert "Kev-27B (j) & 0.150 & -- & -- & 40.0 & -- & 10.0 & 8.0 \\\\" in lines  # better-calibrated mode
-    assert "Prism-4B & 0.200 & 0.100 & -- & -- & -- & -- & -- \\\\" in lines
-    assert "\\label{tab:calibration}" in tex
+    assert "Kev-27B (j) & 0.150 & -- & -- & 40.0 & -- & 10.0 & 8.0 & 7.0 \\\\" in lines  # better-calibrated mode
+    assert "Prism-4B & 0.200 & 0.100 & -- & -- & -- & -- & -- & -- \\\\" in lines
+    assert "\\label{tab:calibration}" in tex and "median count: 8.6" in tex
 
 
 def test_context_short_table():

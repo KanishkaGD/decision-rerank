@@ -216,13 +216,14 @@ His notes: `docs/notes/kanishka-notes-2026-10-11.md`.
         reference of 8.6.
       - Decision models over-count with S1Rank's question (ratio 1.6–2.2).
       - Same-backbone ties: Kev-4B 11.5 = Prism-4B 11.5; Kev-27B 8.5 vs its base 8.9.
-      - Not yet in any paper table. Add a count column to the cutoff table or a small RQ2 table
-        (`src/cdm/paper_tables.py`).
+      - In the paper since 2026-10-12: column "Count" (count_MAE) of `paper/tables/calibration.tex`, one sentence
+        in `05_calibration.tex`. Correction: Ours-9B is the best counter, but not the only one below the median
+        reference (8.6) -- Clef joint 8.4 and Kev-27B joint 8.5 are below it too.
 - [ ] If the new question is adopted for RQ2: new frozen phrasing in `src/cdm/phrasings.py` (new id, e.g.
       `answer`) and new base-model prompts in `src/cdm/rerankers/prompted.py`. Submit jev-joint, kev-27b-joint,
       clef-joint, kev-4b-joint and qwen3.8-27b-prompted on DL19–23, plus kev-9b/clef-flash-joint if the 9B triplet is
       to be compared. Results stay apart by phrasing id.
 - [ ] Paired significance tests for RQ1 (he asks for them too).
-- [ ] Joint vs. isolated by state length: one sentence in the paper.
-- [ ] Efficiency numbers: optional.
-- [ ] Bib: TREC DL 2021–2023 overview papers (Craswell et al. 2021, 2022, 2023).
+- [x] Joint vs. isolated by state length: a paragraph in `04_reranking.tex`.
+- [ ] Efficiency numbers: optional (left out for the 6 pages).
+- [x] Bib: TREC DL 2021–2023 overview papers (Craswell et al. 2021, 2022, 2023), author lists from the papers.

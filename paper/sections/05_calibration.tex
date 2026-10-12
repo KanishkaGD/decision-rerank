@@ -15,21 +15,22 @@ no consistent edge: it is worse at Qwen3-0.6B (0.579 vs.\ 0.511) and Qwen3.5-0.8
 Qwen3.5-4B (0.216 vs.\ 0.218) and Qwen3-8B (0.243 vs.\ 0.257), and better only at Qwen3.5-9B against Prism (Clef-Flash
 0.140 vs.\ 0.242). On that backbone, Ours-9B is the best calibrated system of the study (0.111), below every
 decision model including the 27B ones (0.147--0.156) and \jev{} (0.224): calibration follows from a pointwise
-probabilistic loss, not from decision fine-tuning.
+probabilistic loss, not from decision fine-tuning. A count test -- the summed probabilities of a query's judged candidates
+as an estimate of how many are relevant -- agrees: decision and reranker fine-tune tie at Qwen3.5-4B (11.5 each) and
+Qwen3-8B (12.8 vs.\ 12.9), the reranker fine-tune counts better at the two smallest backbones, and Ours-9B counts
+best of all systems (7.3; Clef 8.4, Kev-27B 8.5, \jev{} 11.3).
 
 \paragraph{One cutoff for every collection.}
-Calibration should allow one threshold for all collections, e.g.\ to decide which passages reach a generator.
-Keeping every candidate with $p \ge 0.5$, the best reranker fine-tune yields the better set on every backbone where
-both exist ($F_1$@.5, e.g.\ Prism-4B 51.0 vs.\ Kev-4B 41.0, Prism-9B 50.7 vs.\ Clef-Flash 46.6). A low regret, i.e.\
-0.5 being close to each collection's best cutoff, is no privilege of decision models: Prism (2.8--4.0), bge (3.8)
-and the untuned Qwen3.8-27B (2.4) match Clef-Flash (2.6), Kev-27B (2.8) and Clef (3.1), and beat \jev{} (6.2). High
-regrets come from rerankers whose scores were never meant as probabilities (Set-Encoder 21.1, monoT5-3B 9.9). Low
-ECE alone does not make a good set at 0.5: Ours-9B is underconfident on TREC DL, keeps only 8.7 passages per query
-and has a regret of 6.4.
+Keeping every candidate with $p \ge 0.5$ (e.g.\ to decide which passages reach a generator), the best reranker
+fine-tune yields the better set on every backbone where both exist ($F_1$@.5, e.g.\ Prism-4B 51.0 vs.\ Kev-4B 41.0,
+Prism-9B 50.7 vs.\ Clef-Flash 46.6). A low regret (0.5 close to each collection's best cutoff) is no privilege of
+decision models: Prism (2.8--4.0), bge (3.8) and the untuned Qwen3.8-27B (2.4) match Clef-Flash (2.6), Kev-27B (2.8)
+and Clef (3.1), and beat \jev{} (6.2); only rerankers whose scores were never meant as probabilities fall far behind
+(Set-Encoder 21.1). Low ECE alone is not enough: Ours-9B is underconfident on TREC DL, keeps only 8.7 passages per
+query and has a regret of 6.4.
 
 \paragraph{Calibrated after the fact.}
-Rescaling a reranker needs labelled data. Fitted on MS~MARCO dev, temperature scaling lowers every reranker's ECE
-(e.g.\ Qwen3-Reranker-0.6B 0.511 to 0.326, Set-Encoder 0.495 to 0.250) but none gets below 0.20; Platt scaling brings
-all to about 0.23 but collapses the set at 0.5 ($F_1$@.5 5.7--7.4), since MS~MARCO dev judges about one passage per
-query and the fitted bias learns that almost nothing is relevant. Post-hoc scaling is no substitute for a calibrated
-model -- but that model need not be a decision model, as Ours-9B shows.
+Fitted on MS~MARCO dev, temperature scaling lowers every reranker's ECE (e.g.\ Qwen3-Reranker-0.6B 0.511 to 0.326)
+but none gets below 0.20; Platt scaling brings all to about 0.23 but collapses the set at 0.5 ($F_1$@.5 5.7--7.4),
+since MS~MARCO dev judges about one passage per query. Post-hoc scaling is no substitute for a calibrated model --
+but that model need not be a decision model, as Ours-9B shows.
