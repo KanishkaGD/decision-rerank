@@ -1,6 +1,6 @@
 """The zero-shot base-model judge of the triplets: prompt assembly, truncation and the yes/no variants (toy tokenizer)."""
 
-from cdm.rerankers.prompted import COMPLETION, DOC, QUESTION, PromptedJudge
+from cdm.rerankers.prompted import COMPLETION, DOC, QUESTION, TEMPLATES, PromptedJudge
 
 
 class ToyTokenizer:
@@ -16,9 +16,11 @@ class ToyTokenizer:
         return {"input_ids": [x[:max_length] if truncation else x for x in ids]}
 
 
-def judge(mode="completion", max_length=200):
+def judge(mode="completion", max_length=200, question="s1rank"):
     j = PromptedJudge.__new__(PromptedJudge)
     j.mode, j.max_length, j.tokenizer = mode, max_length, ToyTokenizer()
+    j.question = question
+    j.chat_user, j.completion = TEMPLATES[question]
     j.prefix_text, j.suffix_text = j._template().split(DOC)
     return j
 
@@ -40,3 +42,9 @@ def test_passage_cut_to_budget_prompt_kept():
     assert text.startswith("Query: q?\nDocument: x") and text.endswith("Answer:")
     assert COMPLETION.endswith("Answer:")
     assert j.count_truncated("q?", ["x" * 500, "short"]) == 1
+
+
+def test_answer_question_template():
+    j = judge(question="answer")
+    assert j.prefix_text == "Query: {query}\nDocument: "
+    assert j.suffix_text == "\nDoes the document answer the query? Answer yes or no.\nAnswer:"

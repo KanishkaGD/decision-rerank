@@ -138,6 +138,14 @@ SYSTEMS: Dict[str, SystemSpec] = {
             SystemSpec(name, "prompted", model_id, {"dtype": dtype, "mode": mode, "batch_size": 16}, revision=rev)
             for name, model_id, rev, dtype, mode in PROMPTED
         ],
+        # RQ2 with Kanishka's question ("answer"; the decision models get it as a phrasing, the base model here).
+        SystemSpec(
+            "qwen3.8-27b-prompted-answer",
+            "prompted",
+            "Qwen/Qwen3.8-27B",
+            {"dtype": "bfloat16", "mode": "chat", "question": "answer", "batch_size": 16},
+            revision="1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+        ),
         *[
             SystemSpec(
                 name,

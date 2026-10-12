@@ -34,10 +34,12 @@ def cutoff(datasets, systems):
         first_stage = ds.default_first_stage
         qrels = read_qrels(os.path.join(run_dir(dataset, first_stage), "qrels.tsv"))
         rows = df[(df["dataset"] == dataset) & (df["first_stage"] == first_stage)]
-        for system in sorted(set(rows["system"])):
+        # One analysis per system and question (S1Rank's and, for RQ2, Kanishka's "answer"): the phrasing is a key.
+        for system, phrasing in sorted(set(zip(rows["system"], rows["phrasing"]))):
             if wanted is not None and system not in wanted:
                 continue
-            candidates = [rows[(rows["system"] == system) & (rows["variant"] == v)] for v in FALLBACK_VARIANTS]
+            mine = rows[(rows["system"] == system) & (rows["phrasing"] == phrasing)]
+            candidates = [mine[mine["variant"] == v] for v in FALLBACK_VARIANTS]
             source = next((c.iloc[0] for c in candidates if len(c)), None)
             if source is None:
                 continue
@@ -53,7 +55,7 @@ def cutoff(datasets, systems):
             meta = {"rel_threshold": ds.rel_threshold, "source_output": source["output"], "code": code}
             save_result(key, {**values, **meta})
             click.echo(
-                f"{system:24} {dataset}{'/' + source['variant'] if source['variant'] else '':6} "
+                f"{system:24} {phrasing:7} {dataset}{'/' + source['variant'] if source['variant'] else '':6} "
                 f"F1@0.5={values['cut_F1@0.5']:.3f} oracle={values['cut_F1@oracle']:.3f} "
                 f"(tau {values['cut_oracle_tau']:.3f}) size@0.5={values['cut_size@0.5']:.1f} "
                 f"top10={values['topk_F1@10']:.3f}"

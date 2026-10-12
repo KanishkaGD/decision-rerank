@@ -35,6 +35,11 @@ PHRASINGS: Dict[str, Phrasing] = {
             "contains information that directly addresses it.",
             frozen=True,
         ),
+        # Kanishka's question (master:src/decisionrerank/questions.py, fixed 2026-10-06 before any run): asks whether
+        # the passage *answers* the query, which matches the relevance grade we score (>= 2 on TREC DL); S1Rank's
+        # wording also admits partially relevant passages. Used for RQ2 on DL19-23 only. Not chosen on msmarco-dev:
+        # the owner overrode that rule on 2026-10-12 (docs/intent/paper-focus.md 17).
+        Phrasing("answer", "Does document `{doc}` answer the `query`?", frozen=True),
     ]
 }
 

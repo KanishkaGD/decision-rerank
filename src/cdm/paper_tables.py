@@ -140,6 +140,9 @@ CONTEXT_ROWS: List[Tuple[str, List[Row]]] = [
 ]
 
 METRIC = "nDCG@10"
+# The paper's tables use S1Rank's question (and "none" for systems without one); runs with other questions (Kanishka's
+# "answer", RQ2) are read separately.
+TABLE_PHRASINGS = {"s1rank", "none", ""}
 COST = "api_cost_usd_per_1k_queries"
 
 Cell = Tuple[float, bool]  # value, taken from the literature
@@ -160,6 +163,8 @@ def load_cells(results_folder: str = RESULTS_FOLDER) -> Tuple[Cells, Costs]:
     cost: Costs = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
             if row["subset"] or row["variant"] or row["dataset"] not in FIRST_STAGE:
                 continue
             first_stage = FIRST_STAGE[row["dataset"]]
@@ -173,6 +178,8 @@ def load_cells(results_folder: str = RESULTS_FOLDER) -> Tuple[Cells, Costs]:
     # BM25 itself: the first stage's own evaluation (system bm25 / official, variant d100).
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
             if row["job"] != "first-stage" or row["subset"] or row["variant"] != "d100":
                 continue
             if row["dataset"] in FIRST_STAGE and f"{row['system']}-d100" == FIRST_STAGE[row["dataset"]]:
@@ -182,6 +189,8 @@ def load_cells(results_folder: str = RESULTS_FOLDER) -> Tuple[Cells, Costs]:
     # Published numbers on the same candidates replace computed ones (CLAUDE.md, "Experiment rules").
     with open(os.path.join(results_folder, "literature.csv"), newline="") as f:
         for row in csv.DictReader(f):
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
             if row["role"] == "baseline" and row["metric"] == METRIC and row["candidates"] == "bm25-d100":
                 cells[(row["system"], row["dataset"])] = (float(row["value"]), True)
     return cells, cost
@@ -240,6 +249,8 @@ def load_significance(results_folder: str = RESULTS_FOLDER) -> Significance:
     marks: Dict[Tuple[str, str], str] = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
             if row["job"] != "significance" or row.get("sig_holm") != "1":
                 continue
             mark = SIGNIFICANCE_MARKS.get(row.get("sig_comparison", ""))
@@ -387,6 +398,8 @@ def load_cutoff(results_folder: str = RESULTS_FOLDER) -> CutoffRows:
     rows: Dict[Tuple[str, str, str], Dict[str, str]] = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
             if row["job"] != "cutoff" or row["subset"] or row["variant"] not in CUTOFF_VARIANTS:
                 continue
             if row["dataset"] in DL_DATASETS and row["first_stage"] == FIRST_STAGE[row["dataset"]]:
@@ -498,6 +511,8 @@ def load_posthoc(results_folder: str = RESULTS_FOLDER) -> PosthocRows:
     out: PosthocRows = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
             if row["job"] == "posthoc" and not row["subset"] and row["dataset"] in FIRST_STAGE:
                 out[(row["system"], row["dataset"], row["variant"])] = row
     return out
@@ -508,6 +523,8 @@ def load_rerank_column(column: str, results_folder: str = RESULTS_FOLDER) -> Dic
     found: Dict[Tuple[str, str, str], float] = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
             if row["job"] != "rerank" or row["subset"] or row["variant"] not in CUTOFF_VARIANTS:
                 continue
             value = _float(row.get(column, ""))

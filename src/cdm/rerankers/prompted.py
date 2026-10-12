@@ -25,6 +25,15 @@ QUESTION = (
 )
 CHAT_USER = 'Query: {query}\nDocument: {doc}\n\n' + QUESTION + ' Answer with only "yes" or "no".'
 COMPLETION = "Query: {query}\nDocument: {doc}\n" + QUESTION + " Answer yes or no.\nAnswer:"
+# Kanishka's question for RQ2 (src/cdm/phrasings.py, "answer"), in the same two templates.
+ANSWER_QUESTION = "Does the document answer the query?"
+TEMPLATES = {
+    "s1rank": (CHAT_USER, COMPLETION),
+    "answer": (
+        'Query: {query}\nDocument: {doc}\n\n' + ANSWER_QUESTION + ' Answer with only "yes" or "no".',
+        "Query: {query}\nDocument: {doc}\n" + ANSWER_QUESTION + " Answer yes or no.\nAnswer:",
+    ),
+}
 DOC = "\x00DOC\x00"  # placeholder: the prompt is rendered once around it, the passage tokens go in between
 
 
@@ -37,6 +46,7 @@ class PromptedJudge(_YesNoReranker):
         model_id: str,
         revision: Optional[str] = None,
         mode: str = "chat",
+        question: str = "s1rank",
         max_length: int = 1024,
         batch_size: int = 32,
         dtype: str = "float32",
@@ -50,6 +60,8 @@ class PromptedJudge(_YesNoReranker):
             raise ValueError(f"mode must be 'chat' or 'completion', not '{mode}'")
         super().__init__(name, model_id, revision, max_length, batch_size, dtype, device)
         self.mode = mode
+        self.question = question
+        self.chat_user, self.completion = TEMPLATES[question]
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision, padding_side="left")
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
@@ -63,8 +75,8 @@ class PromptedJudge(_YesNoReranker):
 
     def _template(self) -> str:
         if self.mode == "completion":
-            return COMPLETION.format(query="{query}", doc=DOC)
-        messages = [{"role": "user", "content": CHAT_USER.format(query="{query}", doc=DOC)}]
+            return self.completion.format(query="{query}", doc=DOC)
+        messages = [{"role": "user", "content": self.chat_user.format(query="{query}", doc=DOC)}]
         return self.tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True, enable_thinking=False
         )
@@ -112,6 +124,7 @@ class PromptedJudge(_YesNoReranker):
         d = super().describe()
         d.update(
             mode=self.mode,
+            question=self.question,
             prompt=(self.prefix_text + "{passage}" + self.suffix_text),
             yes_token_ids=self.yes_ids,
             no_token_ids=self.no_ids,
