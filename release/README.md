@@ -1,7 +1,7 @@
 # Decision Models as Rerankers
 
 Code and results for the ECIR 2027 short paper submission *Do System One Models Make Better Rerankers? Decision vs.
-Reranker Fine-Tuning on One Backbone* (anonymized for review).
+Reranker Fine-Tuning on One Backbone*.
 
 System One decision models (Jev, Clef, Kev, Laya) answer a typed question about an input with a calibrated
 probability. We ask whether they make better rerankers than reranker fine-tunes of the same backbone (RQ1), and
