@@ -64,8 +64,11 @@ def test_triplet_table(tmp_path):
     main(["--results", str(tmp_path), "--out", str(tmp_path)])
     tex = (tmp_path / "triplets.tex").read_text()
     # Rows start with their shading (\rowcolor{...}); the Training column is gone, the shading encodes it.
-    rows = [re.sub(r"^\\rowcolor\{\w+\}", "", line).split(" & ") for line in tex.splitlines() if line.count(" & ") > 5]
-    assert "\\rowcolor{rowreranker}Qwen3-Reranker-0.6B & " in tex
+    # Rows: shading, then the training symbol, name and mode.
+    rows = [re.sub(r"^\\rowcolor\{\w+\}", "", line).split(" & ")[1:] for line in tex.splitlines()
+            if line.count(" & ") > 5]
+    assert "\\rowcolor{rowreranker}$\\blacksquare$ & Qwen3-Reranker-0.6B & " in tex
+    assert "\\rowcolor{rowdecision}$\\blacktriangle$ & Kev-0.6B & joint & " in tex
     lines = {tuple(cells[:2]): cells for cells in rows}
     reranker = lines[("Qwen3-Reranker-0.6B", "")]
     assert reranker[-1] == "\\textbf{60.0} \\\\"  # ZS mean, best of the backbone
@@ -122,8 +125,8 @@ def test_calibration_ece_brier_table():
     brier.update({("prism-4b", d): 0.17 for d in DL_DATASETS})
     lines = calibration_ece_brier_table(ece, brier).splitlines()
     # Better-calibrated mode chosen by ECE; per group the lowest value bold, the second lowest underlined.
-    assert "\\rowcolor{rowdecision}Kev-4B (i) & \\textbf{0.200} & \\underline{0.210} \\\\" in lines
-    assert "\\rowcolor{rowreranker}Prism-4B & \\underline{0.300} & \\textbf{0.170} \\\\" in lines
+    assert "\\rowcolor{rowdecision}$\\triangle$ & Kev-4B (i) & \\textbf{0.200} & \\underline{0.210} \\\\" in lines
+    assert "\\rowcolor{rowreranker}$\\blacksquare$ & Prism-4B & \\underline{0.300} & \\textbf{0.170} \\\\" in lines
 
 
 def test_context_short_table():
@@ -131,9 +134,10 @@ def test_context_short_table():
 
     cells = {("jev-joint", d): (0.5, d == "dl19") for d, _ in DATASETS}
     tex = context_short_table(cells)
-    row = next(x for x in tex.splitlines() if x.startswith("\\rowcolor{rowdecision}\\jev{} & System One, joint"))
+    row = next(x for x in tex.splitlines()
+               if x.startswith("\\rowcolor{rowdecision}$\\blacktriangle$ & \\jev{} & System One, joint"))
     # The only reranker in the table: best in every column (bold), dagger where a published number is included.
-    assert row.split(" & ")[2:] == ["\\textbf{50.0}\\rlap{$^\\dagger$}", "\\textbf{50.0}",
+    assert row.split(" & ")[3:] == ["\\textbf{50.0}\\rlap{$^\\dagger$}", "\\textbf{50.0}",
                                     "\\textbf{50.0}\\rlap{$^\\dagger$}", "\\textbf{50.0} \\\\"]
 
 

@@ -3,24 +3,24 @@
 \begin{table}[!t]
 \caption{Other systems, same candidates (nDCG@10 $\times 100$, means). $^\dagger$: includes published
 numbers~\cite{Abdallah2025HowGood,SetEncoderCard}; --: not all collections available. Best in bold, second
-best underlined; rows shaded as in Table~\ref{tab:triplets}.}
+best underlined; symbols and shading as in Table~\ref{tab:triplets}.}
 \label{tab:context-short}
 \centering
 \scriptsize
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{llrrrr}
+\begin{tabular}{cllrrrr}
 \toprule
-System & Type & DL & BEIR & Avg & ZS \\
+ & System & Type & DL & BEIR & Avg & ZS \\
 \midrule
-BM25 &  & 39.3 & 47.1 & 43.2 & 45.2 \\
-\rowcolor{rowreranker}RankGPT-4 & listwise & -- & 56.9\rlap{$^\dagger$} & -- & \underline{57.1}\rlap{$^\dagger$} \\
-\rowcolor{rowreranker}RankZephyr-7B & listwise & 61.4 & 53.3\rlap{$^\dagger$} & 57.3\rlap{$^\dagger$} & 51.7\rlap{$^\dagger$} \\
-\rowcolor{rowreranker}monoT5-3B & cross-encoder & 60.4 & 54.6\rlap{$^\dagger$} & 57.5\rlap{$^\dagger$} & 52.5\rlap{$^\dagger$} \\
-\rowcolor{rowreranker}bge-reranker-v2-m3 & cross-encoder & 60.4\rlap{$^\dagger$} & 52.8\rlap{$^\dagger$} & 56.6\rlap{$^\dagger$} & 52.2\rlap{$^\dagger$} \\
-\rowcolor{rowreranker}Set-Encoder-large & cross-encoder & \textbf{63.6}\rlap{$^\dagger$} & 54.4 & 59.0\rlap{$^\dagger$} & 53.8 \\
-\rowcolor{rowdecision}\jev{} & System One, joint & \underline{62.7} & \textbf{58.2} & \textbf{60.5} & \textbf{57.2} \\
-\rowcolor{rowdecision}\jev{} & System One, isolated & 61.4 & \underline{57.6} & \underline{59.5} & 56.7 \\
-\rowcolor{rowdecision}\laya{} & System One, isolated & 47.3 & 40.7 & 44.0 & 43.7 \\
+ & BM25 &  & 39.3 & 47.1 & 43.2 & 45.2 \\
+\rowcolor{rowreranker}$\blacksquare$ & RankGPT-4 & listwise & -- & 56.9\rlap{$^\dagger$} & -- & \underline{57.1}\rlap{$^\dagger$} \\
+\rowcolor{rowreranker}$\blacksquare$ & RankZephyr-7B & listwise & 61.4 & 53.3\rlap{$^\dagger$} & 57.3\rlap{$^\dagger$} & 51.7\rlap{$^\dagger$} \\
+\rowcolor{rowreranker}$\blacksquare$ & monoT5-3B & cross-encoder & 60.4 & 54.6\rlap{$^\dagger$} & 57.5\rlap{$^\dagger$} & 52.5\rlap{$^\dagger$} \\
+\rowcolor{rowreranker}$\blacksquare$ & bge-reranker-v2-m3 & cross-encoder & 60.4\rlap{$^\dagger$} & 52.8\rlap{$^\dagger$} & 56.6\rlap{$^\dagger$} & 52.2\rlap{$^\dagger$} \\
+\rowcolor{rowreranker}$\blacksquare$ & Set-Encoder-large & cross-encoder & \textbf{63.6}\rlap{$^\dagger$} & 54.4 & 59.0\rlap{$^\dagger$} & 53.8 \\
+\rowcolor{rowdecision}$\blacktriangle$ & \jev{} & System One, joint & \underline{62.7} & \textbf{58.2} & \textbf{60.5} & \textbf{57.2} \\
+\rowcolor{rowdecision}$\triangle$ & \jev{} & System One, isolated & 61.4 & \underline{57.6} & \underline{59.5} & 56.7 \\
+\rowcolor{rowdecision}$\triangle$ & \laya{} & System One, isolated & 47.3 & 40.7 & 44.0 & 43.7 \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -5,8 +5,8 @@
 $\times 100$, BM25 top-100). Avg: mean over all ten
 collections, including DL20 and DL22, which are not shown for space; ZS: mean over the collections without a
 training split (TREC-COVID, Touch\'e, DBPedia). Per foundation model and column: best in bold, second best
-underlined. Rows shaded by training: base model (grey), decision fine-tune (red), reranker fine-tune
-(blue); \textit{Ours-9B}: our reranker fine-tune.
+underlined. Training: $\circ$~base model, $\blacktriangle$/$\triangle$~decision fine-tune (joint/isolated), $\blacksquare$~reranker fine-tune (rows shaded grey, red, blue);
+\textit{Ours-9B}: our reranker fine-tune.
 Paired $t$-test, Holm-corrected over
 the ten collections, $p < 0.05$: $^\ast$ reranker fine-tune vs.\ the decision fine-tune with the best Avg,
 $^\dagger$ that decision fine-tune vs.\ the base model, $^\ddagger$ joint vs.\ isolated. No reranker
@@ -16,51 +16,51 @@ fine-tune of the 27B model exists.}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
 \begin{adjustbox}{max width=\textwidth}
-\begin{tabular}{llrrrrrrrrrr}
+\begin{tabular}{cllrrrrrrrrrr}
 \toprule
- & & \multicolumn{3}{c}{TREC DL} & \multicolumn{5}{c}{BEIR} & \multicolumn{2}{c}{Mean} \\
-\cmidrule(lr){3-5}\cmidrule(lr){6-10}\cmidrule(lr){11-12}
-System & Mode & DL19 & DL21 & DL23 & COVID & NFC & SciF & Touch\'e & DBP & Avg & ZS \\
+ & & & \multicolumn{3}{c}{TREC DL} & \multicolumn{5}{c}{BEIR} & \multicolumn{2}{c}{Mean} \\
+\cmidrule(lr){4-6}\cmidrule(lr){7-11}\cmidrule(lr){12-13}
+ & System & Mode & DL19 & DL21 & DL23 & COVID & NFC & SciF & Touch\'e & DBP & Avg & ZS \\
 \midrule
-\multicolumn{12}{l}{\textit{Qwen3-0.6B}} \\
-\rowcolor{rowbase}Qwen3-0.6B &  & 32.6 & 32.5 & 14.3 & 50.3 & 16.2 & \underline{18.8} & 11.5 & 14.3 & 23.8 & 25.4 \\
-\rowcolor{rowdecision}Kev-0.6B & joint & 18.4\rlap{$^{\ddagger}$} & 19.1\rlap{$^{\ddagger}$} & 11.0\rlap{$^{\ddagger}$} & 34.0\rlap{$^{\ddagger}$} & 12.0\rlap{$^{\ddagger}$} & 1.1\rlap{$^{\ddagger}$} & 4.5\rlap{$^{\ddagger}$} & 6.1\rlap{$^{\ddagger}$} & 13.2 & 14.9 \\
-\rowcolor{rowdecision}Kev-0.6B & isolated & \underline{33.4} & \underline{39.8} & \underline{18.8} & \underline{58.2} & \underline{17.0} & 16.2 & \underline{13.0} & \underline{21.5}\rlap{$^{\dagger}$} & \underline{27.0} & \underline{30.9} \\
-\rowcolor{rowreranker}Qwen3-Reranker-0.6B &  & \textbf{69.5}\rlap{$^{\ast}$} & \textbf{65.2}\rlap{$^{\ast}$} & \textbf{38.8}\rlap{$^{\ast}$} & \textbf{86.2}\rlap{$^{\ast}$} & \textbf{36.4}\rlap{$^{\ast}$} & \textbf{76.6}\rlap{$^{\ast}$} & \textbf{35.7}\rlap{$^{\ast}$} & \textbf{42.7}\rlap{$^{\ast}$} & \textbf{56.1} & \textbf{54.9} \\
+\multicolumn{13}{l}{\textit{Qwen3-0.6B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3-0.6B &  & 32.6 & 32.5 & 14.3 & 50.3 & 16.2 & \underline{18.8} & 11.5 & 14.3 & 23.8 & 25.4 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-0.6B & joint & 18.4\rlap{$^{\ddagger}$} & 19.1\rlap{$^{\ddagger}$} & 11.0\rlap{$^{\ddagger}$} & 34.0\rlap{$^{\ddagger}$} & 12.0\rlap{$^{\ddagger}$} & 1.1\rlap{$^{\ddagger}$} & 4.5\rlap{$^{\ddagger}$} & 6.1\rlap{$^{\ddagger}$} & 13.2 & 14.9 \\
+\rowcolor{rowdecision}$\triangle$ & Kev-0.6B & isolated & \underline{33.4} & \underline{39.8} & \underline{18.8} & \underline{58.2} & \underline{17.0} & 16.2 & \underline{13.0} & \underline{21.5}\rlap{$^{\dagger}$} & \underline{27.0} & \underline{30.9} \\
+\rowcolor{rowreranker}$\blacksquare$ & Qwen3-Reranker-0.6B &  & \textbf{69.5}\rlap{$^{\ast}$} & \textbf{65.2}\rlap{$^{\ast}$} & \textbf{38.8}\rlap{$^{\ast}$} & \textbf{86.2}\rlap{$^{\ast}$} & \textbf{36.4}\rlap{$^{\ast}$} & \textbf{76.6}\rlap{$^{\ast}$} & \textbf{35.7}\rlap{$^{\ast}$} & \textbf{42.7}\rlap{$^{\ast}$} & \textbf{56.1} & \textbf{54.9} \\
 \midrule
-\multicolumn{12}{l}{\textit{Qwen3-8B}} \\
-\rowcolor{rowbase}Qwen3-8B &  & 70.4 & \underline{65.8} & \underline{42.1} & 80.2 & 34.1 & 72.8 & 24.0 & 37.1 & \underline{53.3} & 47.1 \\
-\rowcolor{rowdecision}Kev-8B & joint & 63.4\rlap{$^{\ddagger}$} & 60.1 & 35.7 & 48.2\rlap{$^{\ddagger}$} & 19.8\rlap{$^{\ddagger}$} & 19.2\rlap{$^{\ddagger}$} & 9.7\rlap{$^{\ddagger}$} & 36.7\rlap{$^{\ddagger}$} & 38.8 & 31.5 \\
-\rowcolor{rowdecision}Kev-8B & isolated & \underline{71.2} & 61.4\rlap{$^{\dagger}$} & 37.6\rlap{$^{\dagger}$} & \underline{80.8} & \underline{35.2} & \underline{73.9} & \underline{26.5} & \underline{40.0}\rlap{$^{\dagger}$} & 52.7 & \underline{49.1} \\
-\rowcolor{rowreranker}Qwen3-Reranker-8B &  & \textbf{73.2} & \textbf{67.0}\rlap{$^{\ast}$} & \textbf{45.2}\rlap{$^{\ast}$} & \textbf{84.0} & \textbf{37.3}\rlap{$^{\ast}$} & \textbf{79.9}\rlap{$^{\ast}$} & \textbf{43.1}\rlap{$^{\ast}$} & \textbf{46.2}\rlap{$^{\ast}$} & \textbf{59.4} & \textbf{57.8} \\
+\multicolumn{13}{l}{\textit{Qwen3-8B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3-8B &  & 70.4 & \underline{65.8} & \underline{42.1} & 80.2 & 34.1 & 72.8 & 24.0 & 37.1 & \underline{53.3} & 47.1 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-8B & joint & 63.4\rlap{$^{\ddagger}$} & 60.1 & 35.7 & 48.2\rlap{$^{\ddagger}$} & 19.8\rlap{$^{\ddagger}$} & 19.2\rlap{$^{\ddagger}$} & 9.7\rlap{$^{\ddagger}$} & 36.7\rlap{$^{\ddagger}$} & 38.8 & 31.5 \\
+\rowcolor{rowdecision}$\triangle$ & Kev-8B & isolated & \underline{71.2} & 61.4\rlap{$^{\dagger}$} & 37.6\rlap{$^{\dagger}$} & \underline{80.8} & \underline{35.2} & \underline{73.9} & \underline{26.5} & \underline{40.0}\rlap{$^{\dagger}$} & 52.7 & \underline{49.1} \\
+\rowcolor{rowreranker}$\blacksquare$ & Qwen3-Reranker-8B &  & \textbf{73.2} & \textbf{67.0}\rlap{$^{\ast}$} & \textbf{45.2}\rlap{$^{\ast}$} & \textbf{84.0} & \textbf{37.3}\rlap{$^{\ast}$} & \textbf{79.9}\rlap{$^{\ast}$} & \textbf{43.1}\rlap{$^{\ast}$} & \textbf{46.2}\rlap{$^{\ast}$} & \textbf{59.4} & \textbf{57.8} \\
 \midrule
-\multicolumn{12}{l}{\textit{Qwen3.5-0.8B}} \\
-\rowcolor{rowbase}Qwen3.5-0.8B &  & \underline{47.7} & \underline{53.3} & \underline{27.9} & 65.3 & 20.4 & \underline{41.1} & \underline{21.9} & 25.8 & \underline{37.6} & 37.7 \\
-\rowcolor{rowdecision}Kev-0.8B & joint & 35.7 & 38.6\rlap{$^{\ddagger}$} & 18.2\rlap{$^{\ddagger}$} & 45.3\rlap{$^{\ddagger}$} & 18.6 & 20.2\rlap{$^{\ddagger}$} & 9.4\rlap{$^{\ddagger}$} & 14.6\rlap{$^{\ddagger}$} & 25.3 & 23.1 \\
-\rowcolor{rowdecision}Kev-0.8B & isolated & 42.8 & 48.3 & 23.8 & \underline{71.9} & \underline{20.9} & 36.0 & 18.0 & \underline{32.2}\rlap{$^{\dagger}$} & 36.0 & \underline{40.7} \\
-\rowcolor{rowreranker}Prism-0.8B &  & \textbf{72.3}\rlap{$^{\ast}$} & \textbf{66.3}\rlap{$^{\ast}$} & \textbf{43.7}\rlap{$^{\ast}$} & \textbf{84.2}\rlap{$^{\ast}$} & \textbf{36.1}\rlap{$^{\ast}$} & \textbf{76.3}\rlap{$^{\ast}$} & \textbf{35.6}\rlap{$^{\ast}$} & \textbf{41.7}\rlap{$^{\ast}$} & \textbf{57.1} & \textbf{53.8} \\
+\multicolumn{13}{l}{\textit{Qwen3.5-0.8B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3.5-0.8B &  & \underline{47.7} & \underline{53.3} & \underline{27.9} & 65.3 & 20.4 & \underline{41.1} & \underline{21.9} & 25.8 & \underline{37.6} & 37.7 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-0.8B & joint & 35.7 & 38.6\rlap{$^{\ddagger}$} & 18.2\rlap{$^{\ddagger}$} & 45.3\rlap{$^{\ddagger}$} & 18.6 & 20.2\rlap{$^{\ddagger}$} & 9.4\rlap{$^{\ddagger}$} & 14.6\rlap{$^{\ddagger}$} & 25.3 & 23.1 \\
+\rowcolor{rowdecision}$\triangle$ & Kev-0.8B & isolated & 42.8 & 48.3 & 23.8 & \underline{71.9} & \underline{20.9} & 36.0 & 18.0 & \underline{32.2}\rlap{$^{\dagger}$} & 36.0 & \underline{40.7} \\
+\rowcolor{rowreranker}$\blacksquare$ & Prism-0.8B &  & \textbf{72.3}\rlap{$^{\ast}$} & \textbf{66.3}\rlap{$^{\ast}$} & \textbf{43.7}\rlap{$^{\ast}$} & \textbf{84.2}\rlap{$^{\ast}$} & \textbf{36.1}\rlap{$^{\ast}$} & \textbf{76.3}\rlap{$^{\ast}$} & \textbf{35.6}\rlap{$^{\ast}$} & \textbf{41.7}\rlap{$^{\ast}$} & \textbf{57.1} & \textbf{53.8} \\
 \midrule
-\multicolumn{12}{l}{\textit{Qwen3.5-4B}} \\
-\rowcolor{rowbase}Qwen3.5-4B &  & \underline{69.0} & \underline{66.2} & \underline{40.1} & 79.5 & \underline{34.1} & \underline{72.9} & \underline{24.8} & 37.0 & \underline{52.7} & 47.1 \\
-\rowcolor{rowdecision}Kev-4B & joint & 65.5 & 62.4 & 38.3 & 75.3\rlap{$^{\ddagger}$} & 29.3\rlap{$^{\ddagger}$} & 62.4\rlap{$^{\ddagger}$} & 23.7 & \underline{40.7} & 49.8 & 46.6 \\
-\rowcolor{rowdecision}Kev-4B & isolated & 62.6\rlap{$^{\dagger}$} & 62.0 & 35.4 & \underline{82.6} & \underline{34.1} & 70.7 & 23.0 & 39.7\rlap{$^{\dagger}$} & 51.3 & \underline{48.4} \\
-\rowcolor{rowreranker}Prism-4B &  & \textbf{74.4}\rlap{$^{\ast}$} & \textbf{70.3}\rlap{$^{\ast}$} & \textbf{46.2}\rlap{$^{\ast}$} & \textbf{84.6} & \textbf{37.4}\rlap{$^{\ast}$} & \textbf{76.9}\rlap{$^{\ast}$} & \textbf{34.3}\rlap{$^{\ast}$} & \textbf{43.7}\rlap{$^{\ast}$} & \textbf{58.7} & \textbf{54.2} \\
+\multicolumn{13}{l}{\textit{Qwen3.5-4B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3.5-4B &  & \underline{69.0} & \underline{66.2} & \underline{40.1} & 79.5 & \underline{34.1} & \underline{72.9} & \underline{24.8} & 37.0 & \underline{52.7} & 47.1 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-4B & joint & 65.5 & 62.4 & 38.3 & 75.3\rlap{$^{\ddagger}$} & 29.3\rlap{$^{\ddagger}$} & 62.4\rlap{$^{\ddagger}$} & 23.7 & \underline{40.7} & 49.8 & 46.6 \\
+\rowcolor{rowdecision}$\triangle$ & Kev-4B & isolated & 62.6\rlap{$^{\dagger}$} & 62.0 & 35.4 & \underline{82.6} & \underline{34.1} & 70.7 & 23.0 & 39.7\rlap{$^{\dagger}$} & 51.3 & \underline{48.4} \\
+\rowcolor{rowreranker}$\blacksquare$ & Prism-4B &  & \textbf{74.4}\rlap{$^{\ast}$} & \textbf{70.3}\rlap{$^{\ast}$} & \textbf{46.2}\rlap{$^{\ast}$} & \textbf{84.6} & \textbf{37.4}\rlap{$^{\ast}$} & \textbf{76.9}\rlap{$^{\ast}$} & \textbf{34.3}\rlap{$^{\ast}$} & \textbf{43.7}\rlap{$^{\ast}$} & \textbf{58.7} & \textbf{54.2} \\
 \midrule
-\multicolumn{12}{l}{\textit{Qwen3.5-9B}} \\
-\rowcolor{rowbase}Qwen3.5-9B &  & 69.6 & \underline{67.7} & 38.1 & 81.2 & 33.6 & 75.0 & 27.5 & 35.8 & 53.7 & 48.2 \\
-\rowcolor{rowdecision}Kev-9B & joint & 63.1 & 63.6 & 39.1 & 78.2 & 31.5 & 60.9\rlap{$^{\ddagger}$} & 22.6 & 38.5\rlap{$^{\ddagger}$} & 50.2 & 46.4 \\
-\rowcolor{rowdecision}Kev-9B & isolated & 65.7 & 60.8 & 35.4 & 77.7 & 32.8 & 72.6 & 19.8 & 34.1 & 50.1 & 43.8 \\
-\rowcolor{rowdecision}Clef-Flash & joint & 68.8 & 64.3 & 40.4 & 82.1 & 35.1\rlap{$^{\ddagger}$} & 65.4 & 21.3 & 38.8\rlap{$^{\ddagger}$} & 52.8 & 47.4 \\
-\rowcolor{rowdecision}Clef-Flash & isolated & 68.8 & 66.4 & 43.8\rlap{$^{\dagger}$} & 82.3 & \textbf{37.3}\rlap{$^{\dagger}$} & 68.7\rlap{$^{\dagger}$} & 22.1 & 42.6\rlap{$^{\dagger}$} & 54.7 & 49.0 \\
-\rowcolor{rowreranker}Prism-9B &  & \textbf{74.0}\rlap{$^{\ast}$} & \textbf{71.0}\rlap{$^{\ast}$} & \underline{44.2} & \underline{83.0} & \underline{37.2} & \textbf{79.8}\rlap{$^{\ast}$} & \underline{34.7}\rlap{$^{\ast}$} & \underline{43.2} & \underline{59.0} & \underline{53.7} \\
-\rowcolor{rowreranker}\textit{Ours-9B} &  & \underline{73.8}\rlap{$^{\ast}$} & 67.3 & \textbf{47.0} & \textbf{84.2} & 37.1 & \underline{77.9}\rlap{$^{\ast}$} & \textbf{36.5}\rlap{$^{\ast}$} & \textbf{47.7}\rlap{$^{\ast}$} & \textbf{59.4} & \textbf{56.1} \\
+\multicolumn{13}{l}{\textit{Qwen3.5-9B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3.5-9B &  & 69.6 & \underline{67.7} & 38.1 & 81.2 & 33.6 & 75.0 & 27.5 & 35.8 & 53.7 & 48.2 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-9B & joint & 63.1 & 63.6 & 39.1 & 78.2 & 31.5 & 60.9\rlap{$^{\ddagger}$} & 22.6 & 38.5\rlap{$^{\ddagger}$} & 50.2 & 46.4 \\
+\rowcolor{rowdecision}$\triangle$ & Kev-9B & isolated & 65.7 & 60.8 & 35.4 & 77.7 & 32.8 & 72.6 & 19.8 & 34.1 & 50.1 & 43.8 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Clef-Flash & joint & 68.8 & 64.3 & 40.4 & 82.1 & 35.1\rlap{$^{\ddagger}$} & 65.4 & 21.3 & 38.8\rlap{$^{\ddagger}$} & 52.8 & 47.4 \\
+\rowcolor{rowdecision}$\triangle$ & Clef-Flash & isolated & 68.8 & 66.4 & 43.8\rlap{$^{\dagger}$} & 82.3 & \textbf{37.3}\rlap{$^{\dagger}$} & 68.7\rlap{$^{\dagger}$} & 22.1 & 42.6\rlap{$^{\dagger}$} & 54.7 & 49.0 \\
+\rowcolor{rowreranker}$\blacksquare$ & Prism-9B &  & \textbf{74.0}\rlap{$^{\ast}$} & \textbf{71.0}\rlap{$^{\ast}$} & \underline{44.2} & \underline{83.0} & \underline{37.2} & \textbf{79.8}\rlap{$^{\ast}$} & \underline{34.7}\rlap{$^{\ast}$} & \underline{43.2} & \underline{59.0} & \underline{53.7} \\
+\rowcolor{rowreranker}$\blacksquare$ & \textit{Ours-9B} &  & \underline{73.8}\rlap{$^{\ast}$} & 67.3 & \textbf{47.0} & \textbf{84.2} & 37.1 & \underline{77.9}\rlap{$^{\ast}$} & \textbf{36.5}\rlap{$^{\ast}$} & \textbf{47.7}\rlap{$^{\ast}$} & \textbf{59.4} & \textbf{56.1} \\
 \midrule
-\multicolumn{12}{l}{\textit{Qwen3.8-27B}} \\
-\rowcolor{rowbase}Qwen3.8-27B &  & 71.6 & 68.5 & 44.1 & 83.0 & 37.6 & 78.5 & 30.2 & 45.0 & 57.4 & 52.7 \\
-\rowcolor{rowdecision}Kev-27B & joint & \textbf{73.9} & \underline{69.9} & \textbf{49.3}\rlap{$^{\dagger}$} & \textbf{85.9}\rlap{$^{\dagger}$} & \textbf{38.7}\rlap{$^{\dagger}$} & \textbf{81.1}\rlap{$^{\dagger}$} & \textbf{40.8}\rlap{$^{\ddagger\dagger}$} & \underline{46.9}\rlap{$^{\dagger}$} & \textbf{61.1} & \textbf{57.9} \\
-\rowcolor{rowdecision}Kev-27B & isolated & \underline{73.4} & \textbf{70.1} & \underline{46.8} & \underline{85.5} & \underline{38.3} & \underline{79.9} & \underline{34.0} & \textbf{47.5} & \underline{59.8} & \underline{55.7} \\
-\rowcolor{rowdecision}Clef & joint & 71.4 & 68.6 & 45.9 & 82.9 & 36.3 & 62.9\rlap{$^{\ddagger}$} & 30.8 & 42.8 & 56.1 & 52.2 \\
-\rowcolor{rowdecision}Clef & isolated & 69.4 & 66.7 & 42.9 & 83.5 & 37.8 & 71.9 & 33.9 & 44.1 & 56.4 & 53.8 \\
+\multicolumn{13}{l}{\textit{Qwen3.8-27B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3.8-27B &  & 71.6 & 68.5 & 44.1 & 83.0 & 37.6 & 78.5 & 30.2 & 45.0 & 57.4 & 52.7 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-27B & joint & \textbf{73.9} & \underline{69.9} & \textbf{49.3}\rlap{$^{\dagger}$} & \textbf{85.9}\rlap{$^{\dagger}$} & \textbf{38.7}\rlap{$^{\dagger}$} & \textbf{81.1}\rlap{$^{\dagger}$} & \textbf{40.8}\rlap{$^{\ddagger\dagger}$} & \underline{46.9}\rlap{$^{\dagger}$} & \textbf{61.1} & \textbf{57.9} \\
+\rowcolor{rowdecision}$\triangle$ & Kev-27B & isolated & \underline{73.4} & \textbf{70.1} & \underline{46.8} & \underline{85.5} & \underline{38.3} & \underline{79.9} & \underline{34.0} & \textbf{47.5} & \underline{59.8} & \underline{55.7} \\
+\rowcolor{rowdecision}$\blacktriangle$ & Clef & joint & 71.4 & 68.6 & 45.9 & 82.9 & 36.3 & 62.9\rlap{$^{\ddagger}$} & 30.8 & 42.8 & 56.1 & 52.2 \\
+\rowcolor{rowdecision}$\triangle$ & Clef & isolated & 69.4 & 66.7 & 42.9 & 83.5 & 37.8 & 71.9 & 33.9 & 44.1 & 56.4 & 53.8 \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
