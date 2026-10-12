@@ -22,6 +22,26 @@ id (and system name for the base model); the paper tables keep reading S1Rank's 
 kev-27b-joint, clef-joint, kev-4b-joint (4451099-4451118) and qwen3.8-27b-prompted-answer (4451119-4451123). When
 done: `slurm/exec.sh -- cdm cutoff` (ECE/Brier are in the rerank rows, the count test in the cutoff rows).
 
+Outcome: all 25 jobs completed; `cdm cutoff` rerun for the RQ2 systems. Means over DL19-23 (ECE 15 bins and Brier on
+judged pairs, relevant = grade >= 2; count MAE in passages, ratio = estimate / truth), new question vs. S1Rank's:
+
+| System | nDCG@10 | ECE | Brier | Count MAE | Ratio | ECE / count MAE with S1Rank's question |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Jev joint | 62.2 | .075 | .127 | 6.3 | 1.32 | .224 / 11.3 |
+| Kev-27B joint | 63.3 | .076 | .130 | 6.0 | 1.31 | .156 / 8.5 |
+| Clef joint | 60.6 | .091 | .139 | 6.7 | 1.38 | .147 / 8.4 |
+| Qwen3.8-27B base | 59.6 | .117 | .144 | 5.8 | 1.15 | .166 / 8.9 |
+| Kev-4B joint | 51.9 | .201 | .199 | 11.6 | 1.93 | .251 / 13.2 |
+| Prism-4B (no question) | 62.0 | .218 | .172 | 11.5 | 2.00 | |
+| Qwen3-Reranker-8B | 60.7 | .257 | .238 | 12.9 | 2.19 | |
+| our qwen3.5-9b-reranker | 62.0 | .111 | .157 | 7.3 | 0.86 | |
+
+This reproduces Kanishka's local numbers within .002 ECE / 0.1 passages (Jev .073/6.2, Kev-27B .077/6.0, Clef
+.092/6.7, base .116/5.8, Kev-4B .200/11.5). The wording moves calibration a lot and ranking hardly (Kev-27B DL mean
+63.3 vs 63.5). With it, the 27B decision models and Jev are the best calibrated systems (ECE ~.075, below our 9B
+fine-tune's .111), but the base model counts best (5.8) and same-backbone comparisons stay ties (Kev-4B vs Prism-4B:
+lower ECE, higher Brier, equal count).
+
 ## 2026-10-12 -- RQ1 significance tests
 
 `cdm significance` (new; `src/cdm/significance.py`, commit 491badb): paired t-test over queries on the stored
