@@ -62,7 +62,7 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
 
 ## ECIR short paper (decided 2026-10-12)
 
-13. **Venue: ECIR 2027 short paper**, deadline 2026-10-13 14:00 (`docs/intent/venue.md`); written with what exists.
+13. **Venue: ECIR 2027 short paper**, deadline 2026-10-12 23:59 AoE (2026-10-13 13:59 CEST) (`docs/intent/venue.md`); written with what exists.
 14. **RQ2 is a negative result too.** Overall answer to "are the hyped decision models of use to the IR community?":
     no -- not as rerankers (RQ1), and not for their calibration either (RQ2), because reranker fine-tunes are
     partly better calibrated (our Qwen3.5-9B reranker fine-tune: mean ECE 0.111 on DL19-23, below every decision

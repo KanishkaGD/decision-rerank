@@ -6,7 +6,7 @@ plan as it is, not how it got here (the `straighten-branch` skill does that swee
 
 **Working title:** *Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One Backbone*
 (a question; `docs/intent/paper-focus.md`).
-**Venue:** ECIR 2027 short paper (Springer LNCS), deadline **2026-10-13, 14:00** (`docs/intent/venue.md`;
+**Venue:** ECIR 2027 short paper (Springer LNCS), deadline **2026-10-12, 23:59 AoE** (2026-10-13, 13:59 CEST) (`docs/intent/venue.md`;
 decided 2026-10-12, replaces WSDM). Writing handoff: `docs/notes/paper-handoff.md`.
 
 ## Contribution
@@ -107,7 +107,7 @@ runs); the paper says so.
 
 ## Order of work
 
-### Phase 1 -- the paper (ECIR short paper, until 2026-10-13 14:00)
+### Phase 1 -- the paper (ECIR short paper, until 2026-10-12 23:59 AoE (2026-10-13 13:59 CEST))
 
 1. **Candidate sets** for all ten datasets; check BM25 against 2CR. *DL21-23 done (exact match).*
 2. **Sanity checks**: monoT5-3B on DL19/20, `jev-joint` against S1Rank.

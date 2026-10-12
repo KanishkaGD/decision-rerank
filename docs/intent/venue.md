@@ -1,12 +1,12 @@
 # Venue
 
-**Current decision (owner, 2026-10-12): ECIR 2027 short paper, submission deadline 2026-10-13, 14:00** (as stated
+**Current decision (owner, 2026-10-12): ECIR 2027 short paper, submission deadline 2026-10-12 23:59 AoE (2026-10-13 13:59 CEST)** (as stated
 by the owner). Official call: https://www.ecir2027.co.uk/call-for-short-papers (read 2026-10-12): **up to 6 pages
 plus references** (appendices count toward the 6 pages and go before the references), Springer LNCS proceedings
 templates -- the paper's sources are already LNCS (`llncs.cls`, `splncs04.bst`) --, **double-anonymous review**
 ("fully anonymised"), EasyChair (conference id ecir27), notification 2026-12-07. A prior arXiv version is allowed, but
-the submission must not cite it. The page lists the submission deadline as 12 October 2026 (no time given) and an
-abstract deadline of 5 October 2026; the owner's 2026-10-13 14:00 presumably reflects an extension -- to confirm. The
+the submission must not cite it. Deadline: **12 October 2026, 23:59 AoE** (= 2026-10-13, 13:59 CEST); the abstract was registered before 5
+October (owner, 2026-10-12). The
 paper is written with what exists, plus at most minor experiments. Handoff: `docs/notes/paper-handoff.md`.
 
 **arXiv version at the end of the week of 2026-10-12**, after the ECIR submission: the ECIR paper plus our 27B

@@ -87,7 +87,7 @@ Two people (and their agents) work in this repository with ordinary git branches
 
 ## Paper (`paper/`)
 
-- Target: ECIR 2027 short paper (Springer LNCS; page limit per the official call), deadline 2026-10-13 14:00.
+- Target: ECIR 2027 short paper (Springer LNCS; page limit per the official call), deadline 2026-10-12 23:59 AoE (2026-10-13 13:59 CEST).
   One file per section in `paper/sections/`; RQ wording only in `paper/rq-macros.tex`; build and check with `make` /
   `make check` in `paper/`.
 - Numbers in the paper come from `results/results.csv` and `results/literature.csv` via generated tables in

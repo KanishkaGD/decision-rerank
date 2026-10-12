@@ -6,16 +6,15 @@ and at most minor analyses.
 
 ## 1. Facts of the submission
 
-- **Venue: ECIR 2027 short paper.** Deadline **2026-10-13, 14:00**, as stated by the owner; ask which timezone if it
-  matters. Springer LNCS: the sources in `paper/` are already LNCS (`llncs.cls`, `splncs04.bst`).
+- **Venue: ECIR 2027 short paper.** Deadline **2026-10-12, 23:59 AoE (2026-10-13, 13:59 CEST)**; abstract registered.
+  Springer LNCS: the sources in `paper/` are already LNCS (`llncs.cls`, `splncs04.bst`).
 - **Official call** (https://www.ecir2027.co.uk/call-for-short-papers, read 2026-10-12):
   - **Up to 6 pages plus references.** Appendices count toward the 6 pages and go before the references.
   - Springer LNCS templates.
   - **Double-anonymous**: no author names, no repository URL ("anonymised link"), no self-identifying citations.
   - A prior arXiv version is allowed but must not be cited.
   - EasyChair, conference id ecir27.
-  - The page says the deadline is 12 October 2026, with the abstract deadline on 5 October. The owner says
-    2026-10-13 14:00, presumably an extension; the owner confirms.
+  - Deadline 12 October 2026, 23:59 AoE (= 2026-10-13, 13:59 CEST). The abstract is registered.
 - Build: `cd paper && make` (latexmk), `make check` (checks), `make tables` (regenerates `paper/tables/*.tex` from
   `results/*.csv` via `python -m cdm.paper_tables`; standard library only, fine on the login node).
 - The login node may run `make`, `pytest` and `cdm.paper_tables`. **No model runs on the login node**; anything
@@ -163,6 +162,6 @@ The negative-result reading:
 
 ## 7. Suggested first message for the new session
 
-> Read `docs/notes/paper-handoff.md` and follow it: we write the ECIR 2027 short paper today (deadline 2026-10-13
-> 14:00). Start with work-list items 1–2, then draft the sections in order. Ask me before changing the RQ wording or
+> Read `docs/notes/paper-handoff.md` and follow it: we write the ECIR 2027 short paper today (deadline 2026-10-12
+> 23:59 AoE = 2026-10-13 13:59 CEST). Start with work-list items 1–2, then draft the sections in order. Ask me before changing the RQ wording or
 > the title.
