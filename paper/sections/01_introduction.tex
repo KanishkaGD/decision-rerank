@@ -1,33 +1,35 @@
 % =====================================================================================
 % Section 1 -- Introduction
 % Story: docs/intent/paper-focus.md 1-2, 14 (two negative results). Numbers only from tables/.
+% Dates: Jev 15 Sep 2026 (TypeSafe launch post; secondary reports), Kev research archive tag 2026-09-24 (GitHub),
+% Clef 1 Oct 2026 (Cloudflare release, press reports); looked up 2026-10-12.
 % =====================================================================================
 \section{Introduction}
 \label{sec:introduction}
 
-System One models, or decision models, answer a yes/no question about a structured state with a calibrated
-probability, named after the fast, intuitive mode of thinking~\cite{Kahneman2011}. They are marketed
-widely, and public experiments show that the closed \jev{} reranks BM25 candidates as well as strong cross-encoders
-when asked whether each candidate is relevant~\cite{S1Rank,JevRerank,LanceDB2026,Elastic2026}. Open decision
-fine-tunes of Qwen models (Clef~\cite{Clef}, Kev~\cite{Kev}) followed within weeks
-\FLAG{release dates of \jev{}, Clef and Kev}, and in our experiments Kev-27B matches \jev{} as a reranker
-(Sect.~\ref{sec:reranking}). That points not to a breakthrough behind a closed model, but to a training paradigm --
-decision fine-tuning with RLCD \FLAG{cite and expand RLCD} -- that anyone can apply to an open backbone, and whose
-merits for retrieval are untested.
+System One models, also called decision models, answer a question about an input (the \emph{state}) with a
+probability instead of generated text, like fast, intuitive thinking~\cite{Kahneman2011}. TypeSafe AI
+released the first of them, \jev{}, on 15 September 2026, trained with a new method it calls RLCD (reinforcement
+learning for calibrated decisions)~\cite{TypeSafe2026Jev}. The model class is only about a month old, yet it is
+marketed widely, and first reports show \jev{} reranking BM25 candidates about as well as strong
+cross-encoders~\cite{S1Rank,JevRerank,LanceDB2026,Elastic2026}. Open alternatives with the same kind of output
+followed within weeks: Kev by the end of September~\cite{Kev} and Cloudflare's Clef on 1 October~\cite{Clef}. They
+fine-tune open Qwen models, but not with RLCD, which is unpublished; Kev, for instance, uses a standard cross-entropy
+loss~\cite{KevCards}. Still, the largest Kev matches \jev{} as a reranker in our experiments. We therefore study
+\emph{decision fine-tuning}, i.e.\ fine-tuning an open model to give \jev{}'s kind of output, and ask, one month
+after \jev{}'s release, whether it is of use for retrieval.
 
-The fair question is therefore decision fine-tuning vs.\ the established alternative, reranker fine-tuning, on the
-same backbone. We compare \emph{triplets}: the base model
-asked zero-shot, its decision fine-tune (scored jointly or in isolation) and its reranker fine-tune, on six Qwen
-backbones from 0.6B to 27B parameters and ten collections. Since calibrated probabilities are the decision models'
-distinctive feature, we also ask whether they at least deliver that:
+A fair test compares decision fine-tuning with the established alternative, reranker fine-tuning, on the same
+\emph{foundation model}, i.e.\ the same pretrained language model of a given size, such as Qwen3.5-4B. For six Qwen
+foundation models from 0.6B to 27B parameters and ten test collections, we compare three variants: the base model
+asked zero-shot, its decision fine-tune and its reranker fine-tune. Since decision models are advertised for their
+calibrated probabilities, we also check whether they at least deliver that:
 
 \showRQ{1}
 \showRQ{2}
 
-Both answers are negative. (1) On every backbone where both exist (0.6B--9B), reranker fine-tuning beats decision
-fine-tuning, also on the collections without training data; decision fine-tuning stays within a few points of the
-untuned base model, and scoring all candidates jointly only helps models trained on long states. (2) Decision
-fine-tunes are not consistently better calibrated than reranker fine-tunes of the same backbone and give no better
-set at a fixed cutoff; our own Qwen3.5-9B reranker fine-tune, trained with a pointwise loss on its yes/no logit,
-ranks like the best published one and is the best calibrated system we tested. Code and raw outputs are
-available.\footnote{\TODO{anonymised link}}
+Both answers are negative. (1) Wherever both exist (0.6B to 9B), the reranker fine-tune ranks better than the
+decision fine-tune, also on collections without training data, and up to 9B decision fine-tuning hardly improves on
+the base model. (2) Decision models are not better calibrated than reranker fine-tunes of the same model. Our own
+reranker fine-tune of Qwen3.5-9B ranks as well as the best published one and is the best calibrated system we
+tested. Code, raw outputs and the results on all collections are available.\footnote{\TODO{anonymised link}}

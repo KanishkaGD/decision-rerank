@@ -8,22 +8,21 @@
 
 \paragraph{Fine-tuned rerankers.}
 Cross-encoders fine-tuned on MS~MARCO~\cite{Nogueira2019,Nogueira2020monoT5} and their LLM successors read relevance
-from the logit of a relevance token or a scoring head; recent pointwise LLM rerankers fine-tune open backbones such
-as LLaMA~\cite{Ma2023RankLLaMA}, Qwen3 (Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding}) and Qwen3.5
-(Prism~\cite{Zhang2026Prism}). Listwise rerankers output a ranking instead~\cite{Sun2023RankGPT,Pradeep2023RankZephyr};
-the Set-Encoder lets passages attend to each other~\cite{Schlatt2025SetEncoder}; Abdallah
+from the score of a relevance token or a scoring head. LLM rerankers fine-tune open models such as
+LLaMA~\cite{Ma2023RankLLaMA} or Qwen~\cite{Zhang2025Qwen3Embedding,Zhang2026Prism}. Listwise rerankers output a ranking instead~\cite{Sun2023RankGPT,Pradeep2023RankZephyr},
+and the Set-Encoder lets passages attend to each other~\cite{Schlatt2025SetEncoder}. Abdallah
 et al.~\cite{Abdallah2025HowGood} compare many of them on our candidates.
 
 \paragraph{System One models in retrieval.}
-Decision models are trained to answer questions about a state with a probability (decision fine-tuning,
-RLCD \FLAG{cite}); open fine-tunes exist as Clef~\cite{Clef} and Kev~\cite{Kev,KevCards}, and \laya{} is another
-open System One model~\cite{Laya}. Their use as rerankers has so far been studied only in non-peer-reviewed reports: S1Rank and
-jev-rerank score BM25 candidates with \jev{}~\cite{S1Rank,JevRerank}, blog posts report on \jev{} as a
+Besides \jev{}~\cite{TypeSafe2026Jev}, Kev~\cite{Kev}, Clef~\cite{Clef} and \laya{}~\cite{Laya} are open
+System One models. Their use as rerankers
+has so far only been tried in reports that are not peer-reviewed: S1Rank and jev-rerank score BM25 candidates with
+\jev{}~\cite{S1Rank,JevRerank}, blog posts report on \jev{} as a
 reranker~\cite{LanceDB2026,Elastic2026,Hindsight2026}, and \laya{} has been used as a relevance gate before
-recall~\cite{Smriti2026}. None compares decision fine-tuning with reranker fine-tuning on the same backbone.
+recall~\cite{Smriti2026}. None compares decision fine-tuning with reranker fine-tuning on the same model.
 
 \paragraph{Calibration and cutoffs.}
-Modern neural networks tend to be overconfident, and temperature scaling is a simple post-hoc
-fix~\cite{Guo2017Calibration}; neural rankers are no exception~\cite{Penha2021Calibration}. Calibrated
-probabilities matter wherever a score is read on an absolute scale, e.g.\ to truncate a ranked
+Modern neural networks tend to be overconfident, and temperature scaling is a simple fix after
+training~\cite{Guo2017Calibration}; neural rankers are no exception~\cite{Penha2021Calibration}. Calibrated
+probabilities matter wherever a score is read on an absolute scale, e.g.\ to cut off a ranked
 list~\cite{Bahri2020Choppy}.

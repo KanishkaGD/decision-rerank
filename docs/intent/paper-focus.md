@@ -82,3 +82,10 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
     probabilities.
 16. **The ECIR paper is written from Michael's draft in `paper/`** (decided 2026-10-12); Kanishka's draft
     (`docs/paper/short/` in his checkout) is a reference.
+18. **Wording and layout of the ECIR draft** (decided 2026-10-12): title reduced to the question, *Do System One
+    Models Make Better Rerankers?*; "backbone" replaced by "foundation model" (also in the RQs); plain language without
+    dash asides; the triplet table leaves out DL20 and DL22 for space (they still count in Avg; all results in the
+    repository); best value bold and second best underlined in Tables 1 and 2; no limitations paragraph, the
+    conclusion gives a clear negative answer. Framing: Kev and Clef are open alternatives with Jev's kind of output,
+    not reproductions of Jev's training (RLCD is unpublished; Kev uses a cross-entropy fine-tune), so "decision
+    fine-tuning" means fine-tuning an open model to give Jev's kind of output.

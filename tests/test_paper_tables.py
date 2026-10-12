@@ -67,7 +67,7 @@ def test_triplet_table(tmp_path):
     assert reranker[-1] == "\\textbf{60.0} \\\\"  # ZS mean, best of the backbone
     assert reranker[-2] == "--"  # no mean over all ten without every dataset
     joint = lines[("Kev-0.6B", "decision", "joint")]
-    assert joint[3 + 5] == "\\textbf{70.0}"  # TREC-COVID: best of the backbone in that column
+    assert joint[3 + 3] == "\\textbf{70.0}"  # TREC-COVID (DL20, DL22 hidden): best of the backbone in that column
     assert joint[-1] == "-- \\\\"  # zero-shot mean needs all three collections
     assert "\\label{tab:triplets}" in tex and triplet_table({}).count("--") > 0
 
@@ -114,7 +114,9 @@ def test_context_short_table():
     cells = {("jev-joint", d): (0.5, d == "dl19") for d, _ in DATASETS}
     tex = context_short_table(cells)
     row = next(x for x in tex.splitlines() if x.startswith("\\jev{} & System One, joint"))
-    assert row.split(" & ")[2:] == ["50.0\\rlap{$^\\dagger$}", "50.0", "50.0\\rlap{$^\\dagger$}", "50.0 \\\\"]
+    # The only reranker in the table: best in every column (bold), dagger where a published number is included.
+    assert row.split(" & ")[2:] == ["\\textbf{50.0}\\rlap{$^\\dagger$}", "\\textbf{50.0}",
+                                    "\\textbf{50.0}\\rlap{$^\\dagger$}", "\\textbf{50.0} \\\\"]
 
 
 def test_triplet_table_significance_marks(tmp_path):

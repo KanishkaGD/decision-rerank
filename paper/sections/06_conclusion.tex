@@ -1,11 +1,13 @@
 % =====================================================================================
 % Section 6 -- Conclusion
+% Clear negative message (owner, 2026-10-12): no limitations paragraph.
 % =====================================================================================
+\FloatBarrier
 \section{Conclusion}
 \label{sec:conclusion}
 
-On the same backbone, reranker fine-tuning beats decision fine-tuning wherever both exist (RQ1), and decision models
-are not better calibrated than reranker fine-tunes (RQ2): the probabilities that set them apart come from the
-training loss and are available to any reranker fine-tune. \emph{Limitations}: no 27B reranker fine-tune exists
-yet; the fine-tunes saw different training data, which the zero-shot subset only partly controls; literature numbers
-are not recomputed or tested; calibration is measured on TREC DL only.
+Do System One models make better rerankers? No. On the same foundation model, reranker fine-tuning beats decision
+fine-tuning, which adds little to the untuned model. Their calibration is no advantage either: reranker fine-tunes
+are as well calibrated, select better passages at a fixed threshold, and can be trained to be better calibrated than
+any decision model. Despite the hype and first uses as rerankers, decision models are currently of no use for
+reranking, neither for ranking nor for their calibration.

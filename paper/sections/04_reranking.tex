@@ -2,38 +2,39 @@
 % Section 4 -- Decision vs. reranker fine-tuning (RQ1)
 % Joint vs. isolated is part of RQ1 (docs/intent/paper-focus.md): explained by the state length
 % the model was trained on, not by window splits. Every number quoted here is in tables/triplets.tex
-% or tables/context-short.tex (differences computed from the printed values).
+% or tables/context-short.tex (differences computed from the printed values); significance counts
+% are over all ten collections (results.csv, job = significance), the table shows eight of them.
 % =====================================================================================
 \section{Decision vs.\ Reranker Fine-Tuning}
 \label{sec:reranking}
 
-\input{tables/triplets}
 
-\paragraph{Reranker fine-tuning wins on every backbone.}
-On all five backbones where both exist, the reranker fine-tune ranks better than the decision fine-tune in either
-mode (Table~\ref{tab:triplets}; average over ten collections, Qwen3-0.6B: 56.1 vs.\ 27.0; Qwen3-8B: 59.4 vs.\ 52.7;
-Qwen3.5-0.8B: 57.1 vs.\ 36.0; Qwen3.5-4B: 58.7 vs.\ 51.3; at 9B: 59.0 for Prism and 59.4 for Ours-9B vs.\ 54.7
-for Clef-Flash). The lead is significant on 46 of the 60 backbone--collection pairs and never significantly
-reversed ($^\ast$). The zero-shot subset tells the same story (e.g.\ 54.9 vs.\ 30.9 at 0.6B, 56.1 vs.\ 49.0 at 9B),
-so the gap is not owed to in-domain MS~MARCO training; nor to proprietary data, since Ours-9B, trained on MS~MARCO
-alone, matches Prism-9B. Decision fine-tuning barely moves the zero-shot base model up to 9B -- its better mode lies
-between 3.5 points below and 3.2 above the base average, with significant differences in both directions on at
-most five collections ($^\dagger$) -- whereas reranker fine-tuning adds 5 to 32 points. Only Kev-27B improves on its
-base (by 3.7, significant on eight collections); on that backbone, without a reranker fine-tune, it is the best
-system of the study (61.1), but only edges reranker fine-tunes a third its size (59.4).
+
+\paragraph{Reranker fine-tuning wins on every model.}
+For all five foundation models where both exist, the reranker fine-tune ranks better than the decision fine-tune in
+either mode (Table~\ref{tab:triplets}; average over ten collections, Qwen3-0.6B: 56.1 vs.\ 27.0; Qwen3-8B: 59.4 vs.\
+52.7; Qwen3.5-0.8B: 57.1 vs.\ 36.0; Qwen3.5-4B: 58.7 vs.\ 51.3; Qwen3.5-9B: 59.0 for Prism and 59.4 for Ours-9B vs.\
+54.7 for Clef-Flash). The difference is significant on 46 of the 60 pairs of model and collection, and the decision
+fine-tune is never significantly better ($^\ast$). The zero-shot subset shows the same (e.g.\ 54.9 vs.\ 30.9 at 0.6B,
+56.1 vs.\ 49.0 at 9B), so the gap does not come from training on MS~MARCO. It does not come from special training
+data either, as Ours-9B, trained on MS~MARCO alone, matches Prism-9B. Up to 9B, decision fine-tuning hardly changes
+the base model: its better mode lies between 3.5 points below and 3.2 points above the base average, with
+significant differences on at most five collections ($^\dagger$). Reranker fine-tuning adds 5 to 32 points. Only
+Kev-27B clearly improves on its base model (by 3.7 points, significant on eight collections). It is the best system
+in our study (61.1), but only slightly ahead of reranker fine-tunes a third of its size (59.4).
 
 \paragraph{Joint vs.\ isolated.}
-Joint scoring helps only models trained on long states, and only slightly: Kev-27B gains 1.3 points and \jev{} 1.0
-(Table~\ref{tab:context-short}; Kev-27B significantly on one collection), Kev-9B and Clef stay within 0.3, Kev-4B and
-Clef-Flash lose about 1.5 to 2, and Kev-0.6B, Kev-0.8B and Kev-8B lose 10.7 to 13.9, significantly on 6 to 10
-collections ($^\ddagger$). Kev-0.8B and Kev-4B were trained on states of at most 7,552 tokens, Kev-27B on up to
-32,768~\cite{KevCards} (Kev-8B's card states none), whereas a joint state has about 13k tokens on TREC DL and 40k or
-more on BEIR. Beyond that length a question is no longer tied to its passage: Kev-0.6B joint separates relevant from
-non-relevant passages at chance level on DL 2019/2020, its probabilities rising with the position in the state.
+Scoring all candidates together helps only models trained on long states, and only a little: Kev-27B gains 1.3
+points and \jev{} 1.0 (Table~\ref{tab:context-short}). Kev-9B and Clef stay within 0.3, Kev-4B and Clef-Flash lose
+1.5 to 2, and Kev-0.6B, Kev-0.8B and Kev-8B lose 10.7 to 13.9 points, significantly on 6 to 10 collections
+($^\ddagger$). Kev-0.8B and Kev-4B were trained on states of at most 7,552 tokens and Kev-27B on up to
+32,768~\cite{KevCards} (Kev-8B's card gives no length), while a joint state has about 13k tokens on TREC DL and 40k
+or more on BEIR. Beyond the trained length the model loses track of which passage a question is about: Kev-0.6B in
+joint mode separates relevant from non-relevant passages only at chance level on DL 2019/2020.
 
 \input{tables/context-short}
 
-\paragraph{Context.}
-The open Kev-27B (61.1) matches the closed \jev{} (60.5, Table~\ref{tab:context-short}); both lead established
-rerankers (Set-Encoder-large 59.0, monoT5-3B 57.5), as do Qwen3-Reranker-8B and Ours-9B (59.4). \laya{} (44.0) is
-barely above BM25 (43.2).
+\paragraph{Other systems.}
+The open Kev-27B (61.1) matches the closed \jev{} (60.5, Table~\ref{tab:context-short}). Both are ahead of
+established rerankers (Set-Encoder-large 59.0, monoT5-3B 57.5), and so are Qwen3-Reranker-8B and Ours-9B (59.4).
+\laya{} (44.0) is barely above BM25 (43.2).
