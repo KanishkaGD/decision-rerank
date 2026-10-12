@@ -8,10 +8,14 @@ and at most minor analyses.
 
 - **Venue: ECIR 2027 short paper.** Deadline **2026-10-13, 14:00**, as stated by the owner; ask which timezone if it
   matters. Springer LNCS: the sources in `paper/` are already LNCS (`llncs.cls`, `splncs04.bst`).
-- **Page limit and anonymity: check the official ECIR 2027 call first.** It was not found online on 2026-10-12. The
-  ECIR 2025 call allowed short papers of **up to 6 pages plus references**, double-blind, with appendices counting
-  toward the limit. Until confirmed, write to 6 pages, anonymised (no author names, no repository URL; use
-  "anonymised link").
+- **Official call** (https://www.ecir2027.co.uk/call-for-short-papers, read 2026-10-12):
+  - **Up to 6 pages plus references.** Appendices count toward the 6 pages and go before the references.
+  - Springer LNCS templates.
+  - **Double-anonymous**: no author names, no repository URL ("anonymised link"), no self-identifying citations.
+  - A prior arXiv version is allowed but must not be cited.
+  - EasyChair, conference id ecir27.
+  - The page says the deadline is 12 October 2026, with the abstract deadline on 5 October. The owner says
+    2026-10-13 14:00, presumably an extension; the owner confirms.
 - Build: `cd paper && make` (latexmk), `make check` (checks), `make tables` (regenerates `paper/tables/*.tex` from
   `results/*.csv` via `python -m cdm.paper_tables`; standard library only, fine on the login node).
 - The login node may run `make`, `pytest` and `cdm.paper_tables`. **No model runs on the login node**; anything
@@ -51,8 +55,8 @@ decides; propose it.
 - RQ2: ECE, the fixed-cutoff analysis (Part A), and post-hoc scaling (Part C).
 
 **What is OUT:**
-- **Our 27B reranker fine-tune** (training job 4429626 may still be running; do not wait for it, do not mention
-  results).
+- **Our 27B reranker fine-tune** (training job 4429626 is running). It goes into the arXiv version at the end of the
+  week, not into the ECIR submission. Do not wait for it.
 - Qwen3.7-Flash.
 - Query performance prediction, except one sentence as future work.
 - The efficiency table is optional, space permitting. If used, note that Kev's inference is 4.5–7× slower than the
@@ -111,7 +115,7 @@ The negative-result reading:
 
 ## 4. Work list for the writing session (in order)
 
-1. **Confirm the ECIR 2027 short-paper rules** (pages, anonymity, template) with the owner or the official call.
+1. **Check `make` builds** and the page budget: 6 pages plus references, LNCS, anonymous.
 2. **Small table and analysis updates** (minutes, no GPU):
    - Add `qwen3.5-9b-reranker` ("ours") as a second reranker fine-tune row in the Qwen3.5-9B group of
      `TRIPLETS` (`src/cdm/paper_tables.py`).

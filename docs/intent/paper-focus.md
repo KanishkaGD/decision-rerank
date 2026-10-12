@@ -68,6 +68,6 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
     partly better calibrated (our Qwen3.5-9B reranker fine-tune: mean ECE 0.111 on DL19-23, below every decision
     model; Prism-4B 0.218 vs Kev-4B 0.216; Qwen3-Reranker-8B 0.257 vs Kev-8B 0.243) and keep the better set at a
     fixed cutoff.
-15. **Our 27B reranker fine-tune stays out of the paper** (supersedes 5 for this paper; the run may finish for a later
-    version). **Our 9B fine-tune (`qwen3.5-9b-reranker`) is in**: a second reranker fine-tune of Qwen3.5-9B next to
+15. **Our 27B reranker fine-tune stays out of the ECIR paper** (supersedes 5 for this paper). The run continues and
+    goes into the arXiv version at the end of the week, next to the 9B fine-tune. **Our 9B fine-tune (`qwen3.5-9b-reranker`) is in**: a second reranker fine-tune of Qwen3.5-9B next to
     Prism-9B, trained by us without any decision data (Avg 59.4 vs Prism 59.0, Clef-Flash 54.7).
