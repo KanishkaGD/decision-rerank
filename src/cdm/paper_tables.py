@@ -547,12 +547,15 @@ def load_posthoc(results_folder: str = RESULTS_FOLDER) -> PosthocRows:
     return out
 
 
-def load_rerank_column(column: str, results_folder: str = RESULTS_FOLDER) -> Dict[Tuple[str, str], float]:
-    """(system, dataset) -> a metric of the default rerank row (variant before a100, as for the cutoff rows)."""
+def load_rerank_column(
+    column: str, results_folder: str = RESULTS_FOLDER, phrasings: Optional[set] = None
+) -> Dict[Tuple[str, str], float]:
+    """(system, dataset) -> a metric of the default rerank row (variant before a100, as for the cutoff rows), for
+    S1Rank's question unless `phrasings` says otherwise."""
     found: Dict[Tuple[str, str, str], float] = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
-            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+            if row.get("phrasing", "") not in (phrasings or TABLE_PHRASINGS):
                 continue
             if row["job"] != "rerank" or row["subset"] or row["variant"] not in CUTOFF_VARIANTS:
                 continue
@@ -660,17 +663,37 @@ CALIBRATION_GROUPS: List[Tuple[str, List[Tuple[List[str], str, str]]]] = [
 ]
 
 
+# RQ2 with Kanishka's question ("answer", DL19-23 only; docs/notes/paper-changes-answer-question.md): the run that
+# fills the ECE' column of a calibration-table row -- the decision fine-tunes in joint mode, the base model via its
+# own system. Rerankers ask no question and get "--".
+ANSWER_RUNS = {
+    "Kev-4B": "kev-4b-joint",
+    "Kev-9B": "kev-9b-joint",
+    "Clef-Flash": "clef-flash-joint",
+    "Qwen3.8-27B": "qwen3.8-27b-prompted-answer",
+    "Kev-27B": "kev-27b-joint",
+    "Clef": "clef-joint",
+    "\\jev{}": "jev-joint",
+}
+
+
 # Groups in the left panel of the calibration table (Qwen3-0.6B to Qwen3.5-4B); the rest goes right.
 CALIBRATION_LEFT_PANEL = 4
 
 
-def calibration_ece_brier_table(ece: Dict[Tuple[str, str], float], brier: Dict[Tuple[str, str], float]) -> str:
+def calibration_ece_brier_table(
+    ece: Dict[Tuple[str, str], float],
+    brier: Dict[Tuple[str, str], float],
+    ece_answer: Optional[Dict[Tuple[str, str], float]] = None,
+) -> str:
     """RQ2 for the short paper: mean ECE and Brier score over DL 2019-2023, decision fine-tunes in their
-    better-calibrated mode (lower ECE); per group the lowest value in bold and the second lowest underlined."""
+    better-calibrated mode (lower ECE); per group the lowest value in bold and the second lowest underlined. ECE':
+    the ECE with Kanishka's question (ANSWER_RUNS), not emphasised."""
+    ece_answer = ece_answer or {}
     header = [
-        "\\begin{tabular}[t]{clrr}",
+        "\\begin{tabular}[t]{clrrr}",
         "\\toprule",
-        " & System & ECE & Brier \\\\",
+        " & System & ECE & Brier & ECE$'$ \\\\",
     ]
     panels: List[List[str]] = [list(header), list(header)]
     for index, (heading, members) in enumerate(CALIBRATION_GROUPS):
@@ -695,9 +718,13 @@ def calibration_ece_brier_table(ece: Dict[Tuple[str, str], float], brier: Dict[T
 
         ece_marks = marks([r[3] for r in rows])
         brier_marks = marks([r[4] for r in rows])
-        panel += ["\\midrule", f"\\multicolumn{{4}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
+        panel += ["\\midrule", f"\\multicolumn{{5}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
         for symbol, name, objective, e, b in rows:
             values = [_emphasize(f"{e:.3f}", *ece_marks), "--" if b is None else _emphasize(f"{b:.3f}", *brier_marks)]
+            base_name = name.replace(" (j)", "").replace(" (i)", "")
+            answer = ANSWER_RUNS.get(base_name) if (objective == "decision" or heading == base_name) else None
+            value = None if answer is None else _mean_of(ece_answer, answer, DL_DATASETS)
+            values.append("--" if value is None else f"{value:.3f}")
             panel.append(_shade(objective) + " & ".join([symbol, name] + values) + " \\\\")
     for panel in panels:
         panel += ["\\bottomrule", "\\end{tabular}"]
@@ -708,13 +735,14 @@ def calibration_ece_brier_table(ece: Dict[Tuple[str, str], float], brier: Dict[T
         "\\caption{Calibration on the judged pairs of TREC DL 2019--2023 (means; lower is better). ECE: expected",
         "calibration error (15 bins); Brier: mean squared error of the probability against the 0/1 label. Per",
         "foundation model: base model, decision fine-tunes in their better-calibrated mode (j/i: joint/isolated),",
-        "reranker fine-tunes; best in bold, second best underlined. Symbols and shading as in Table~\\ref{tab:triplets}.}",
+        "reranker fine-tunes; best in bold, second best underlined. ECE$'$: asked whether the passage answers the",
+        "query (joint mode). Symbols and shading as in Table~\\ref{tab:triplets}.}",
         "\\label{tab:calibration}",
         "\\centering",
         "\\scriptsize",
-        "\\setlength{\\tabcolsep}{4pt}",
+        "\\setlength{\\tabcolsep}{2.5pt}",
     ]
-    lines += panels[0] + ["\\hspace{2em}"] + panels[1]
+    lines += panels[0] + ["\\hspace{1em}"] + panels[1]
     lines += ["\\end{table}", ""]
     return "\n".join(lines)
 
@@ -862,7 +890,9 @@ def main(argv: Optional[List[str]] = None) -> None:
             load_rerank_column("ECE_unjudged0", args.results),
         ),
         "calibration": calibration_ece_brier_table(
-            load_rerank_column("ECE", args.results), load_rerank_column("Brier", args.results)
+            load_rerank_column("ECE", args.results),
+            load_rerank_column("Brier", args.results),
+            load_rerank_column("ECE", args.results, phrasings={"answer", "none"}),
         ),
         "calibration-full": calibration_table(
             load_cutoff(args.results), load_posthoc(args.results), load_rerank_column("ECE", args.results)

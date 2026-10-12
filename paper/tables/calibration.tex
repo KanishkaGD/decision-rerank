@@ -4,58 +4,59 @@
 \caption{Calibration on the judged pairs of TREC DL 2019--2023 (means; lower is better). ECE: expected
 calibration error (15 bins); Brier: mean squared error of the probability against the 0/1 label. Per
 foundation model: base model, decision fine-tunes in their better-calibrated mode (j/i: joint/isolated),
-reranker fine-tunes; best in bold, second best underlined. Symbols and shading as in Table~\ref{tab:triplets}.}
+reranker fine-tunes; best in bold, second best underlined. ECE$'$: asked whether the passage answers the
+query (joint mode). Symbols and shading as in Table~\ref{tab:triplets}.}
 \label{tab:calibration}
 \centering
 \scriptsize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}[t]{clrr}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}[t]{clrrr}
 \toprule
- & System & ECE & Brier \\
+ & System & ECE & Brier & ECE$'$ \\
 \midrule
-\multicolumn{4}{l}{\textit{Qwen3-0.6B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3-0.6B & 0.750 & 0.750 \\
-\rowcolor{rowdecision}$\triangle$ & Kev-0.6B (i) & \underline{0.579} & \underline{0.543} \\
-\rowcolor{rowreranker}$\blacksquare$ & Qwen3-Reranker-0.6B & \textbf{0.511} & \textbf{0.481} \\
+\multicolumn{5}{l}{\textit{Qwen3-0.6B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3-0.6B & 0.750 & 0.750 & -- \\
+\rowcolor{rowdecision}$\triangle$ & Kev-0.6B (i) & \underline{0.579} & \underline{0.543} & -- \\
+\rowcolor{rowreranker}$\blacksquare$ & Qwen3-Reranker-0.6B & \textbf{0.511} & \textbf{0.481} & -- \\
 \midrule
-\multicolumn{4}{l}{\textit{Qwen3-8B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3-8B & 0.383 & 0.380 \\
-\rowcolor{rowdecision}$\blacktriangle$ & Kev-8B (j) & \textbf{0.243} & \underline{0.248} \\
-\rowcolor{rowreranker}$\blacksquare$ & Qwen3-Reranker-8B & \underline{0.257} & \textbf{0.238} \\
+\multicolumn{5}{l}{\textit{Qwen3-8B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3-8B & 0.383 & 0.380 & -- \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-8B (j) & \textbf{0.243} & \underline{0.248} & -- \\
+\rowcolor{rowreranker}$\blacksquare$ & Qwen3-Reranker-8B & \underline{0.257} & \textbf{0.238} & -- \\
 \midrule
-\multicolumn{4}{l}{\textit{Qwen3.5-0.8B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3.5-0.8B & 0.716 & 0.694 \\
-\rowcolor{rowdecision}$\triangle$ & Kev-0.8B (i) & \underline{0.357} & \underline{0.309} \\
-\rowcolor{rowreranker}$\blacksquare$ & Prism-0.8B & \textbf{0.243} & \textbf{0.193} \\
+\multicolumn{5}{l}{\textit{Qwen3.5-0.8B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3.5-0.8B & 0.716 & 0.694 & -- \\
+\rowcolor{rowdecision}$\triangle$ & Kev-0.8B (i) & \underline{0.357} & \underline{0.309} & -- \\
+\rowcolor{rowreranker}$\blacksquare$ & Prism-0.8B & \textbf{0.243} & \textbf{0.193} & -- \\
 \midrule
-\multicolumn{4}{l}{\textit{Qwen3.5-4B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3.5-4B & 0.296 & 0.269 \\
-\rowcolor{rowdecision}$\triangle$ & Kev-4B (i) & \textbf{0.216} & \underline{0.207} \\
-\rowcolor{rowreranker}$\blacksquare$ & Prism-4B & \underline{0.218} & \textbf{0.172} \\
+\multicolumn{5}{l}{\textit{Qwen3.5-4B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3.5-4B & 0.296 & 0.269 & -- \\
+\rowcolor{rowdecision}$\triangle$ & Kev-4B (i) & \textbf{0.216} & \underline{0.207} & 0.201 \\
+\rowcolor{rowreranker}$\blacksquare$ & Prism-4B & \underline{0.218} & \textbf{0.172} & -- \\
 \bottomrule
 \end{tabular}
-\hspace{2em}
-\begin{tabular}[t]{clrr}
+\hspace{1em}
+\begin{tabular}[t]{clrrr}
 \toprule
- & System & ECE & Brier \\
+ & System & ECE & Brier & ECE$'$ \\
 \midrule
-\multicolumn{4}{l}{\textit{Qwen3.5-9B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3.5-9B & 0.283 & 0.265 \\
-\rowcolor{rowdecision}$\blacktriangle$ & Kev-9B (j) & 0.237 & 0.209 \\
-\rowcolor{rowdecision}$\blacktriangle$ & Clef-Flash (j) & \underline{0.140} & \underline{0.165} \\
-\rowcolor{rowreranker}$\blacksquare$ & Prism-9B & 0.242 & 0.183 \\
-\rowcolor{rowreranker}$\blacksquare$ & \textit{Ours-9B} & \textbf{0.111} & \textbf{0.157} \\
+\multicolumn{5}{l}{\textit{Qwen3.5-9B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3.5-9B & 0.283 & 0.265 & -- \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-9B (j) & 0.237 & 0.209 & -- \\
+\rowcolor{rowdecision}$\blacktriangle$ & Clef-Flash (j) & \underline{0.140} & \underline{0.165} & 0.112 \\
+\rowcolor{rowreranker}$\blacksquare$ & Prism-9B & 0.242 & 0.183 & -- \\
+\rowcolor{rowreranker}$\blacksquare$ & \textit{Ours-9B} & \textbf{0.111} & \textbf{0.157} & -- \\
 \midrule
-\multicolumn{4}{l}{\textit{Qwen3.8-27B}} \\
-\rowcolor{rowbase}$\circ$ & Qwen3.8-27B & 0.166 & 0.180 \\
-\rowcolor{rowdecision}$\blacktriangle$ & Kev-27B (j) & \underline{0.156} & \underline{0.159} \\
-\rowcolor{rowdecision}$\blacktriangle$ & Clef (j) & \textbf{0.147} & \textbf{0.157} \\
+\multicolumn{5}{l}{\textit{Qwen3.8-27B}} \\
+\rowcolor{rowbase}$\circ$ & Qwen3.8-27B & 0.166 & 0.180 & 0.117 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-27B (j) & \underline{0.156} & \underline{0.159} & 0.076 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Clef (j) & \textbf{0.147} & \textbf{0.157} & 0.091 \\
 \midrule
-\multicolumn{4}{l}{\textit{Other systems}} \\
-\rowcolor{rowdecision}$\blacktriangle$ & \jev{} (j) & \textbf{0.224} & \textbf{0.187} \\
-\rowcolor{rowreranker}$\blacksquare$ & monoT5-3B & 0.312 & 0.295 \\
-\rowcolor{rowreranker}$\blacksquare$ & bge-reranker-v2-m3 & \underline{0.231} & \underline{0.228} \\
-\rowcolor{rowreranker}$\blacksquare$ & Set-Encoder-large & 0.495 & 0.426 \\
+\multicolumn{5}{l}{\textit{Other systems}} \\
+\rowcolor{rowdecision}$\blacktriangle$ & \jev{} (j) & \textbf{0.224} & \textbf{0.187} & 0.075 \\
+\rowcolor{rowreranker}$\blacksquare$ & monoT5-3B & 0.312 & 0.295 & -- \\
+\rowcolor{rowreranker}$\blacksquare$ & bge-reranker-v2-m3 & \underline{0.231} & \underline{0.228} & -- \\
+\rowcolor{rowreranker}$\blacksquare$ & Set-Encoder-large & 0.495 & 0.426 & -- \\
 \bottomrule
 \end{tabular}
 \end{table}
