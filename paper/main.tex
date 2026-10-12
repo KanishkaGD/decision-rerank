@@ -50,7 +50,7 @@
 \title{Do System One Models Make Better Rerankers? Decision vs.\ Reranker Fine-Tuning on One Backbone}
 \titlerunning{Do System One Models Make Better Rerankers?}
 
-% TODO: authors and affiliations (anonymize for review if the CfP requires it).
+% Anonymous for review (ECIR 2027: double-anonymous); authors and affiliations go into the camera-ready.
 \author{Anonymous}
 \authorrunning{Anonymous}
 \institute{Anonymous}
@@ -58,11 +58,14 @@
 \maketitle
 
 \begin{abstract}
-\TODO{Abstract, once the results are in. Contributions:
-(1) a controlled comparison of base model, decision fine-tune and reranker fine-tune on six backbones (0.6B--27B)
-and ten datasets, decision fine-tunes in joint and isolated mode -- reranker fine-tuning wins wherever both exist;
-(2) whether the calibrated probabilities of decision models are still of use: one fixed cutoff across collections,
-and reranker fine-tunes calibrated after the fact.}
+System One models -- decision models that answer a question about a state with a calibrated probability -- have
+been proposed as rerankers, and open decision fine-tunes now match the closed original. On six Qwen backbones
+(0.6B--27B) and ten collections, we compare the zero-shot base model, its decision fine-tunes (scoring candidates
+jointly or in isolation) and its reranker fine-tunes, including one we trained. Reranker fine-tuning wins on every
+backbone where both exist, also on collections without training data, while decision fine-tuning stays within a few
+points of the base model. Nor are decision models consistently better calibrated: reranker fine-tunes give better
+sets at a fixed probability cutoff, and ours, trained with a pointwise loss on its yes/no logit, is the best
+calibrated system we tested.
 \keywords{Reranking \and Calibration \and System One Models \and Fine-Tuning}
 \end{abstract}
 
@@ -73,15 +76,12 @@ and reranker fine-tunes calibrated after the fact.}
 \input{sections/05_calibration}
 \input{sections/06_conclusion}
 
-\begin{credits}
-\subsubsection{\ackname}
-\TODO{Funding acknowledgement, if any.}
-
-\subsubsection{\discintname}
-% Mandatory in LNCS since llncs 2.23.
-The authors have no competing interests to declare that are relevant to the content of this
-article.
-\end{credits}
+% Acknowledgements and the disclosure of interests (mandatory in LNCS since llncs 2.23) are left out of the
+% anonymous submission for space (ECIR: double-anonymous); restore them for the camera-ready:
+% \begin{credits}
+% \subsubsection{\discintname}
+% The authors have no competing interests to declare that are relevant to the content of this article.
+% \end{credits}
 
 \bibliographystyle{splncs04}
 \bibliography{sources}

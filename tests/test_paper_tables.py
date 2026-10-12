@@ -88,3 +88,29 @@ def test_posthoc_table():
     assert line == "Qwen3-Reranker-8B & 0.300 & 0.200 & 0.100 & 40.0 & 45.0 & 5.0 & 5.0 & -- & -- \\\\"
     kev = next(x for x in tex.splitlines() if x.startswith("Kev-27B joint"))
     assert kev.startswith("Kev-27B joint & 0.150 & -- & --") and "\\label{tab:posthoc}" in tex
+
+
+def test_calibration_table():
+    from cdm.paper_tables import DL_DATASETS, calibration_table
+
+    ece = {("kev-27b-joint", d): 0.15 for d in DL_DATASETS}
+    ece.update({("kev-27b-isolated", d): 0.25 for d in DL_DATASETS})
+    ece.update({("prism-4b", d): 0.2 for d in DL_DATASETS})
+    cutoff = {("kev-27b-joint", d): {"cut_F1@0.5": "0.4", "cut_F1@oracle": "0.5", "cut_regret": "0.1",
+                                     "cut_oracle_tau": "0.5", "cut_size@0.5": "8", "topk_F1@10": "0.3"}
+              for d in DL_DATASETS}
+    posthoc = {("prism-4b", d, "temperature"): {"ECE": "0.1"} for d in DL_DATASETS}
+    tex = calibration_table(cutoff, posthoc, ece)
+    lines = tex.splitlines()
+    assert "Kev-27B (j) & 0.150 & -- & -- & 40.0 & -- & 10.0 & 8.0 \\\\" in lines  # better-calibrated mode
+    assert "Prism-4B & 0.200 & 0.100 & -- & -- & -- & -- & -- \\\\" in lines
+    assert "\\label{tab:calibration}" in tex
+
+
+def test_context_short_table():
+    from cdm.paper_tables import DATASETS, context_short_table
+
+    cells = {("jev-joint", d): (0.5, d == "dl19") for d, _ in DATASETS}
+    tex = context_short_table(cells)
+    row = next(x for x in tex.splitlines() if x.startswith("\\jev{} & System One, joint"))
+    assert row.split(" & ")[2:] == ["50.0\\rlap{$^\\dagger$}", "50.0", "50.0\\rlap{$^\\dagger$}", "50.0 \\\\"]

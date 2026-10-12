@@ -12,7 +12,7 @@
 %
 % Colour code: each RQ keeps its colour in the boxes, badges, and figures.
 %   RQ1 purple  -- decision vs. reranker fine-tuning on the same backbone (incl. joint vs. isolated)
-%   RQ2 amber   -- whether the calibrated probabilities of decision models are still of use
+%   RQ2 amber   -- whether decision models are at least better calibrated than reranker fine-tunes
 % Keep the data colours of the figures apart from these two; figures carry no RQ badges.
 % Wording of the questions: docs/roadmap.md, "Research questions (paper)".
 % =====================================================================================
@@ -50,5 +50,4 @@
 % ---- the research questions (edit wording here only) -----------------------------------
 \defineRQ{1}{On the same backbone, does decision fine-tuning make a better reranker than reranker fine-tuning or no
   fine-tuning?}
-\defineRQ{2}{Where reranker fine-tuning ranks better, are the calibrated probabilities of decision models still of
-  use?}
+\defineRQ{2}{Are decision models at least better calibrated than reranker fine-tunes of the same backbone?}

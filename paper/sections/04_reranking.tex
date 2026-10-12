@@ -1,26 +1,37 @@
 % =====================================================================================
 % Section 4 -- Decision vs. reranker fine-tuning (RQ1)
 % Joint vs. isolated is part of RQ1 (docs/intent/paper-focus.md): explained by the state length
-% the model was trained on, not by window splits.
+% the model was trained on, not by window splits. Every number quoted here is in tables/triplets.tex
+% or tables/context-short.tex (differences computed from the printed values).
 % =====================================================================================
 \section{Decision vs.\ Reranker Fine-Tuning}
 \label{sec:reranking}
 
 \input{tables/triplets}
 
-\PENDING{\RQ{1}: text on Table~\ref{tab:triplets} once the last triplet cells are in: reranker
-fine-tuning beats decision fine-tuning on every backbone where both exist, on the average and on the
-zero-shot subset; decision fine-tuning within a few points of the base model at every size, reranker
-fine-tuning 5--32 points above it; paired tests.}
+\paragraph{Reranker fine-tuning wins on every backbone.}
+On all five backbones where both exist, the reranker fine-tune ranks better than the decision fine-tune in either
+mode (Table~\ref{tab:triplets}; average over ten collections, Qwen3-0.6B: 56.1 vs.\ 27.0; Qwen3-8B: 59.4 vs.\ 52.7;
+Qwen3.5-0.8B: 57.1 vs.\ 36.0; Qwen3.5-4B: 58.7 vs.\ 51.3; at 9B: 59.0 for Prism and 59.4 for Ours-9B vs.\ 54.7
+for Clef-Flash), and on almost every single collection. The zero-shot subset tells the same story (e.g.\ 54.9 vs.\
+30.9 at 0.6B, 56.1 vs.\ 49.0 at 9B), so the gap is not owed to in-domain MS~MARCO training; nor to proprietary data,
+since Ours-9B, trained on MS~MARCO alone, matches Prism-9B. Decision fine-tuning barely moves the zero-shot base
+model -- its better mode lies between 3.5 points below (Kev-9B) and 3.7 above (Kev-27B) the base average -- whereas
+reranker fine-tuning adds 5 to 32 points (no significance tests were run). Only on the backbone without a reranker fine-tune does a decision fine-tune lead: Kev-27B (joint) is the
+best system of the study (61.1), but only edges reranker fine-tunes a third its size (59.4).
 
 \paragraph{Joint vs.\ isolated.}
-\PENDING{Joint minus isolated nDCG@10 per decision fine-tune, with paired tests. Joint scoring helps
-the models trained on long states (\jev{}, Kev-27B) and hurts those trained on short ones (Kev-0.6B to
-Kev-4B, trained on states of at most 7.5k tokens~\cite{KevCards}; a joint state has about 13k tokens on
-TREC DL and 40k or more on BEIR).}
+Joint scoring helps only models trained on long states: Kev-27B gains 1.3 points and \jev{} 1.0
+(Table~\ref{tab:context-short}), Kev-9B and Clef stay within 0.3, Kev-4B and Clef-Flash lose about 1.5 to 2, and
+Kev-0.6B, Kev-0.8B and Kev-8B lose 10.7 to 13.9. According to their cards~\cite{KevCards}, Kev-0.8B and Kev-4B were
+trained on states of at most 7,552 tokens and Kev-27B on up to 32,768, whereas a joint state has about 13k tokens on
+TREC DL and 40k or more on BEIR. Beyond the trained length a question is no longer tied to its passage: Kev-0.6B
+joint separates relevant from non-relevant passages at chance level on DL 2019/2020, and its probabilities rise with
+a passage's position in the state. (Kev-8B's card states no training length.)
+
+\input{tables/context-short}
 
 \paragraph{Context.}
-\input{tables/context}
-\PENDING{Table~\ref{tab:context}: the other rerankers on the same candidates. Open decision fine-tunes
-match the closed \jev{}; the 27B decision fine-tune only edges much smaller reranker fine-tunes. Cost
-and latency on one A100.}
+The open Kev-27B (61.1) matches the closed \jev{} (60.5, Table~\ref{tab:context-short}); both lead the established
+rerankers (Set-Encoder-large 59.0, monoT5-3B 57.5, RankZephyr-7B 57.3), as do Qwen3-Reranker-8B and Ours-9B (59.4)
+at a third of Kev-27B's size. \laya{} (44.0) is barely above BM25 (43.2).

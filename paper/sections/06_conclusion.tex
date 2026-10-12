@@ -4,7 +4,13 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-\TODO{Answers to RQ1 and RQ2 in one sentence each; limitations (no reranker fine-tune of the 27B
-backbone; the fine-tunes saw different training data; benchmark contamination; closed reference
-model; literature numbers not recomputed); release of code and raw outputs: \TODO{URL / anonymized
-link}.}
+On the same backbone, System One models do not make better rerankers: reranker fine-tuning beats decision
+fine-tuning wherever both exist, also without in-domain training data (RQ1). Nor are decision models at least better
+calibrated: reranker fine-tunes are about as well calibrated and give the better set at a fixed cutoff, and one
+trained with a pointwise loss on its yes/no logit beats every decision model (RQ2). The probabilities that set
+decision models apart are a property of the training loss, available to any reranker fine-tune.
+
+\paragraph{Limitations.}
+No reranker fine-tune of the 27B backbone exists yet. The fine-tunes saw different training data, which the
+zero-shot subset only partly controls; contamination cannot be ruled out. Literature numbers are not recomputed. Calibration is measured on TREC DL only; other uses of calibrated
+probabilities, such as query performance prediction, are left to future work.

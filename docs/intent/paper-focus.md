@@ -71,3 +71,12 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
 15. **Our 27B reranker fine-tune stays out of the ECIR paper** (supersedes 5 for this paper). The run continues and
     goes into the arXiv version at the end of the week, next to the 9B fine-tune. **Our 9B fine-tune (`qwen3.5-9b-reranker`) is in**: a second reranker fine-tune of Qwen3.5-9B next to
     Prism-9B, trained by us without any decision data (Avg 59.4 vs Prism 59.0, Clef-Flash 54.7).
+16. **Tables of the ECIR paper** (decided 2026-10-12, for the 6-page limit): (1) the full-width triplet table with
+    every dataset and our 9B fine-tune as `Ours-9B` (`triplets.tex`); (2) one RQ2 table merging ECE (native,
+    temperature, Platt), set F1 at 0.5 (native, Platt), regret and set size, one row per triplet system (decision
+    fine-tunes in their better-calibrated mode) plus Jev, monoT5, bge and the Set-Encoder (`calibration.tex`);
+    (3) a small context table with the DL/BEIR/Avg/ZS means of the systems outside the triplets
+    (`context-short.tex`). The full context, cutoff and post-hoc tables stay generated for the arXiv version.
+17. **RQ2 wording** (decided 2026-10-12): "Are decision models at least better calibrated than reranker fine-tunes of
+    the same backbone?" -- narrower than before: about ECE and the fixed cutoff, not about every use of the
+    probabilities.

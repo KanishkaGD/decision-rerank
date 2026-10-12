@@ -1,28 +1,35 @@
 % =====================================================================================
-% Section 5 -- Is calibration still of use? (RQ2)
-% Kept as an open question and argued in a discussion (docs/intent/paper-focus.md, decision 4);
-% evidence and proposals: docs/notes/calibration-proposal.md (Parts A and C).
+% Section 5 -- Calibration (RQ2)
+% Negative result (docs/intent/paper-focus.md 14, 17); evidence: docs/notes/calibration-proposal.md
+% (Parts A and C). Every number quoted here is in tables/calibration.tex.
 % =====================================================================================
-\section{Is Calibration Still of Use?}
+\section{Are Decision Models Better Calibrated?}
 \label{sec:calibration}
 
-\PENDING{\RQ{2}: ECE and Brier on DL 2019--2023 for the triplets (decision fine-tunes joint and
-isolated) and the context systems; one reliability diagram.}
+\input{tables/calibration}
 
-\paragraph{One cutoff across collections.}
-\input{tables/cutoff}
-\PENDING{Text on Table~\ref{tab:cutoff}: keep every candidate with $p \ge 0.5$. On every backbone the
-reranker fine-tune also gives the best set $F_1$ at 0.5; a low regret (one cutoff fits every collection)
-is shared by the decision fine-tunes, Prism and bge-reranker-v2-m3, while Qwen3-Reranker, monoT5 and the
-Set-Encoder need a much higher one (oracle cutoffs mostly 0.85--0.99). Unjudged passages count as non-relevant.}
+Calibrated probabilities are the selling point of decision models, and the zero-shot base models are indeed poorly
+calibrated (Table~\ref{tab:calibration}; ECE up to 0.750). Decision fine-tuning lowers their ECE on every backbone --
+but so does reranker fine-tuning, and against the reranker fine-tune of the same backbone the decision fine-tune has
+no consistent edge: it is worse at Qwen3-0.6B (0.579 vs.\ 0.511) and Qwen3.5-0.8B (0.357 vs.\ 0.243), on par at
+Qwen3.5-4B (0.216 vs.\ 0.218) and Qwen3-8B (0.243 vs.\ 0.257), and better only at Qwen3.5-9B against Prism (Clef-Flash
+0.140 vs.\ 0.242). On that backbone, Ours-9B is the best calibrated system of the study (0.111), below every
+decision model including the 27B ones (0.147--0.156) and \jev{} (0.224): calibration follows from a pointwise
+probabilistic loss, not from decision fine-tuning.
+
+\paragraph{One cutoff for every collection.}
+Calibration should allow one threshold for all collections, e.g.\ to decide which passages reach a generator.
+Keeping every candidate with $p \ge 0.5$, the best reranker fine-tune yields the better set on every backbone where
+both exist ($F_1$@.5, e.g.\ Prism-4B 51.0 vs.\ Kev-4B 41.0, Prism-9B 50.7 vs.\ Clef-Flash 46.6). A low regret, i.e.\
+0.5 being close to each collection's best cutoff, is no privilege of decision models: Prism (2.8--4.0), bge (3.8)
+and the untuned Qwen3.8-27B (2.4) match Clef-Flash (2.6), Kev-27B (2.8) and Clef (3.1), and beat \jev{} (6.2). High
+regrets come from rerankers whose scores were never meant as probabilities (Set-Encoder 21.1, monoT5-3B 9.9). Low
+ECE alone does not make a good set at 0.5: Ours-9B is underconfident on TREC DL, keeps only 8.7 passages per query
+and has a regret of 6.4.
 
 \paragraph{Calibrated after the fact.}
-\input{tables/posthoc}
-\PENDING{Text on Table~\ref{tab:posthoc}: temperature and Platt scaling of the reranker fine-tunes,
-fitted on MS~MARCO dev, evaluated on DL 2019--2023 and BEIR -- does a reranker fine-tune plus one or two
-fitted parameters make the decision model's calibration redundant?}
-
-\paragraph{Discussion.}
-\TODO{What calibrated probabilities are for in a retrieval pipeline (cutoffs for RAG, query performance
-prediction, ``no relevant passage'' detection); what it costs to obtain them after the fact; whether
-one model can rank like a reranker fine-tune and stay calibrated like a decision model.}
+Rescaling a reranker needs labelled data. Fitted on MS~MARCO dev, temperature scaling lowers every reranker's ECE
+(e.g.\ Qwen3-Reranker-0.6B 0.511 to 0.326, Set-Encoder 0.495 to 0.250) but none gets below 0.20; Platt scaling brings
+all to about 0.23 but collapses the set at 0.5 ($F_1$@.5 5.7--7.4), since MS~MARCO dev judges about one passage per
+query and the fitted bias learns that almost nothing is relevant. Post-hoc scaling is no substitute for a calibrated
+model -- but that model need not be a decision model, as Ours-9B shows.

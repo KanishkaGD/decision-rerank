@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from cdm.cutoff import QueryScores, cutoff_analysis, read_scores, threshold_metrics, topk_metrics
-from cdm.paper_tables import cutoff_summary, cutoff_table, load_cutoff
+from cdm.paper_tables import DL_DATASETS, cutoff_summary, cutoff_table, load_cutoff
 
 # Ranking order; labels 1 relevant, 0 judged non-relevant, -1 unjudged.
 A = QueryScores("a", np.array([0.9, 0.6, 0.4, 0.2]), np.array([1, 0, 1, -1]))
@@ -86,9 +86,9 @@ def test_cutoff_table(tmp_path):
     assert s["F1@0.5"] == pytest.approx(0.4) and (s["tau_min"], s["tau_max"]) == pytest.approx((0.3, 0.7))
     assert cutoff_summary(loaded, "bge-m3") is not None
     assert cutoff_summary(loaded, "prism-4b") is None  # incomplete
-    tex = cutoff_table(loaded)
+    tex = cutoff_table(loaded, {("kev-27b-joint", d): 0.15 for d in DL_DATASETS})
     line = next(x for x in tex.splitlines() if x.startswith("Kev-27B & decision & joint"))
-    assert line == "Kev-27B & decision & joint & 40.0 & 50.0 & 10.0 & 0.30--0.70 & 8.0 & 35.0 \\\\"
+    assert line == "Kev-27B & decision & joint & 0.150 & 40.0 & 10.0 & 0.30--0.70 & 8.0 & 35.0 \\\\"
     assert "Prism-4B & reranker &  & -- & -- & -- & -- & -- & -- \\\\" in tex
 
 

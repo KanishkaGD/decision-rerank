@@ -27,7 +27,7 @@ every size (-3.6 to +3.7), reranker fine-tuning adds 5-32 points; at 27B no rera
 | RQ | Question | Evidence |
 | --- | --- | --- |
 | RQ1 | On the same backbone, does decision fine-tuning make a better reranker than reranker fine-tuning or no fine-tuning? | nDCG@10 of the triplets on all ten datasets (average and zero-shot subset), decision fine-tunes joint and isolated with paired tests; joint vs. isolated against the state length the model was trained on; the other systems as context |
-| RQ2 | Where reranker fine-tuning ranks better, are the calibrated probabilities of decision models still of use? | ECE and Brier on DL19-23; one fixed cutoff (p >= 0.5): set F1 and regret against the oracle cutoff; reranker fine-tunes calibrated after the fact on msmarco-dev; a discussion (`docs/notes/calibration-proposal.md`) |
+| RQ2 | Are decision models at least better calibrated than reranker fine-tunes of the same backbone? | ECE on DL19-23 (incl. our calibrated 9B reranker fine-tune); one fixed cutoff (p >= 0.5): set F1 and regret against the oracle cutoff; reranker fine-tunes calibrated after the fact on msmarco-dev; a discussion (`docs/notes/calibration-proposal.md`) |
 
 Terminology (S1Rank's): every System One run is **pointwise** -- one Noul probability per candidate, ranked by it.
 **Joint** = all candidates of a query in one state; **isolated** = one candidate per request. "Listwise" is reserved

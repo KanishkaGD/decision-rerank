@@ -7,36 +7,40 @@
 \label{sec:setup}
 
 \paragraph{Triplets.}
-\TODO{Per backbone (Qwen3-0.6B, Qwen3-8B, Qwen3.5-0.8B/4B/9B, Qwen3.8-27B) three training objectives:
-none (the post-trained release asked S1Rank's question zero-shot, $P(\text{yes})$ of the first answer
-token), decision fine-tuning (Kev~\cite{Kev}; Clef~\cite{Clef} on the 9B and 27B backbones) and reranker
-fine-tuning (Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding}, Prism~\cite{Zhang2026Prism}; none exists
-for 27B). Which checkpoint each fine-tune starts from; training data (the reranker fine-tunes saw
-MS~MARCO, Kev did not). Robustness check: Qwen3-8B-Base with a completion prompt.}
+On each of six backbones (Qwen3-0.6B/8B, Qwen3.5-0.8B/4B/9B, Qwen3.8-27B) we compare three objectives.
+\emph{None}: the post-trained release, asked the decision models' question in its chat format (thinking off),
+scored by $P(\text{yes})$ at the first answer token. \emph{Decision fine-tuning}: Kev~\cite{Kev,KevCards} (LoRA on
+the -Base checkpoints up to 9B, a full fine-tune of the post-trained 27B), Clef-Flash (9B) and Clef
+(27B)~\cite{Clef}. \emph{Reranker fine-tuning}: Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding} (on the -Base
+checkpoints Kev starts from) and Prism~\cite{Zhang2026Prism}, scored by $P(\text{yes})$ over the ``yes''/``no''
+logits; none is public for 27B. On Qwen3.5-9B we add our own (\emph{Ours-9B}), trained without decision data: LoRA
+($r=32$) on the post-trained release, one epoch over 100k MS~MARCO training queries with one positive and 15 hard
+negatives each, InfoNCE plus binary cross-entropy on the yes/no logit, training queries matching any test topic
+removed, checkpoint chosen on 200 MS~MARCO dev queries. Qwen3-Reranker, Prism and Ours-9B saw MS~MARCO; Kev's
+sources contain neither MS~MARCO nor BEIR~\cite{KevCards}.
 
-\paragraph{Collections.}
-TREC DL 2019--2023~\cite{Craswell2020DL19,Craswell2021DL20} on the MS~MARCO v1 and v2 passage
-corpora~\cite{Nguyen2016MSMARCO}, and TREC-COVID, NFCorpus, SciFact, Touch\'e and DBPedia from
-BEIR~\cite{Thakur2021BEIR}. TREC-COVID, Touch\'e and DBPedia have no training split in any of the
-fine-tunes' data and form the zero-shot subset.
+\paragraph{Collections and candidates.}
+TREC DL 2019--2023~\cite{Craswell2020DL19,Craswell2021DL20} (MS~MARCO v1/v2 passages~\cite{Nguyen2016MSMARCO}) and
+TREC-COVID, NFCorpus, SciFact, Touch\'e and DBPedia from BEIR~\cite{Thakur2021BEIR}; TREC-COVID, Touch\'e and
+DBPedia have no training split in any fine-tune's data and form the \emph{zero-shot subset} (ZS). Every system
+reranks Pyserini's BM25 top-100~\cite{Lin2021Pyserini} (official top-100 files for DL 2021--2023, the same set),
+the candidates of S1Rank~\cite{S1Rank}, RankGPT~\cite{Sun2023RankGPT}, RankZephyr~\cite{Pradeep2023RankZephyr} and
+Abdallah et al.~\cite{Abdallah2025HowGood}, whose published numbers we use where we did not recompute them.
 
-\paragraph{Candidates.}
-Every reranker sees the BM25 top-100 of Pyserini~\cite{Lin2021Pyserini} ($k_1=0.9$, $b=0.4$; for
-DL 2021--2023 the official top-100 files, which are the same set) -- the candidates of
-S1Rank~\cite{S1Rank}, RankGPT~\cite{Sun2023RankGPT}, RankZephyr~\cite{Pradeep2023RankZephyr} and
-the comparison of Abdallah et al.~\cite{Abdallah2025HowGood}, whose numbers we report where we do
-not recompute them (marked in the tables).
-
-\paragraph{Decision models and modes.}
-All decision models are asked S1Rank's yes/no question~\cite{S1Rank}, fixed in advance, and score
-each candidate either jointly (all candidates of a query in one state) or in isolation (one
-candidate per request); both are pointwise. \TODO{Context systems: \jev{}, \laya{} (isolated only),
-bge-reranker-v2-m3, monoT5-3B, Set-Encoder-large~\cite{Schlatt2025SetEncoder}, RankZephyr (run by
-us on DL) and RankGPT-4 (literature). Parameters, context length, cost.}
+\paragraph{Decision models.}
+All decision models get S1Rank's question~\cite{S1Rank}, fixed in advance (``Is document \texttt{\{doc\}} relevant
+to the \texttt{query}? Relevant means it answers the query or contains information that directly addresses it.''),
+with a state holding all 100 candidates (\emph{joint}) or one (\emph{isolated}); both modes are pointwise. Besides
+the triplets we run \jev{} 1.13.0 (closed), \laya{}~\cite{Laya} (isolated only; its context is too short),
+monoT5-3B~\cite{Nogueira2020monoT5}, bge-reranker-v2-m3~\cite{Chen2024BGEM3}, the
+Set-Encoder~\cite{Schlatt2025SetEncoder} and RankZephyr (DL only).
 
 \paragraph{Metrics.}
-nDCG@10 with ir\_measures~\cite{MacAvaney2022irmeasures}; paired $t$-tests over queries,
-Holm-corrected across collections. Calibration: ECE and Brier score~\cite{Guo2017Calibration} on the
-judged pairs of DL 2019--2023 (relevant from grade 2). \TODO{Cutoff: set precision, recall and $F_1$
-at $p \ge 0.5$ and the regret against the per-collection oracle cutoff; temperature and Platt scaling
-fitted on MS~MARCO dev only. Latency and energy on one A100; API cost.}
+nDCG@10 (ir\_measures~\cite{MacAvaney2022irmeasures}); expected calibration error (ECE, 15
+bins)~\cite{Guo2017Calibration} on the judged pairs of DL 2019--2023 (relevant from grade 2), the only collections
+with judged non-relevant passages. \emph{One cutoff}: keep every candidate with $p \ge 0.5$; set $F_1$ and its regret
+against the best cutoff per collection (unjudged = non-relevant). \emph{After the fact}: temperature and Platt
+scaling of each reranker's logit, fitted on the BM25 top-100 of 1,000 MS~MARCO dev queries. \emph{Sanity checks}:
+our BM25 matches Pyserini's reproductions~\cite{Pyserini2CR}, monoT5-3B and RankZephyr are within 0.2 points of
+their published DL 2019/2020 numbers~\cite{Abdallah2025HowGood}, \jev{} joint within 0.5 of S1Rank's~\cite{S1Rank}
+on four of five shared collections (1.5 below on TREC-COVID).
