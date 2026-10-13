@@ -1,31 +1,30 @@
 % =====================================================================================
 % Section 5 -- Calibration (RQ2)
-% Negative result (docs/intent/paper-focus.md 14, 17). Every number quoted here is in tables/calibration.tex
-% (ECE and Brier); the fixed cutoff, the count test and post-hoc scaling are described without numbers (full
-% table: tables/calibration-full.tex, for the arXiv version).
+% Mostly negative (docs/intent/paper-focus.md 14; second question: docs/experiment-log.md 2026-10-12/13). Every
+% number quoted here is in tables/calibration.tex; the fixed cutoff, the count test and post-hoc scaling are
+% described without numbers (docs/notes/paper-changes-answer-question.md, results.csv).
 % =====================================================================================
 \section{Are Decision Models Better Calibrated?}
 \label{sec:calibration}
 
 \input{tables/calibration}
 
-A model is well calibrated if its probabilities match how often passages are actually relevant. We report two
-measures (Table~\ref{tab:calibration}). The expected calibration error (ECE) measures only this match. The Brier
-score, the mean squared error of the probabilities, also rewards a model that separates relevant from non-relevant
-passages well. Calibration is the main selling point of decision models, and the base models are indeed poorly
-calibrated (ECE up to 0.750). Decision fine-tuning improves both measures for every model, but so does reranker
-fine-tuning. Compared with the reranker fine-tune of the same model, the decision fine-tune has a higher Brier score
-at 0.6B, 0.8B, 4B and 8B (e.g.\ Kev-4B 0.207 vs.\ Prism-4B 0.172) and a higher or similar ECE (Kev-4B 0.216 vs.\
-0.218). Only at 9B is Clef-Flash better than Prism (ECE 0.140 vs.\ 0.242), and there Ours-9B has the lowest ECE of
-the study (0.111, below every decision model including the 27B ones and \jev{}) and a Brier score as low as the
-best decision model (0.157). Good calibration thus comes from a loss that treats the score as a probability, not from decision
-fine-tuning.
+Calibration is the main selling point of decision models. Besides the ECE we report the Brier score, the mean squared
+error of the probabilities, which also rewards separating relevant from non-relevant passages
+(Table~\ref{tab:calibration}). With S1Rank's question, decision fine-tuning
+improves on the poorly calibrated base models, but no more than reranker fine-tuning: up to 8B, the reranker
+fine-tune has a similar or lower ECE and a lower Brier score (e.g.\ Prism-4B 0.218 and 0.172 vs.\ Kev-4B 0.216 and
+0.207). At 9B, Clef-Flash beats Prism (0.140 vs.\ 0.242), but Ours-9B is better still (0.111).
+
+\paragraph{The question matters.}
+S1Rank's question also accepts passages that only partly address the query, but we count a passage as relevant only
+if it answers the query. Asking exactly that (\emph{Answers?}) improves every decision and base model, with hardly
+any change in ranking. Now the decision fine-tunes beat the published reranker fine-tunes from 4B on (e.g.\ Kev-8B
+0.113 vs.\ Qwen3-Reranker-8B 0.257). But this is not special to decision fine-tuning: Ours-9B matches Clef-Flash
+(0.111 vs.\ 0.112), and the untuned models gain too (Qwen3-8B: 0.383 to 0.231).
 
 \paragraph{Uses of calibration.}
-The same picture holds for practical uses of the probabilities (results in our repository). If every passage with
-$p \ge 0.5$ is kept, e.g.\ to decide which passages reach a generator, the best reranker fine-tune selects the better
-set for every model where both exist, and a fixed threshold works across collections for Prism and bge as well as
-for the decision models. Summing a query's probabilities estimates its number of relevant passages about equally
-well for decision and reranker fine-tunes, and best for Ours-9B. Calibrating a reranker after training with
-temperature or Platt scaling on MS~MARCO dev does not reach the decision models, because MS~MARCO judges only about
-one passage per query. A well calibrated model is better, but it need not be a decision model, as Ours-9B shows.
+Better calibration does not make decision models select better passages. If every passage with $p \ge 0.5$ is kept,
+e.g.\ for a generator, the reranker fine-tune keeps the better set on every foundation model, with either question,
+because it ranks better. Using the probabilities to count a query's relevant passages works best for the untuned
+Qwen3.8-27B (details in our repository).

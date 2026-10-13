@@ -1,5 +1,5 @@
 % =====================================================================================
-% Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One Backbone
+% Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One Foundation Model
 % Working title (docs/roadmap.md). Target: ECIR 2027 short paper (Springer LNCS, llncs v2.24);
 % deadline 2026-10-12 23:59 AoE (2026-10-13 13:59 CEST) (docs/intent/venue.md).
 %
@@ -67,12 +67,12 @@
 
 \begin{abstract}
 System One models, or decision models, answer a question about an input with a calibrated probability. They are
-only a month old but much discussed, and first reports have tried them as rerankers. For six Qwen models (0.6B to
-27B parameters) and ten test collections, we compare the untuned model with its decision fine-tunes and its reranker
-fine-tunes, one of which we trained ourselves. The reranker fine-tunes rank better wherever both exist, while
-decision fine-tuning adds little to the untuned model. Decision models are not better calibrated either: with a
-fixed probability threshold, reranker fine-tunes select better passages, and our own reranker fine-tune gives the
-most reliable probabilities of all systems we tested.
+only a month old but much discussed, and first reports have tried them as rerankers. For six Qwen foundation models
+(0.6B to 27B parameters) and ten test collections, we compare the untuned model with its decision fine-tunes and its
+reranker fine-tunes, one of which we trained ourselves. The reranker fine-tunes rank better wherever both exist,
+while decision fine-tuning adds little to the untuned model. Decision models are better calibrated only if the
+question matches the relevance definition, and even then reranker fine-tunes select better passages at a fixed
+threshold. Our own reranker fine-tune is as well calibrated as the best decision model of its size.
 \keywords{Reranking \and Calibration \and System One Models \and Fine-Tuning}
 \end{abstract}
 

@@ -7,7 +7,6 @@
 \label{sec:conclusion}
 
 Do System One models make better rerankers? No. On the same foundation model, reranker fine-tuning beats decision
-fine-tuning, which adds little to the untuned model. Their calibration is no advantage either: reranker fine-tunes
-are as well calibrated, select better passages at a fixed threshold, and can be trained to be better calibrated than
-any decision model. Despite the hype and first uses as rerankers, decision models are currently of no use for
-reranking, neither for ranking nor for their calibration.
+fine-tuning, which adds little to the untuned model. Their calibration is real only with a question that matches the
+relevance definition, does not make them select better passages, and can be matched by a reranker fine-tune.
+Our second question was not chosen on development data, and calibration was only measured on TREC DL.

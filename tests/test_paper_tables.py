@@ -125,7 +125,7 @@ def test_calibration_ece_brier_table():
     brier.update({("prism-4b", d): 0.17 for d in DL_DATASETS})
     lines = calibration_ece_brier_table(ece, brier).splitlines()
     # Better-calibrated mode chosen by ECE; per group the lowest value bold, the second lowest underlined.
-    # last column ECE': "--" without a run with Kanishka's question; rerankers repeat their ECE in brackets
+    # last column (ECE, "Answers?"): "--" without a run with Kanishka's question; rerankers repeat their ECE in brackets
     assert "\\rowcolor{rowdecision}$\\triangle$ & Kev-4B (i) & \\textbf{0.200} & \\underline{0.210} & -- \\\\" in lines
     assert "\\rowcolor{rowreranker}$\\blacksquare$ & Prism-4B & \\underline{0.300} & \\textbf{0.170} & (0.300) \\\\" in lines
 

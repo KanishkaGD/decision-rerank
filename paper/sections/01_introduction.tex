@@ -14,8 +14,7 @@ learning for calibrated decisions)~\cite{TypeSafe2026Jev}. The model class is on
 marketed widely, and first reports show \jev{} reranking BM25 candidates about as well as strong
 cross-encoders~\cite{S1Rank,JevRerank,LanceDB2026,Elastic2026}. Open alternatives with the same kind of output
 followed within weeks: Kev by the end of September~\cite{Kev} and Cloudflare's Clef on 1 October~\cite{Clef}. They
-fine-tune open Qwen models, but not with RLCD, which is unpublished; Kev, for instance, uses a standard cross-entropy
-loss~\cite{KevCards}. Still, the largest Kev matches \jev{} as a reranker in our experiments. We therefore study
+fine-tune open Qwen models, but not with RLCD, which is unpublished~\cite{KevCards}. Still, the largest Kev matches \jev{} as a reranker in our experiments. We therefore study
 \emph{decision fine-tuning}, i.e.\ fine-tuning an open model to give \jev{}'s kind of output, and ask, one month
 after \jev{}'s release, whether it is of use for retrieval.
 
@@ -28,8 +27,9 @@ calibrated probabilities, we also check whether they at least deliver that:
 \showRQ{1}
 \showRQ{2}
 
-Both answers are negative. (1) Wherever both exist (0.6B to 9B), the reranker fine-tune ranks better than the
-decision fine-tune, also on collections without training data, and up to 9B decision fine-tuning hardly improves on
-the base model. (2) Decision models are not better calibrated than reranker fine-tunes of the same model. Our own
-reranker fine-tune of Qwen3.5-9B ranks as well as the best published one and is the best calibrated system we
-tested. Code, raw outputs and the results on all collections are available.\footnote{\TODO{anonymised link}}
+Both answers are mostly negative. (1) Wherever both exist (0.6B to 9B), the reranker fine-tune ranks better than
+the decision fine-tune, also on collections without training data, and up to 9B decision fine-tuning hardly
+improves on the base model. (2) Decision models are better calibrated than reranker fine-tunes of the same model only
+if the question matches the relevance definition, and even then they select worse passages at a fixed threshold. Our
+own reranker fine-tune of Qwen3.5-9B is as well calibrated as the best decision model of its size and ranks as well
+as the best published reranker. Code, raw outputs and the results on all collections are available.\footnote{\TODO{anonymised link}}
