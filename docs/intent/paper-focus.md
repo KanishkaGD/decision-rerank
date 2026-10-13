@@ -94,3 +94,11 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
     grouped under "Mean". Table 3 reduced to ECE and Brier (ECE: calibration only; Brier: calibration plus
     separation); the fixed cutoff, count test and post-hoc scaling stay in the text without numbers, the full table
     (`calibration-full.tex`) is kept for the arXiv version.
+20. **RQ2 after the runs with the second question** (decided 2026-10-13; supersedes 14 and, for the count test, 19).
+    With Kanishka's question ("Does document … answer the query?", phrasing `answer`, DL19-23) decision models are
+    better calibrated than the published reranker fine-tunes from 4B on, so "not better calibrated" no longer holds.
+    The paper's RQ2 answer is now: their calibration depends on the wording of the question (a lack of robustness;
+    the base models move as much), it does not make them select better passages at a fixed cutoff, the count test
+    shows no benefit specific to decision fine-tuning (S1Rank's question: no better than guessing the median count;
+    second question: the untuned 27B counts best, Ours-9B beats Clef-Flash), and our reranker fine-tune matches the
+    best decision model of its size. The count error is back in Table 3, for both questions.

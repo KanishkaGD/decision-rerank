@@ -1,5 +1,8 @@
 # Paper changes for RQ2 after the runs with Kanishka's question (updated 2026-10-13)
 
+> **Outdated as a change list (2026-10-13):** the repo draft (`paper/`, commits 9a2ca92 and d5ff9f2) goes further
+> than the proposals below; see `docs/notes/paper-handoff.md`, sections 3-4. The number tables here are still correct.
+
 For Kanishka, who revises the paper on Overleaf. This replaces the version of 2026-10-12: the complete runs
 **change the RQ2 reading**, and the replacement texts of that version are no longer correct.
 
