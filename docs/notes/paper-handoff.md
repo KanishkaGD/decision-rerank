@@ -106,9 +106,8 @@ negative".
 - [ ] Bring Kanishka's Overleaf edits and the repo draft together (owner decides which side is the base now).
 - [ ] Owner may want to re-check the cuts made for space (related work, setup definitions, Table 3's other systems).
 - [ ] **arXiv only, after ECIR:** our 27B reranker fine-tune (`qwen3.8-27b-reranker`). Training job 4429626
-      COMPLETED (1-04:44:02); all checkpoints are in `checkpoints/qwen3.8-27b-reranker/` (200-1562, `final`). Job
-      4429627 is the queued resume job (PENDING, Priority) and is no longer needed; cancel it with the owner's OK
-      (`scancel 4429627`). Next: checkpoint selection on msmarco-dev and scoring
+      COMPLETED (1-04:44:02); all checkpoints are in `checkpoints/qwen3.8-27b-reranker/` (200-1562, `final`). The
+      resume job 4429627 ran on 2026-10-13 for 5 min and exited ("Already trained (1562/1562 steps)"). Next: checkpoint selection on msmarco-dev and scoring
       (`docs/notes/reranker-27b-plan.md`, section 5), then add it to the tables of the arXiv version.
 - [ ] arXiv version: restore what was cut for ECIR (`calibration-full.tex`, cutoff/post-hoc numbers, regret,
       monoT5/bge/Set-Encoder in Table 3, the 27B fine-tune).
