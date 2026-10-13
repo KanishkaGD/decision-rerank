@@ -60,7 +60,7 @@ for recent events, the newest entries of `docs/experiment-log.md`. Then apply th
 - **Sanity checks before trusting a dataset**: our BM25 first stage must equal Pyserini's 2CR score
   (`results/literature.csv`, role `reference`); monoT5-3B on DL19/20 within about one point of 71.83 / 68.89;
   `jev-joint` close to S1Rank's numbers. A miss means the candidates differ -- investigate before running more.
-- **Fixed question**: System One models run with `--phrasings s1rank` only.
+- **Fixed question**: System One models run with `--phrasings answer` (base models: `<name>-prompted-answer`); `s1rank` runs are kept as the comparison (`docs/intent/paper-focus.md` 20).
 - **RQ1 (triplets)** needs, per backbone, the base model, the decision fine-tune in both modes (joint and isolated)
   and the reranker fine-tune on every dataset; the context systems (Jev, Clef, Laya, trained and listwise rerankers)
   complete the context table. **RQ2** (calibration) adds the reranker fine-tunes on a msmarco-dev subset for

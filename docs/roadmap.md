@@ -78,9 +78,10 @@ Training data differs between the fine-tunes: Qwen3-Reranker and Prism are train
 (in-domain for DL19-23); Kev's public sources contain no MS MARCO or BEIR. The paper reports the BEIR collections
 without training splits (TREC-COVID, Touché, DBPedia) as the zero-shot subset next to the averages.
 
-**Question.** S1Rank's Noul question (phrasing `s1rank`), fixed for all System One models in RQ1; no phrasing
-search. RQ2 adds Kanishka's question (phrasing `answer`) on DL19-23 for every decision and base model of the
-calibration table (`docs/intent/paper-focus.md` 16).
+**Question.** Kanishka's question (phrasing `answer`: ``Does document `{doc}` answer the `query`?``) for all
+System One and base models in both RQs (`docs/intent/paper-focus.md` 16, 20); fixed before the runs, not chosen on
+development data (stated in the paper). S1Rank's question (`s1rank`) stays as the comparison and for the sanity check
+against S1Rank's published numbers.
 
 **Metrics.** nDCG@10 everywhere; ECE (15 bins) and Brier on judged pairs of DL19-23, relevant from grade 2; API
 cost. Latency and energy from one efficiency run: every local model on DL19/20 on one A100-SXM-80GB, energy from
@@ -126,7 +127,11 @@ scaling, count test, the `answer` question); our 9B reranker fine-tune (scored, 
 2. **Restore what was cut for ECIR** (`docs/intent/paper-focus.md` 18): DL20/DL22 in the triplet table, the full
    calibration table, cutoff and post-hoc tables, the full context table, regret and post-hoc scaling in the setup,
    the longer related work, a limitations paragraph.
-3. **Text**: the 27B result in abstract, introduction, Sect. 4-5 and conclusion (does the headline extend to 27B?).
-4. **De-anonymise**: authors and affiliations, the disclosure of interests, the repository link (code release on
+3. **Tables 1 and 2 with `answer`** (`docs/intent/paper-focus.md` 20): 170 reranking runs (decision fine-tunes in
+   both modes, base models, Jev, Laya on all ten datasets, where not yet run); then switch `TABLE_PHRASINGS` in
+   `src/cdm/paper_tables.py`, rerun the significance tests and `cdm cutoff`, regenerate the tables, and report
+   S1Rank's question as a comparison.
+4. **Text**: the 27B result in abstract, introduction, Sect. 4-5 and conclusion (does the headline extend to 27B?).
+5. **De-anonymise**: authors and affiliations, the disclosure of interests, the repository link (code release on
    branch `feature/release-20261012`).
-5. **Merge Kanishka's Overleaf edits** into `paper/`; `make check`; final read; post to arXiv.
+6. **Merge Kanishka's Overleaf edits** into `paper/`; `make check`; final read; post to arXiv.

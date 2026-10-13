@@ -76,3 +76,10 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
     paragraph.
 19. **Sources**: the paper is written in `paper/` (Michael's draft, decided 2026-10-12); Kanishka revises on Overleaf,
     and his edits are merged into `paper/` by hand.
+20. **One question for the whole arXiv paper** (decided 2026-10-13; extends the override in 16 from RQ2 to RQ1).
+    Tables 1 and 2 (triplets and context) are recomputed with Kanishka's question (`answer`) on all ten datasets: every
+    decision fine-tune in both modes, the base models (`<name>-prompted-answer`), Jev joint and isolated, Laya.
+    Reranker fine-tunes and cross-encoders ask no question and keep their runs. S1Rank's question stays in the
+    repository and as a comparison (on DL19-23 it gives slightly higher nDCG@10 for most decision models, -0.2 to
+    -2.2 points with `answer`); the sanity check of `jev-joint` against S1Rank's published numbers uses S1Rank's
+    question. The paper states that the question was fixed before the runs but not chosen on development data.
