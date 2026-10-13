@@ -12,6 +12,26 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-13 -- Tables 1 and 2 with the answer question; 27B checkpoint selection
+
+Owner's decision 20 (`docs/intent/paper-focus.md`): Tables 1 and 2 use Kanishka's question (`answer`) on all ten
+datasets. Before the switch, on DL19-23 the `answer` question lowered the mean nDCG@10 of every decision model but
+Kev-0.6B isolated (-0.2 Kev-27B joint to -2.2 Kev-9B joint; Kev-0.6B isolated +0.8); base models -2.9 (Qwen3-8B) to
++5.4 (Qwen3-0.6B). Submitted from `dev-michael` at 487451e (clean; the code is the same as on
+`feature/arxiv-cleanup`, which changes only docs and comments), 170 jobs 4458265-4458434:
+base models `*-prompted-answer` on the five BEIR sets (30); kev-0.6b/0.8b/4b-isolated, kev-4b/8b/9b/27b-joint,
+clef-flash-joint, clef-joint, jev-joint with `--phrasings answer` on BEIR (50); kev-0.6b/0.8b-joint,
+kev-8b/9b/27b-isolated, clef-flash-isolated, clef-isolated, jev-isolated, laya on all ten (90). Estimate from the
+s1rank runs: ~100 GPU-h, ~$6 for Jev.
+
+27B reranker fine-tune: checkpoint selection on msmarco-dev (200 queries), checkpoints 200-1400 as `ckpt<step>`
+(4458435-4458441) and `final` (4458442); rule fixed in advance (`docs/notes/reranker-27b-plan.md`, section 4).
+Our 9B fine-tune on the first 1,000 msmarco-dev queries for post-hoc scaling (4458443; it had only the 200-query
+selection runs).
+
+When done: switch `TABLE_PHRASINGS` in `src/cdm/paper_tables.py`, rerun significance tests and `cdm cutoff`,
+regenerate the tables; select the 27B checkpoint and submit its scoring and its 1,000-query dev run.
+
 ## 2026-10-13 -- ECIR submitted; repository refocused on the arXiv paper
 
 The ECIR 2027 short paper was submitted on 2026-10-13 (owner); the submitted state is tagged `ecir2027-submission`
