@@ -1,5 +1,5 @@
 """
-RQ2, Part A (docs/notes/calibration-proposal.md): one fixed probability cutoff across collections.
+RQ2, Part A (docs/roadmap.md, "RQ2 evidence"): one fixed probability cutoff across collections.
 
 Per query, keep every reranked candidate whose relevance probability is at least tau and score the kept set against
 the judgments: precision, recall and F1 of the set, its size, and whether it is empty. A calibrated model should do

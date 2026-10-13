@@ -67,9 +67,9 @@ def paper_frame():
     section("Paper")
     title = re.search(r"\\title\{(.*?)\}", read("paper/main.tex"), re.S)
     print(f"- Title: *{title.group(1).replace(chr(92) * 2, ' ') if title else '?'}*")
-    venue = re.search(r"\*\*Venue:\*\*(.*?)\n\n", read("docs/roadmap.md"), re.S)
+    venue = re.search(r"\*\*Target:\*\*(.*?)\n\n", read("docs/roadmap.md"), re.S)
     if venue:
-        print(f"- Venue: {' '.join(venue.group(1).split())}")
+        print(f"- Target: {' '.join(venue.group(1).split())}")
     macros = read("paper/rq-macros.tex")
     for n, text in re.findall(r"\\defineRQ\{(\d)\}\{(.*?)\}\s*\n(?=\\defineRQ|\Z|\s*$)", macros + "\n", re.S):
         text = " ".join(text.replace("\\jev{}", "Jev").replace("\\laya{}", "Laya").split())
@@ -126,7 +126,7 @@ def joint_vs_isolated(cells):
     print("|---|" + "---:|" * len(DS))
     for m in DECISION:
         print(f"| {NAMES[m]} | " + " | ".join(f"{splits[m][d]:.1f}" if d in splits[m] else "–" for d in DS) + " |")
-    print("\nPaired t-tests: not run yet (roadmap step 5).")
+    print("\nPaired t-tests: see paper/tables/triplets.tex.")
 
 
 TRIPLETS = [
@@ -167,7 +167,7 @@ def rq2():
             ece[(r["system"], r["dataset"])] = float(r["ECE"])
     systems = ["monot5-3b", "set-encoder-large", "bge-m3", "jev-joint", "jev-isolated", "laya"] + [
         s for _, *groups in TRIPLETS for g in groups for s in g]
-    print("Cutoff analysis (p >= 0.5, set F1, regret) and post-hoc scaling on msmarco-dev: not run yet (roadmap step 7).\n")
+    print("Cutoff analysis (p >= 0.5, set F1, regret) and post-hoc scaling on msmarco-dev: paper/tables/cutoff.tex, posthoc.tex.\n")
     print("| System | " + " | ".join(HEAD[d] for d in dl) + " | mean |")
     print("|---|" + "---:|" * (len(dl) + 1))
     for s in systems:
@@ -223,9 +223,9 @@ def markers():
 
 
 def notes():
-    section("Open items and limitations (docs/notes/paper-notes.md)")
+    section("Limitations (docs/notes/paper-notes.md)")
     text = read("docs/notes/paper-notes.md")
-    for head in ("## 6.", "## 7."):
+    for head in ("## 4.",):
         if head in text:
             part = text[text.index(head):]
             nxt = part.find("\n## ", 3)

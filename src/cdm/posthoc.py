@@ -1,5 +1,5 @@
 """
-RQ2, Part C (docs/notes/calibration-proposal.md): reranker fine-tunes calibrated after the fact.
+RQ2, Part C (docs/roadmap.md, "RQ2 evidence"): reranker fine-tunes calibrated after the fact.
 
 The objection to RQ2 is "just calibrate the reranker". This module fits the two standard one-model scalings on the
 reranker's logit z -- temperature scaling, p = sigmoid(z / T), and Platt scaling, p = sigmoid(a z + b) -- on

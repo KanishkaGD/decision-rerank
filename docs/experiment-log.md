@@ -12,6 +12,30 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-13 -- ECIR submitted; repository refocused on the arXiv paper
+
+The ECIR 2027 short paper was submitted on 2026-10-13 (owner); the submitted state is tagged `ecir2027-submission`
+(commit 487451e). The arXiv version is now the only task (owner): the ECIR paper plus what was cut for the 6-page
+limit and our 27B reranker fine-tune. Phase 2 of the old roadmap (probabilities as a control signal, fine-tuning for
+both, BRIGHT) is no longer planned. Straightening (`straighten-branch`):
+
+- `docs/intent/venue.md`: arXiv only (LNCS layout, no page limit, with authors); the ECIR and WSDM details removed.
+- `docs/intent/paper-focus.md`: the ECIR-specific decisions (13-20) consolidated into 13-19 for the arXiv paper;
+  space cuts (old 16, 18, 19) become "restore what was cut" (18). References in code and paper renumbered.
+- `docs/roadmap.md`: one "Done" paragraph and five arXiv steps replace Phases 1 and 2.
+- Removed: `paper/ecir2027-draft.pdf`, `docs/notes/paper-changes-answer-question.md` (change list for Kanishka,
+  outdated), `docs/notes/kanishka-notes-2026-10-11.md` (merged into the paper), `docs/notes/decision-rerank-status.md`
+  (status of 2026-10-11; the `project-report` skill regenerates it), `docs/notes/calibration-proposal.md` (the RQ2
+  brief; what was decided is in the roadmap and `paper-focus.md`).
+- Compacted: `docs/notes/paper-handoff.md` (arXiv handoff), `docs/notes/reranker-27b-plan.md` (recipe, selection
+  rule and the remaining 27B commands; the approval sections, compute estimates and timeline removed),
+  `docs/notes/paper-notes.md` (source register, sanity checks, model facts, caveats; stale findings and open
+  questions removed).
+- `paper/main.tex`: author block and disclosure of interests back (as `\TODO`s); the footnote's
+  `\TODO{anonymised link}` is now `\TODO{repository link}`.
+- CLAUDE.md, README, the `experiment-status` and `project-report` skills point to the arXiv paper; WSDM, Phase 1/2
+  and the removed notes added to the straightening's deprecated terms.
+
 ## 2026-10-13 -- New question on every calibration-table system: RQ2 reading changes
 
 All 50 remaining runs with the `answer` question done (Kev-9B joint 4451209-4451213; 4451247-4451291: Kev-0.6B/0.8B/4B

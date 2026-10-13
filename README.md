@@ -1,8 +1,8 @@
 # calibrated-decision-models-for-ir
 
-Experiments and paper for *Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One
-Backbone* (working title). The plan
--- research questions, setup and order of work -- is [docs/roadmap.md](docs/roadmap.md).
+Experiments and paper for *Do System One Models Make Better Rerankers?* The ECIR 2027 short paper was submitted on
+2026-10-13 (tag `ecir2027-submission`); what remains is the arXiv version. The plan -- research questions, setup and
+order of work -- is [docs/roadmap.md](docs/roadmap.md).
 
 ## Layout
 

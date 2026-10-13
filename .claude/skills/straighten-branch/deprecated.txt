@@ -32,3 +32,13 @@ rq3-calibration-proposal
 tables/main\b
 tab:main\b
 05_joint_scoring
+# ECIR 2027 short paper submitted (2026-10-13, tag ecir2027-submission); the arXiv paper is the only task left.
+# WSDM was dropped for ECIR (2026-10-12); Phase 2 (control signal, fine-tuning, BRIGHT) is not pursued; ECIR-only
+# notes and the submitted PDF were removed.
+\bWSDM\b
+\bPhase [12]\b
+ecir2027-draft
+anonymi[sz]ed link
+paper-changes-answer-question
+kanishka-notes-2026-10-11
+calibration-proposal
