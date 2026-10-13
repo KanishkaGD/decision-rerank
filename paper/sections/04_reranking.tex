@@ -16,20 +16,17 @@ either mode (Table~\ref{tab:triplets}; e.g.\ 58.7 vs.\ 51.3 for Qwen3.5-4B, and 
 Ours-9B vs.\ 54.7 for Clef-Flash). The difference is significant on 46 of the 60 pairs of model and collection, and
 the decision fine-tune is never significantly better ($^\ast$). The zero-shot subset shows the same, so the gap does not come from training on
 MS~MARCO, and Ours-9B, trained on MS~MARCO alone, matches Prism-9B. Up to 9B, decision fine-tuning hardly changes
-the base model (between 3.5 points below and 3.2 points above its average; $^\dagger$). Reranker fine-tuning adds 5 to 32 points. Only
+the base model (by $-3.5$ to $+3.2$ points on average; $^\dagger$). Reranker fine-tuning adds 5 to 32 points. Only
 Kev-27B clearly improves on its base model (by 3.7 points, significant on eight collections). It is the best system
-in our study (61.1), but only slightly ahead of reranker fine-tunes a third of its size (59.4).
+in our study (61.1), but only slightly ahead of reranker fine-tunes a third of its size (59.4). It matches the closed
+\jev{} (60.5, Table~\ref{tab:context-short}); \laya{} (44.0) is barely above BM25 (43.2).
 
 \paragraph{Joint vs.\ isolated.}
 Scoring all candidates together helps only models trained on long states, and only a little: Kev-27B gains 1.3
 points and \jev{} 1.0 (Table~\ref{tab:context-short}), while Kev-0.6B, Kev-0.8B and Kev-8B lose 10.7 to 13.9 points
-($^\ddagger$). Kev-0.8B and Kev-4B were trained on states of at most 7,552 tokens and Kev-27B on up to
-32,768~\cite{KevCards} (Kev-8B's card gives no length), while a joint state has about 13k tokens on TREC DL and 40k
-or more on BEIR. Beyond that length the model loses track of which passage a question is about (Kev-0.6B joint is at
-chance level on DL 2019/2020).
+($^\ddagger$). Kev-0.8B and Kev-4B were trained on states of at most 7,552 tokens, Kev-27B on up to
+32,768~\cite{KevCards}, while a joint state has about 13k tokens on TREC DL and 40k
+or more on BEIR.
 
 \input{tables/context-short}
 
-\paragraph{Other systems.}
-The open Kev-27B (61.1) matches the closed \jev{} (60.5, Table~\ref{tab:context-short}), and both lead the
-established rerankers. \laya{} (44.0) is barely above BM25 (43.2).

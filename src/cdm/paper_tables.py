@@ -316,8 +316,8 @@ def triplet_table(cells: Cells, significance: Optional[Significance] = None) -> 
         "\\textit{Ours-9B}: our reranker fine-tune.",
         "Paired $t$-test, Holm-corrected over",
         "the ten collections, $p < 0.05$: $^\\ast$ reranker fine-tune vs.\\ the decision fine-tune with the best Avg,",
-        "$^\\dagger$ that decision fine-tune vs.\\ the base model, $^\\ddagger$ joint vs.\\ isolated. No reranker",
-        "fine-tune of the 27B model exists.}",
+        "$^\\dagger$ that decision fine-tune vs.\\ the base model, $^\\ddagger$ joint vs.\\ isolated. 27B: no",
+        "reranker fine-tune.}",
         "\\label{tab:triplets}",
         "\\centering",
         "\\scriptsize",
@@ -548,16 +548,16 @@ def load_posthoc(results_folder: str = RESULTS_FOLDER) -> PosthocRows:
 
 
 def load_rerank_column(
-    column: str, results_folder: str = RESULTS_FOLDER, phrasings: Optional[set] = None
+    column: str, results_folder: str = RESULTS_FOLDER, phrasings: Optional[set] = None, job: str = "rerank"
 ) -> Dict[Tuple[str, str], float]:
-    """(system, dataset) -> a metric of the default rerank row (variant before a100, as for the cutoff rows), for
+    """(system, dataset) -> a metric of the default `job` row (variant before a100, as for the cutoff rows), for
     S1Rank's question unless `phrasings` says otherwise."""
     found: Dict[Tuple[str, str, str], float] = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
             if row.get("phrasing", "") not in (phrasings or TABLE_PHRASINGS):
                 continue
-            if row["job"] != "rerank" or row["subset"] or row["variant"] not in CUTOFF_VARIANTS:
+            if row["job"] != job or row["subset"] or row["variant"] not in CUTOFF_VARIANTS:
                 continue
             value = _float(row.get(column, ""))
             default = row["dataset"] in FIRST_STAGE and row["first_stage"] == FIRST_STAGE[row["dataset"]]
@@ -674,17 +674,23 @@ def calibration_ece_brier_table(
     ece: Dict[Tuple[str, str], float],
     brier: Dict[Tuple[str, str], float],
     ece_answer: Optional[Dict[Tuple[str, str], float]] = None,
+    count: Optional[Dict[Tuple[str, str], float]] = None,
+    count_answer: Optional[Dict[Tuple[str, str], float]] = None,
+    count_reference: Optional[float] = None,
 ) -> str:
-    """RQ2 for the short paper: mean ECE and Brier score over DL 2019-2023, decision fine-tunes in their
-    better-calibrated mode (lower ECE); per group the lowest value in bold and the second lowest underlined. ECE':
-    the ECE with Kanishka's question for the same system (rerankers: their ECE in brackets), not emphasised."""
+    """RQ2 for the short paper: mean ECE, Brier score and count error over DL 2019-2023, decision fine-tunes in their
+    better-calibrated mode (lower ECE); per group and column the lowest value in bold and the second lowest
+    underlined. "Answers?": ECE and count error with Kanishka's question for the same system (rerankers ask no
+    question: their values repeated in brackets)."""
     ece_answer = ece_answer or {}
+    count = count or {}
+    count_answer = count_answer or {}
     header = [
-        "\\begin{tabular}[t]{clrrr}",
+        "\\begin{tabular}[t]{clrrrrr}",
         "\\toprule",
-        " & & \\multicolumn{2}{c}{Relevant?} & Answers? \\\\",
-        "\\cmidrule(lr){3-4}\\cmidrule(lr){5-5}",
-        " & System & ECE & Brier & ECE \\\\",
+        " & & \\multicolumn{3}{c}{Relevant?} & \\multicolumn{2}{c}{Answers?} \\\\",
+        "\\cmidrule(lr){3-5}\\cmidrule(lr){6-7}",
+        " & System & ECE & Brier & Count & ECE & Count \\\\",
     ]
     panels: List[List[str]] = [list(header), list(header)]
     for index, (heading, members) in enumerate(CALIBRATION_GROUPS):
@@ -701,34 +707,53 @@ def calibration_ece_brier_table(
                 name += " (j)" if mode == "joint" else " (i)"
             elif objective == "decision":
                 mode = "joint" if system.endswith("-joint") else "isolated"
-            rows.append((_symbol(objective, mode), name, objective, mean_ece, _mean_of(brier, system, DL_DATASETS), system))
+            answer = f"{system}-answer" if objective == "base" else system
+            if objective == "reranker":  # no question: the same values for both
+                answer_ece, answer_count = mean_ece, _mean_of(count, system, DL_DATASETS)
+            else:
+                answer_ece, answer_count = (_mean_of(v, answer, DL_DATASETS) for v in (ece_answer, count_answer))
+            values = [
+                mean_ece,
+                _mean_of(brier, system, DL_DATASETS),
+                _mean_of(count, system, DL_DATASETS),
+                answer_ece,
+                answer_count,
+            ]
+            rows.append((_symbol(objective, mode), name, objective, values))
 
-        def marks(values: List[Optional[float]]) -> Tuple[Optional[str], Optional[str]]:
-            printed = sorted({f"{v:.3f}" for v in values if v is not None}, key=float)
+        def marks(values: List[Optional[str]]) -> Tuple[Optional[str], Optional[str]]:
+            printed = sorted({v for v in values if v is not None}, key=float)
             return (printed[0] if printed else None), (printed[1] if len(printed) > 1 else None)
 
-        ece_marks = marks([r[3] for r in rows])
-        brier_marks = marks([r[4] for r in rows])
-        panel += ["\\midrule", f"\\multicolumn{{5}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
-        for symbol, name, objective, e, b, system in rows:
-            values = [_emphasize(f"{e:.3f}", *ece_marks), "--" if b is None else _emphasize(f"{b:.3f}", *brier_marks)]
-            if objective == "reranker":
-                values.append(f"({e:.3f})")
-            else:
-                answer = f"{system}-answer" if objective == "base" else system
-                value = _mean_of(ece_answer, answer, DL_DATASETS)
-                values.append("--" if value is None else f"{value:.3f}")
-            panel.append(_shade(objective) + " & ".join([symbol, name] + values) + " \\\\")
+        formats = ["{:.3f}", "{:.3f}", "{:.1f}", "{:.3f}", "{:.1f}"]
+        printed = [
+            [None if v is None else f.format(v) for v, f in zip(values, formats)] for _, _, _, values in rows
+        ]
+        # Emphasis per column over all rows: a reranker's value holds whatever the question.
+        column_marks = [marks([p[i] for p in printed]) for i in range(len(formats))]
+        panel += ["\\midrule", f"\\multicolumn{{7}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
+        for (symbol, name, objective, _), cells in zip(rows, printed):
+            out = []
+            for i, text in enumerate(cells):
+                if text is None:
+                    out.append("--")
+                elif i >= 3 and objective == "reranker":
+                    out.append(f"({_emphasize(text, *column_marks[i])})")
+                else:
+                    out.append(_emphasize(text, *column_marks[i]))
+            panel.append(_shade(objective) + " & ".join([symbol, name] + out) + " \\\\")
     for panel in panels:
         panel += ["\\bottomrule", "\\end{tabular}"]
     lines = [
         "% Generated by `python -m cdm.paper_tables` (make tables, in paper/) from the rerank rows of",
         "% results/results.csv -- do not edit by hand.",
         "\\begin{table}[!t]",
-        "\\caption{Calibration on the judged pairs of TREC DL 2019--2023 (means; lower is better): ECE (15 bins) and",
-        "Brier score. Decision fine-tunes in their better mode (j/i: joint/isolated); best per foundation model in bold,",
-        "second underlined. \\emph{Relevant?}: S1Rank's question; \\emph{Answers?}: whether the passage answers the",
-        "query; rerankers ask no question (ECE in brackets). Symbols as in Table~\\ref{tab:triplets}.}",
+        "\\caption{Calibration on the judged pairs of TREC DL 2019--2023 (means; lower is better; Count: error in",
+        "passages per query, always guessing the median count:"
+        + ("" if count_reference is None else f" {count_reference:.1f}")
+        + "). Decision fine-tunes in their better mode (j/i).",
+        "\\emph{Relevant?}: S1Rank's question; \\emph{Answers?}: does the passage answer the query (rerankers ask",
+        "no question: values in brackets).}",
         "\\label{tab:calibration}",
         "\\centering",
         "\\scriptsize",
@@ -737,6 +762,15 @@ def calibration_ece_brier_table(
     lines += panels[0] + ["\\hspace{1em}"] + panels[1]
     lines += ["\\end{table}", ""]
     return "\n".join(lines)
+
+
+def count_median_reference(values: Dict[Tuple[str, str], float]) -> Optional[float]:
+    """Mean over DL 2019-2023 of the count test's reference (always guessing the median count). It depends only on
+    the labels, so any system's value for a collection will do."""
+    per_dataset = {d: v for (_, d), v in values.items()}
+    if not all(d in per_dataset for d in DL_DATASETS):
+        return None
+    return sum(per_dataset[d] for d in DL_DATASETS) / len(DL_DATASETS)
 
 
 def calibration_table(cutoff: CutoffRows, posthoc: PosthocRows, ece: Dict[Tuple[str, str], float]) -> str:
@@ -885,6 +919,9 @@ def main(argv: Optional[List[str]] = None) -> None:
             load_rerank_column("ECE", args.results),
             load_rerank_column("Brier", args.results),
             load_rerank_column("ECE", args.results, phrasings={"answer", "none"}),
+            load_rerank_column("count_MAE", args.results, job="cutoff"),
+            load_rerank_column("count_MAE", args.results, phrasings={"answer", "none"}, job="cutoff"),
+            count_median_reference(load_rerank_column("count_median_ref", args.results, job="cutoff")),
         ),
         "calibration-full": calibration_table(
             load_cutoff(args.results), load_posthoc(args.results), load_rerank_column("ECE", args.results)

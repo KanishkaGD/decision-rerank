@@ -38,13 +38,14 @@ with a state that holds all 100 candidates (\emph{joint}) or one (\emph{isolated
 monoT5-3B~\cite{Nogueira2020monoT5}, bge-reranker-v2-m3~\cite{Chen2024BGEM3}, the
 Set-Encoder~\cite{Schlatt2025SetEncoder} and RankZephyr (DL only). For RQ2 we also ask a stricter question on
 DL 2019--2023, ``Does document \texttt{\{doc\}} answer the \texttt{query}?'', which matches the relevance grade we
-score; it was fixed before our runs but not chosen on development data.
+score.
 
 \paragraph{Metrics.}
 nDCG@10, with paired $t$-tests over queries, Holm-corrected across the ten collections ($p < 0.05$). Expected
 calibration error (ECE, 15 bins)~\cite{Guo2017Calibration} on the judged pairs of DL 2019--2023 (relevant from grade
 2), the only collections that also judge non-relevant passages. \emph{One cutoff}: we keep every candidate with
-$p \ge 0.5$ and report the $F_1$ of this set (unjudged passages count as non-relevant). \emph{Sanity checks}: our BM25 matches
-Pyserini's reproductions~\cite{Pyserini2CR}, monoT5-3B and RankZephyr are within 0.2 points of their published DL
-2019/2020 numbers~\cite{Abdallah2025HowGood}, and \jev{} joint is within 0.5 of S1Rank's~\cite{S1Rank} on four of
-five shared collections (1.5 below on TREC-COVID).
+$p \ge 0.5$ and report the $F_1$ of this set (unjudged passages count as non-relevant). \emph{Count}: the sum of
+a query's probabilities over its judged passages estimates how many of them are relevant; we report the mean absolute
+error of this estimate, in passages. \emph{Sanity checks}: our BM25, monoT5-3B and
+RankZephyr reproduce published numbers~\cite{Pyserini2CR,Abdallah2025HowGood} within 0.2 points, \jev{} joint
+those of S1Rank~\cite{S1Rank} within 0.5 on four of five collections (1.5 below on TREC-COVID).

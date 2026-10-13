@@ -1,30 +1,30 @@
 % =====================================================================================
 % Section 5 -- Calibration (RQ2)
 % Mostly negative (docs/intent/paper-focus.md 14; second question: docs/experiment-log.md 2026-10-12/13). Every
-% number quoted here is in tables/calibration.tex; the fixed cutoff, the count test and post-hoc scaling are
-% described without numbers (docs/notes/paper-changes-answer-question.md, results.csv).
+% number quoted here is in tables/calibration.tex; the fixed cutoff and post-hoc scaling are described without
+% numbers (results.csv, calibration-full.tex for the arXiv version).
 % =====================================================================================
 \section{Are Decision Models Better Calibrated?}
 \label{sec:calibration}
 
 \input{tables/calibration}
 
-Calibration is the main selling point of decision models. Besides the ECE we report the Brier score, the mean squared
-error of the probabilities, which also rewards separating relevant from non-relevant passages
-(Table~\ref{tab:calibration}). With S1Rank's question, decision fine-tuning
+Calibration is the main selling point of decision models. Table~\ref{tab:calibration} gives the ECE, the Brier score
+(the mean squared error, which also rewards separating relevant from non-relevant passages) and the count error. With S1Rank's question, decision fine-tuning
 improves on the poorly calibrated base models, but no more than reranker fine-tuning: up to 8B, the reranker
 fine-tune has a similar or lower ECE and a lower Brier score (e.g.\ Prism-4B 0.218 and 0.172 vs.\ Kev-4B 0.216 and
 0.207). At 9B, Clef-Flash beats Prism (0.140 vs.\ 0.242), but Ours-9B is better still (0.111).
 
 \paragraph{The question matters.}
-S1Rank's question also accepts passages that only partly address the query, but we count a passage as relevant only
-if it answers the query. Asking exactly that (\emph{Answers?}) improves every decision and base model, with hardly
+S1Rank's question also accepts passages that only partly address the query; our relevance labels do not. Asking exactly that (\emph{Answers?}) improves every decision and base model, with hardly
 any change in ranking. Now the decision fine-tunes beat the published reranker fine-tunes from 4B on (e.g.\ Kev-8B
-0.113 vs.\ Qwen3-Reranker-8B 0.257). But this is not special to decision fine-tuning: Ours-9B matches Clef-Flash
-(0.111 vs.\ 0.112), and the untuned models gain too (Qwen3-8B: 0.383 to 0.231).
+0.113 vs.\ Qwen3-Reranker-8B 0.257). So their calibration is not robust: it depends on how the question is worded,
+as it does for the untuned models (Qwen3-8B: 0.383 to 0.231). Reranker fine-tunes have no question to word; ours
+matches Clef-Flash (0.111 vs.\ 0.112).
 
 \paragraph{Uses of calibration.}
-Better calibration does not make decision models select better passages. If every passage with $p \ge 0.5$ is kept,
-e.g.\ for a generator, the reranker fine-tune keeps the better set on every foundation model, with either question,
-because it ranks better. Using the probabilities to count a query's relevant passages works best for the untuned
-Qwen3.8-27B (details in our repository).
+Better calibration does not make decision models select better passages. If every passage with $p \ge 0.5$ is kept, the reranker fine-tune keeps the better set on every foundation model, with either question,
+because it ranks better. When counting a query's relevant passages with S1Rank's question, no decision model is
+clearly better than always guessing the median count (8.4 for Clef vs.\ 8.6). With the stricter question
+they are, but the untuned Qwen3.8-27B counts best (5.8), and Ours-9B counts better than Clef-Flash (7.3
+vs.\ 8.1).

@@ -125,9 +125,31 @@ def test_calibration_ece_brier_table():
     brier.update({("prism-4b", d): 0.17 for d in DL_DATASETS})
     lines = calibration_ece_brier_table(ece, brier).splitlines()
     # Better-calibrated mode chosen by ECE; per group the lowest value bold, the second lowest underlined.
-    # last column (ECE, "Answers?"): "--" without a run with Kanishka's question; rerankers repeat their ECE in brackets
-    assert "\\rowcolor{rowdecision}$\\triangle$ & Kev-4B (i) & \\textbf{0.200} & \\underline{0.210} & -- \\\\" in lines
-    assert "\\rowcolor{rowreranker}$\\blacksquare$ & Prism-4B & \\underline{0.300} & \\textbf{0.170} & (0.300) \\\\" in lines
+    # "Answers?" columns: "--" without a run with Kanishka's question; rerankers repeat their values in brackets
+    assert "& Kev-4B (i) & \\textbf{0.200} & \\underline{0.210} & -- & -- & -- \\\\" in "\n".join(lines)
+    assert "& Prism-4B & \\underline{0.300} & \\textbf{0.170} & -- & (\\textbf{0.300}) & -- \\\\" in "\n".join(lines)
+
+
+def test_calibration_table_count():
+    from cdm.paper_tables import DL_DATASETS, calibration_ece_brier_table, count_median_reference
+
+    def per_dataset(values):
+        return {(s, d): v for s, v in values.items() for d in DL_DATASETS}
+
+    ece = per_dataset({"kev-4b-isolated": 0.2, "prism-4b": 0.3, "qwen3.5-4b-prompted": 0.4})
+    count = per_dataset({"kev-4b-isolated": 11.0, "prism-4b": 12.0, "qwen3.5-4b-prompted": 14.0})
+    count_answer = per_dataset({"kev-4b-isolated": 8.0, "qwen3.5-4b-prompted-answer": 9.0})
+    tex = calibration_ece_brier_table(ece, {}, {}, count, count_answer, 8.6)
+    lines = tex.splitlines()
+    # Under "Answers?" the reranker's bracketed values compete too: they hold whatever the question.
+    kev = "& Kev-4B (i) & \\textbf{0.200} & -- & \\textbf{11.0} & -- & \\textbf{8.0} \\\\"
+    prism = "& Prism-4B & \\underline{0.300} & -- & \\underline{12.0} & (\\textbf{0.300}) & (12.0) \\\\"
+    assert any(line.endswith(kev) for line in lines)
+    assert any(line.endswith(prism) for line in lines)
+    assert "& 14.0 & -- & \\underline{9.0} \\\\" in tex
+    assert "always guessing the median count: 8.6" in tex
+    reference = count_median_reference({("a", d): 8.0 + i for i, d in enumerate(DL_DATASETS)})
+    assert reference == 8.0 + (len(DL_DATASETS) - 1) / 2
 
 
 def test_context_short_table():
