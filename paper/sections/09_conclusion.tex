@@ -1,16 +1,13 @@
 % =====================================================================================
-% Section 9 -- Conclusion (from the ECIR 2027 submission, sharpened for arXiv)
-% Numbers only from tables/ (triplets.tex, calibration.tex).
+% Section 9 -- Conclusion: the three punchlines of docs/notes/narrative.md, in order.
+% Numbers only from tables/ (triplets.tex, question-ablation.tex).
 % =====================================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
-Do System One models make better rerankers? No. On the same backbone, plain reranker fine-tuning beats decision
-fine-tuning up to 9B parameters, by 5 to 29 points nDCG@10, and decision fine-tuning buys nothing over simply asking
-the base model. At 27B, where Kev is the best system in our study, a reranker fine-tune trained with a public recipe
-ranks as well, although Kev-27B is better calibrated. Calibration, the main promise of decision models, is largely a property of the question rather
-than of decision fine-tuning: when the question matches the relevance labels, even the base models become much better
-calibrated, and when it does not, the decision models lose their edge over reranker fine-tunes. Our reranker
-fine-tune, which asks no question, is as well calibrated as the best decision model of its size, and up to 9B no
-decision model kept better passages at a fixed threshold than the reranker fine-tune of its backbone. If you need a reranker, fine-tune a
-reranker.
+System One models are not better rerankers. On the same backbone, decision fine-tuning never makes the better
+reranker: plain reranker fine-tuning wins by 5 to 29 points nDCG@10 from 0.6B to 9B, and the two tie at 27B. Up to 9B,
+decision fine-tuning adds nothing over simply asking the base model. The calibration that decision models are
+advertised for comes from the question, not from the model: a question that matches the relevance labels makes
+decision and base models alike much better calibrated, a looser one takes the advantage away, and either way calibration
+does not buy better passage selection up to 9B. If you need a reranker, fine-tune a reranker.

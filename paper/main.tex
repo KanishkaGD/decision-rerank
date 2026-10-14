@@ -1,5 +1,5 @@
 % =====================================================================================
-% Do System One Models Make Better Rerankers?
+% System One Models Are Not Better Rerankers
 % Target: the arXiv preprint in the two-column ACM layout (acmart v2.20, sigconf, nonacm; docs/intent/venue.md).
 % The ECIR 2027 short paper as submitted (LNCS) is tagged ecir2027-submission; its PDF is ECIR-submission.pdf.
 %
@@ -25,6 +25,7 @@
 \usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,decorations.pathreplacing}
 \input{rq-macros}
 \usepackage{placeins}  % \FloatBarrier
+\setlength{\emergencystretch}{1.5em}  % two-column text: avoid overfull lines (long model names)
 
 % Hugging Face model name as a link, displayed without the organization: \hf{org}{model}
 \newcommand{\hf}[2]{\href{https://huggingface.co/#1/#2}{\texttt{#2}}}
@@ -53,8 +54,7 @@
 
 \begin{document}
 
-\title{Do System One Models Make Better Rerankers?}
-\subtitle{\TODO{optional subtitle, e.g.\ ``Decision Fine-Tuning versus Reranker Fine-Tuning on Six Foundation Models''}}
+\title{System One Models Are Not Better Rerankers}
 
 \author{Michael Dinzinger}
 \affiliation{%
@@ -65,11 +65,23 @@
 
 \author{Kanishka \TODO{surname}}
 \affiliation{%
-  \institution{\TODO{affiliation}}
-  \country{\TODO{country}}}
+  \institution{Interdisciplinary Transformation University Austria (IT:U)}
+  \city{Linz}
+  \country{Austria}}
 \email{\TODO{email}}
 
-\renewcommand{\shortauthors}{\TODO{short author list}}
+\author{Michael Granitzer}
+\affiliation{%
+  \institution{University of Passau}
+  \city{Passau}
+  \country{Germany}}
+\affiliation{%
+  \institution{Interdisciplinary Transformation University Austria (IT:U)}
+  \city{Linz}
+  \country{Austria}}
+\email{\TODO{email}}
+
+\renewcommand{\shortauthors}{Dinzinger et al.}
 
 \begin{abstract}
 \input{sections/00_abstract}
@@ -79,15 +91,19 @@
 
 \begin{teaserfigure}
   \input{figures/teaser}
-  \caption{What we ask. Each Qwen backbone is compared in three variants that all return a probability of relevance
-  for a query and a BM25 candidate: the base model asked zero-shot, its decision fine-tunes (System One models such as
-  Kev and Clef) and its reranker fine-tunes. \RQ{1} asks which variant ranks best, \RQ{2} whether the decision models
-  are at least better calibrated and whether that is of any use. An ablation asks how much both answers depend on the
-  wording of the question put to the model.}
-  \Description{A diagram. On the left, one Qwen backbone branches into three variants: a zero-shot base model, a
-  decision fine-tune and a reranker fine-tune; all three read a query with its BM25 top-100 candidates and output a
-  probability. On the right, three boxes: RQ1 about ranking (nDCG@10), RQ2 about calibration and its uses (ECE, a fixed
-  cutoff, counting relevant passages), and the question ablation contrasting two wordings of the relevance question.}
+  \caption{How System One models rerank and what we compare. (a)~A decision model is asked, for each BM25
+  candidate, whether the passage answers the query, and the candidates are sorted by the probability of ``yes''. The
+  state holds one passage (isolated mode) or all 100 candidates (joint mode). (b)~On one Qwen backbone, the base
+  model, its decision fine-tunes and its reranker fine-tunes rerank the same candidates and are compared on ranking
+  and on calibration.}
+  \Description{Two panels. Panel a: a query with one passage per state (isolated mode) or with all 100 candidate
+  passages in one state (joint mode) goes into a decision model together with the question ``Does document doc answer
+  the query?'', asked once per passage. The model returns a probability of yes for every passage, shown as bars on
+  example passages in BM25 order, and sorting by this probability gives the reranked list. Panel b: one Qwen backbone
+  of 0.6B to 27B parameters branches into three variants: the base model asked zero-shot, a decision fine-tune (Kev,
+  Clef) and a reranker fine-tune (Qwen3-Reranker, Prism, ours). All three read the same BM25 top-100 of TREC DL
+  2019--2023 and five BEIR collections and return a probability of yes, which is evaluated for ranking (nDCG@10) and
+  for calibration (predicted probability against observed relevance).}
   \label{fig:teaser}
 \end{teaserfigure}
 
