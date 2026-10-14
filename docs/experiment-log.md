@@ -12,6 +12,18 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-14 -- 27B reranker: checkpoint final selected; scoring submitted; answer grid complete
+
+Checkpoint selection on the first 200 msmarco-dev queries (4465814-4465822, 128G host memory, ~20 min each), MRR@10:
+ckpt200 .377, ckpt400 .377, ckpt600 .403, ckpt800 .386, ckpt1000 .396, ckpt1200 .405, ckpt1400 .411, final .417.
+By the rule fixed in advance (`docs/notes/reranker-27b-plan.md`, section 4) `final` is kept: no earlier checkpoint
+is better by more than 1 point. `qwen3.8-27b-reranker` added to SYSTEMS (258a94b); scoring on all ten datasets
+4469257-4469266 and the first 1,000 msmarco-dev queries for post-hoc scaling 4469267, from `dev-michael` at 258a94b.
+
+The `answer` grid for Tables 1 and 2 is complete (250 cells: 25 systems x 10 datasets), after Kev-27B isolated and
+Clef isolated on DBPedia (4458394, 4458414) and Clef joint on Touche on an H200 (4465702, 24 min). Our 9B fine-tune
+on the first 1,000 msmarco-dev queries (4458443, 47 min): MRR@10 .374, nDCG@10 .424.
+
 ## 2026-10-14 -- answer-question runs: one GPU OOM; 27B checkpoint selection out of host memory
 
 Of the 170 jobs 4458265-4458434, 167 completed, 2 were still running (4458394, 4458414) and one failed:
