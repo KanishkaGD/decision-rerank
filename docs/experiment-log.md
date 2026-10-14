@@ -20,8 +20,10 @@ s1rank run also needed an H200, 4409289). Resubmitted on an H200: 4465702 (`--gr
 
 All eight 27B checkpoint-selection jobs (4458435-4458442) were OOM-killed after 4-5 min while loading the model:
 host memory, not GPU (`rerank.sbatch` requests `--mem=48G`; Kev-27B and Clef load within it, the 27B base plus
-our LoRA adapter does not). Not resubmitted yet: needs a per-system memory budget in `slurm/config.sh` passed by
-`slurm/submit.sh` (proposal: 128G for `qwen3.8-27b-reranker`), owner's go pending.
+our LoRA adapter does not). Fix (owner's go, commit 6f19b0f): `rerank_mem_for` in `slurm/config.sh`, passed by
+`slurm/submit.sh` as `--mem`; 128G for `qwen3.8-27b-reranker`. Resubmitted from `dev-michael` at 6f19b0f:
+ckpt200-ckpt1400 4465814-4465820, `final` 4465822. CLAUDE.md's experiment rules now name the `answer` question
+(decision 20).
 
 ## 2026-10-13 -- Tables 1 and 2 with the answer question; 27B checkpoint selection
 
