@@ -12,6 +12,17 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-14 -- answer-question runs: one GPU OOM; 27B checkpoint selection out of host memory
+
+Of the 170 jobs 4458265-4458434, 169 completed (the last two of them still running at the time of writing). Failed:
+clef-joint touche with `answer` (4458338), CUDA out of memory on an 80 GB GPU (long joint states on Touche; the
+s1rank run also needed an H200, 4409289). Resubmitted on an H200: 4465702 (`--gres gpu:h200:1`).
+
+All eight 27B checkpoint-selection jobs (4458435-4458442) were OOM-killed after 4-5 min while loading the model:
+host memory, not GPU (`rerank.sbatch` requests `--mem=48G`; Kev-27B and Clef load within it, the 27B base plus
+our LoRA adapter does not). Not resubmitted yet: needs a per-system memory budget in `slurm/config.sh` passed by
+`slurm/submit.sh` (proposal: 128G for `qwen3.8-27b-reranker`), owner's go pending.
+
 ## 2026-10-13 -- Tables 1 and 2 with the answer question; 27B checkpoint selection
 
 Owner's decision 20 (`docs/intent/paper-focus.md`): Tables 1 and 2 use Kanishka's question (`answer`) on all ten
