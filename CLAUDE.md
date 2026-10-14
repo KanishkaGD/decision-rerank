@@ -76,9 +76,13 @@ Two people (and their agents) work in this repository with ordinary git branches
 
 ## Experiment rules
 
-- One setup (`docs/roadmap.md`, "Setup"): BM25 top-100 candidates, S1Rank's question (`s1rank`) for all System One
-  models. Never tune or fit anything on test splits: post-hoc calibration (RQ2) is fitted on `msmarco-dev`, and a
-  different question would be chosen on `msmarco-dev` only and get a new phrasing id (never edit a frozen one).
+- One setup (`docs/roadmap.md`, "Setup"): BM25 top-100 candidates, Kanishka's question (`answer`) for all System One
+  models (`--phrasings answer`) and base models (`<name>-prompted-answer`) in both RQs (owner, 2026-10-13,
+  `docs/intent/paper-focus.md` 20). S1Rank's question (`s1rank`) stays as the comparison and for the sanity check
+  against S1Rank's published numbers; never delete its runs. `answer` was fixed before its runs but not chosen on
+  development data -- an owner's exception that the paper states. Otherwise, never tune or fit anything on test
+  splits: post-hoc calibration (RQ2) is fitted on `msmarco-dev`, and any further question would be chosen on
+  `msmarco-dev` only and get a new phrasing id (never edit a frozen one).
 - Don't recompute what is published on the same candidates: such cells come from `results/literature.csv`
   (`from_literature` in `slurm/config.sh`). Literature numbers are labelled as such in the paper.
 - System One modes are named in S1Rank's terms: `<model>-joint` / `<model>-isolated`, both pointwise. "Listwise" means
