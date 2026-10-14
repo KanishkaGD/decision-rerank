@@ -1,0 +1,25 @@
+% =====================================================================================
+% Section 3 -- Decision models as rerankers (from the ECIR 2027 submission, Sect. 3)
+% =====================================================================================
+\section{Decision Models as Rerankers}
+\label{sec:decision-models}
+
+A decision model takes a structured input, the \emph{state}, together with one or more questions about it, and
+returns a probability for each possible answer. We use binary questions only, so every question yields one number,
+the probability of ``yes''. Reranking follows directly: for a query $q$ with candidates $d_1, \dots, d_k$ from a
+first-stage retriever, we ask about each passage $d_i$ whether it answers $q$ and order the passages by the returned
+probabilities $p_i$.
+
+For the state, we consider two modes. In \emph{isolated} mode, the state holds the query and a single passage, so that
+$p_i = P(\textit{yes} \mid q, d_i)$. This is a pointwise reranker, like a cross-encoder. In \emph{joint} mode, the
+state holds the query and all $k$ candidates in first-stage order, and the $k$ questions are asked about this one
+state, so that $p_i = P(\textit{yes} \mid q, d_1, \dots, d_k)$ can depend on the other candidates. Joint mode shares
+its input with listwise rerankers but returns a score per passage instead of a permutation, like the
+Set-Encoder~\cite{Schlatt2025SetEncoder}. Both modes are pointwise in what they output, and both are the modes of
+S1Rank~\cite{S1Rank}.
+
+The two alternatives have the same interface. A reranker fine-tune such as Qwen3-Reranker reads $p_i$ from the
+probability of ``yes'' against ``no'' after a prompt that holds $q$ and $d_i$. A base model, asked the decision
+models' question in its chat format, gives $p_i$ as the probability of ``yes'' as its first answer token. All three
+variants of a backbone therefore produce a probability of relevance for every query and passage, which we can rank by
+(RQ1) and read on an absolute scale (RQ2).

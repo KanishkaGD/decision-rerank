@@ -5,5 +5,7 @@
 6-page limit and by our 27B reranker fine-tune (`docs/intent/paper-focus.md`). Planned for the end of the week of
 2026-10-12.
 
-- Springer LNCS layout as before (`llncs.cls`, `splncs04.bst`), no page limit, with authors (not anonymous).
+- **Two-column ACM layout** (owner, 2026-10-14): `acmart` v2.20, `sigconf,nonacm` (no ACM copyright block or
+  reference format), `ACM-Reference-Format.bst`, both in `paper/`. Replaces the LNCS layout of the ECIR version
+  (tag `ecir2027-submission`). No page limit, with authors (not anonymous).
 - ECIR's rules for the preprint: a prior or parallel arXiv version is allowed; the ECIR review copy must not cite it.

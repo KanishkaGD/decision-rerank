@@ -15,9 +15,9 @@ MAIN     := main
 LATEXMK  := latexmk
 FLAGS    := -pdf -interaction=nonstopmode -file-line-error -halt-on-error
 TABLES   := tables/triplets.tex tables/context.tex tables/cutoff.tex tables/posthoc.tex \
-            tables/calibration.tex tables/calibration-full.tex tables/context-short.tex
+            tables/calibration.tex tables/context-short.tex tables/question-ablation.tex
 SOURCES  := $(MAIN).tex rq-macros.tex $(wildcard sections/*.tex) $(TABLES) $(wildcard *.bib) \
-            llncs.cls splncs04.bst $(wildcard images/*) $(wildcard figures/*)
+            acmart.cls ACM-Reference-Format.bst $(wildcard images/*) $(wildcard figures/*)
 
 .PHONY: all pdf tables watch check wordcount clean distclean
 

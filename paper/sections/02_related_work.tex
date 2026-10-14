@@ -1,26 +1,35 @@
 % =====================================================================================
 % Section 2 -- Related Work
-% Prior work on System One reranking is from Sep--Oct 2026 and not peer-reviewed: cite it as
-% such; numbers we take from it are labelled (results/literature.csv).
+% Prior work on System One reranking is from Sep--Oct 2026 and not peer-reviewed: cite it as such; numbers we take
+% from it are labelled (results/literature.csv).
 % =====================================================================================
 \section{Related Work}
 \label{sec:related-work}
 
-\paragraph{Fine-tuned rerankers.}
-Cross-encoders fine-tuned on MS~MARCO~\cite{Nogueira2019,Nogueira2020monoT5} and LLM rerankers built on LLaMA or
-Qwen~\cite{Ma2023RankLLaMA,Zhang2025Qwen3Embedding,Zhang2026Prism} read relevance from a relevance token or a scoring
-head. Listwise rerankers output a ranking~\cite{Sun2023RankGPT,Pradeep2023RankZephyr}, and the Set-Encoder lets
-passages attend to each other~\cite{Schlatt2025SetEncoder}. Abdallah et al.~\cite{Abdallah2025HowGood} compare many
-of them on our candidates.
+\paragraph{LLM-based rerankers.}
+Neural rerankers are trained to score query--passage pairs from relevance labels, first with encoder or
+sequence-to-sequence models~\cite{Nogueira2019,Nogueira2020monoT5} and more recently with open large language
+models~\cite{Ma2023RankLLaMA,Zhang2025Qwen3Embedding,Zhang2026Prism}. Qwen3-Reranker and Prism read relevance from the
+probability of ``yes'' against ``no'' after a prompt that asks whether the document meets the query, which makes their
+output directly comparable to that of a decision model. Other approaches rerank the candidates jointly, either by
+generating a ranked list~\cite{Sun2023RankGPT,Pradeep2023RankZephyr} or by letting passages attend to each other, as in
+the Set-Encoder~\cite{Schlatt2025SetEncoder}. Large language models can also rank without any reranking-specific
+fine-tuning, through relevance prompting~\cite{Qin2024PRP,Zhuang2024BeyondYesNo}, but their effectiveness is sensitive
+to how the prompt is worded~\cite{Sun2025PromptVariations}. Abdallah et~al.~\cite{Abdallah2025HowGood} compare many of
+these rerankers on the candidates we use.
 
-\paragraph{System One models in retrieval.}
-Besides \jev{}~\cite{TypeSafe2026Jev}, Kev~\cite{Kev}, Clef~\cite{Clef} and \laya{}~\cite{Laya} are open System One
-models. As rerankers they have only been tried in reports that are not peer-reviewed: \jev{} on BM25
-candidates~\cite{S1Rank,JevRerank,LanceDB2026,Elastic2026,Hindsight2026} and \laya{} as a relevance
-gate~\cite{Smriti2026}. None compares decision fine-tuning with reranker fine-tuning on the same model.
+\paragraph{Decision models in retrieval.}
+Besides \jev{}~\cite{TypeSafe2026Jev}, Kev~\cite{Kev,KevCards}, Clef~\cite{Clef} and \laya{}~\cite{Laya} are open
+System One models. The evidence on decision models for retrieval is so far limited to reports that are not
+peer-reviewed: \jev{} reranking BM25 candidates~\cite{S1Rank,JevRerank,LanceDB2026}, as a reranker in production
+search~\cite{Elastic2026,Hindsight2026}, and \laya{} as a relevance gate before recall~\cite{Smriti2026}. These reports
+compare \jev{} with existing rerankers, which are built on other models. None compares decision fine-tuning with
+reranker fine-tuning of the same backbone, and none asks whether the calibration of the probabilities pays off.
 
-\paragraph{Calibration.}
-Neural networks tend to be overconfident, and temperature scaling is a simple fix after
-training~\cite{Guo2017Calibration}; neural rankers are no exception~\cite{Penha2021Calibration}. Calibrated
-probabilities matter wherever a score is read on an absolute scale, e.g.\ to cut off a ranked
-list~\cite{Bahri2020Choppy}.
+\paragraph{Calibration of relevance scores.}
+Neural networks tend to be overconfident, and temperature scaling after training is a simple
+remedy~\cite{Guo2017Calibration}. Neural rankers are no exception~\cite{Penha2021Calibration}. Common ranking losses
+are invariant to shifting the scores of a query, so rankers trained with them can order passages well without being
+calibrated~\cite{Penha2021Calibration,Yan2022ScaleCalibration}; scores can be calibrated during or after
+training~\cite{Guo2017Calibration,Yu2025ExplainThenRank}. Calibrated probabilities matter wherever a score is read on
+an absolute scale, for example to cut off a ranked list~\cite{Bahri2020Choppy}. This is the use we test in RQ2.

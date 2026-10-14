@@ -1,0 +1,77 @@
+% =====================================================================================
+% Section 4 -- Experimental Setup
+% Source of truth: docs/roadmap.md ("Setup"), docs/notes/reranker-27b-plan.md (our fine-tunes),
+% src/cdm/{datasets,rerankers,phrasings}.py, slurm/config.sh; the question: docs/intent/paper-focus.md 20.
+% =====================================================================================
+\section{Experimental Setup}
+\label{sec:setup}
+
+\paragraph{Backbones and variants.}
+We study six Qwen backbones: Qwen3-0.6B and 8B, Qwen3.5-0.8B, 4B and 9B, and Qwen3.8-27B. Each is evaluated in up to
+three variants (Figure~\ref{fig:teaser}). The \emph{base model} is the released model, asked the question in its chat
+format with thinking off and scored by the probability of ``yes'' as the first answer token. The \emph{decision
+fine-tunes} are Kev~\cite{Kev,KevCards} (LoRA on the pretrained checkpoints up to 9B, a full fine-tune of the
+post-trained 27B model) and Clef-Flash (9B) and Clef (27B)~\cite{Clef}, each run in isolated and joint mode
+(Sect.~\ref{sec:decision-models}). We call them decision fine-tunes because they fine-tune an open model to give
+\jev{}'s kind of output; they are not reproductions of RLCD, which is unpublished~\cite{KevCards}. The \emph{reranker
+fine-tunes} are Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding}, built on the same pretrained checkpoints as Kev, and
+Prism~\cite{Zhang2026Prism}, both scored by the probability of ``yes'' against ``no''.
+
+\paragraph{Our reranker fine-tunes.}
+No reranker fine-tune of Qwen3.8-27B has been released, so we train one ourselves (\emph{Ours-27B}), from exactly the
+checkpoint that Kev-27B and Clef start from. As a control, we train a second one with the same recipe on Qwen3.5-9B
+(\emph{Ours-9B}), where it can be compared with Prism-9B. The recipe is public and deliberately plain: LoRA ($r=32$)
+in Qwen3-Reranker's prompt format, one epoch over 100k MS~MARCO training queries~\cite{Nguyen2016MSMARCO}, each with
+one relevant passage and 15 hard negatives (eight from a dense retriever, seven from BM25), and a ranking loss
+(InfoNCE over the group) plus a yes/no classification loss (binary cross-entropy of every passage's score). The second
+term gives the model a meaningful $P(\textit{yes})$. We removed training queries that match a test or development
+topic and chose the checkpoint on 200 MS~MARCO dev queries by a rule fixed in advance. No decision data and no
+hyperparameter search are involved. Qwen3-Reranker, Prism and our fine-tunes saw MS~MARCO in training; Kev's training
+data contain neither MS~MARCO nor BEIR~\cite{KevCards}.
+
+\paragraph{The question.}
+Every decision and base model is asked one question per passage: ``Does document \texttt{\{doc\}} answer the
+\texttt{query}?'' It matches the relevance labels we evaluate against (on TREC DL, a passage counts as relevant if it
+answers the query, from grade~2). We fixed this question before running the experiments, but did not choose it on
+development data, and we report every result with it. The only other wording we ran is the question of
+S1Rank~\cite{S1Rank}: ``Is document \texttt{\{doc\}} relevant to the \texttt{query}? Relevant means it answers the
+query or contains information that directly addresses it.'' It is the subject of the ablation in
+Sect.~\ref{sec:question}. Reranker fine-tunes ask no question of this kind; they keep their own prompt.
+
+\paragraph{Collections and candidates.}
+We use TREC DL
+2019--2023~\cite{Craswell2020DL19,Craswell2021DL20,Craswell2021DL21,Craswell2022DL22,Craswell2023DL23} on the
+MS~MARCO v1 and v2 passages~\cite{Nguyen2016MSMARCO} and five BEIR collections~\cite{Thakur2021BEIR}: TREC-COVID,
+NFCorpus, SciFact, Touch\'e and DBPedia. None of the fine-tunes was trained on TREC-COVID, Touch\'e or DBPedia, which
+form the \emph{zero-shot subset} (ZS). Every system reranks the BM25 top-100 of Pyserini~\cite{Lin2021Pyserini}; these
+are the candidates of S1Rank~\cite{S1Rank} and of earlier
+comparisons~\cite{Sun2023RankGPT,Pradeep2023RankZephyr,Abdallah2025HowGood}, whose published numbers we use where we
+did not rerun a system.
+
+\paragraph{Other systems.}
+For context, we report BM25, \jev{} 1.13.0 (closed, in both modes), \laya{}~\cite{Laya} (isolated only, as its
+context is too short for a joint state), monoT5-3B~\cite{Nogueira2020monoT5}, bge-reranker-v2-m3~\cite{Chen2024BGEM3},
+the Set-Encoder~\cite{Schlatt2025SetEncoder}, RankZephyr~\cite{Pradeep2023RankZephyr} (run by us on TREC DL) and
+RankGPT-4~\cite{Sun2023RankGPT} (published numbers only).
+
+\paragraph{Ranking.}
+We measure nDCG@10 and test differences with paired $t$-tests over queries, Holm-corrected across the ten
+collections ($p < 0.05$). Per backbone, we test the reranker fine-tune against the decision fine-tune with the best
+average (in its better mode), that decision fine-tune against the base model, and joint against isolated mode.
+
+\paragraph{Calibration and its uses.}
+We compute the expected calibration error (ECE, 15 equal-width bins)~\cite{Guo2017Calibration} and the Brier score
+(the mean squared error of the probability against the binary label, which also rewards separating relevant from
+non-relevant passages) on the judged query--passage pairs of TREC DL 2019--2023, the only collections that also judge
+many non-relevant passages; a passage counts as relevant from grade~2. We test two uses of the probabilities. A
+\emph{fixed cutoff} keeps every candidate with $p \ge 0.5$; we report the $F_1$ of this set (unjudged passages count
+as non-relevant), its size, and its \emph{regret}: the $F_1$ at the best threshold of each collection, chosen
+afterwards, minus the $F_1$ at 0.5. The \emph{count} test sums a query's probabilities over its judged passages, which
+estimates how many of them are relevant, and reports the mean absolute error of this estimate in passages; always
+guessing the median count is the trivial baseline. Reranker fine-tunes are also calibrated after the fact, with
+temperature and Platt scaling of their logit fitted on 1,000 MS~MARCO dev queries, never on a test collection.
+
+\paragraph{Sanity checks.}
+Our BM25, monoT5-3B and RankZephyr runs reproduce published numbers~\cite{Pyserini2CR,Abdallah2025HowGood} within 0.2
+points nDCG@10. \jev{} in joint mode, asked S1Rank's question, reproduces S1Rank's numbers~\cite{S1Rank} within 0.5
+points on four of five collections (1.5 below on TREC-COVID).

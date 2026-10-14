@@ -1,45 +1,36 @@
 % =====================================================================================
-% Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One Foundation Model
-% Target: the arXiv preprint (Springer LNCS layout, llncs v2.24; no page limit; docs/intent/venue.md). The ECIR 2027
-% short paper as submitted is tagged ecir2027-submission.
+% Do System One Models Make Better Rerankers?
+% Target: the arXiv preprint in the two-column ACM layout (acmart v2.20, sigconf, nonacm; docs/intent/venue.md).
+% The ECIR 2027 short paper as submitted (LNCS) is tagged ecir2027-submission; its PDF is ECIR-submission.pdf.
 %
 % Build:  make          (or: latexmk)       Checks: make check
 % Layout: one file per section in sections/, generated tables in tables/ (from
-%         results/results.csv -- never typed by hand), figures in figures/, images in
-%         images/, bibliography in sources.bib.
+%         results/results.csv -- never typed by hand), figures in figures/ (TikZ, no numbers),
+%         bibliography in sources.bib.
 %
 % Draft markers rendered in the PDF: \TODO{...}, \PENDING{...} (waits for a result),
 % \FLAG{...} (claim to double-check). `make check` does not catch them; grep for them
 % before submitting.
 % =====================================================================================
-\documentclass[runningheads]{llncs}
+% \cellcolor/\rowcolor in the generated tables need colortbl: acmart loads xcolor, so pass [table] first.
+\PassOptionsToPackage{table}{xcolor}
+\documentclass[sigconf,nonacm]{acmart}
 
-\usepackage[T1]{fontenc}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amssymb}
-\usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{multirow}
-\usepackage{adjustbox}  % generated tables: shrink to \textwidth where too wide
-% \cellcolor in generated tables needs colortbl; load xcolor with [table] before
-% tcolorbox (which would otherwise load xcolor without it).
-\usepackage[table]{xcolor}
+\usepackage{adjustbox}  % generated tables: shrink to the text width where too wide
 \usepackage{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,decorations.pathreplacing}
 \input{rq-macros}
-\usepackage{cite}  % sorts and compresses citation numbers: [22,23], [1--3]
-\usepackage{placeins}  % \FloatBarrier, if a table ever drifts behind the references (not used at the moment)
-\usepackage{hyperref}
-\hypersetup{colorlinks=true, linkcolor=black, citecolor=blue, urlcolor=blue}
+\usepackage{placeins}  % \FloatBarrier
+
 % Hugging Face model name as a link, displayed without the organization: \hf{org}{model}
 \newcommand{\hf}[2]{\href{https://huggingface.co/#1/#2}{\texttt{#2}}}
-% Springer's eBook style for URLs:
-\renewcommand\UrlFont{\color{blue}\rmfamily}
-\urlstyle{rm}
 
 % Row shading of the generated tables by training objective (src/cdm/paper_tables.py, ROW_COLORS); light tints,
-% kept apart from the RQ colours (rq-macros.tex).
+% kept apart from the RQ colours (rq-macros.tex). The teaser figure uses the same three.
 \colorlet{rowbase}{black!14}
 \colorlet{rowdecision}{red!20}
 \colorlet{rowreranker}{blue!18}
@@ -52,44 +43,71 @@
 % Names used throughout, so they can be changed in one place.
 \newcommand{\laya}{Laya}
 \newcommand{\jev}{Jev}
+% The two questions (docs/intent/paper-focus.md 20): ours in every result, S1Rank's only in the ablation.
+\newcommand{\qans}{\emph{Answers?}}
+\newcommand{\qrel}{\emph{Relevant?}}
+
+% arXiv preprint: no ACM copyright block, reference format or CCS box (nonacm); keep page numbers.
+\settopmatter{printacmref=false, printfolios=true}
+\setcopyright{none}
 
 \begin{document}
 
 \title{Do System One Models Make Better Rerankers?}
-\titlerunning{Do System One Models Make Better Rerankers?}
+\subtitle{\TODO{optional subtitle, e.g.\ ``Decision Fine-Tuning versus Reranker Fine-Tuning on Six Foundation Models''}}
 
-\author{\TODO{authors}}
-\authorrunning{\TODO{authors}}
-\institute{\TODO{affiliations}}
+\author{Michael Dinzinger}
+\affiliation{%
+  \institution{University of Passau}
+  \city{Passau}
+  \country{Germany}}
+\email{michael.dinzinger@uni-passau.de}
+
+\author{Kanishka \TODO{surname}}
+\affiliation{%
+  \institution{\TODO{affiliation}}
+  \country{\TODO{country}}}
+\email{\TODO{email}}
+
+\renewcommand{\shortauthors}{\TODO{short author list}}
+
+\begin{abstract}
+\input{sections/00_abstract}
+\end{abstract}
+
+\keywords{Reranking, Calibration, System One Models, Decision Models, Fine-Tuning, Large Language Models}
+
+\begin{teaserfigure}
+  \input{figures/teaser}
+  \caption{What we ask. Each Qwen backbone is compared in three variants that all return a probability of relevance
+  for a query and a BM25 candidate: the base model asked zero-shot, its decision fine-tunes (System One models such as
+  Kev and Clef) and its reranker fine-tunes. \RQ{1} asks which variant ranks best, \RQ{2} whether the decision models
+  are at least better calibrated and whether that is of any use. An ablation asks how much both answers depend on the
+  wording of the question put to the model.}
+  \Description{A diagram. On the left, one Qwen backbone branches into three variants: a zero-shot base model, a
+  decision fine-tune and a reranker fine-tune; all three read a query with its BM25 top-100 candidates and output a
+  probability. On the right, three boxes: RQ1 about ranking (nDCG@10), RQ2 about calibration and its uses (ECE, a fixed
+  cutoff, counting relevant passages), and the question ablation contrasting two wordings of the relevance question.}
+  \label{fig:teaser}
+\end{teaserfigure}
 
 \maketitle
 
-\begin{abstract}
-System One models, or decision models, answer a question about an input with a calibrated probability. They are
-only a month old but much discussed, and first reports have tried them as rerankers. For six Qwen foundation models
-(0.6B to 27B parameters) and ten test collections, we compare the untuned model with its decision fine-tunes and its
-reranker fine-tunes, one of which we trained ourselves. The reranker fine-tunes rank better wherever both exist,
-while decision fine-tuning adds little to the untuned model. Decision models are better calibrated only if the
-question matches the relevance definition, and even then reranker fine-tunes select better passages at a fixed
-threshold. Our own reranker fine-tune is as well calibrated as the best decision model of its size.
-\keywords{Reranking \and Calibration \and System One Models \and Fine-Tuning}
-\end{abstract}
-
 \input{sections/01_introduction}
 \input{sections/02_related_work}
-\input{sections/03_setup}
-\input{sections/04_reranking}
-\input{sections/05_calibration}
-\input{sections/06_conclusion}
+\input{sections/03_decision_models}
+\input{sections/04_setup}
+\input{sections/05_reranking}
+\input{sections/06_calibration}
+\input{sections/07_question}
+\input{sections/08_discussion}
+\input{sections/09_conclusion}
 
-% Disclosure of interests (mandatory in LNCS since llncs 2.23); acknowledgements go here too.
-\begin{credits}
-\subsubsection{\discintname}
-The authors have no competing interests to declare that are relevant to the content of this article.
-\TODO{acknowledgements, if any; confirm the disclosure}
-\end{credits}
+\begin{acks}
+\TODO{acknowledgements, if any; compute (FAITH cluster, University of Passau); disclosure of competing interests}
+\end{acks}
 
-\bibliographystyle{splncs04}
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{sources}
 
 \end{document}

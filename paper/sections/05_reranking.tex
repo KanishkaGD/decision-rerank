@@ -1,0 +1,53 @@
+% =====================================================================================
+% Section 5 -- RQ1: decision vs. reranker fine-tuning
+% Every number quoted here is in tables/triplets.tex or tables/context.tex (differences computed from the printed
+% values); significance counts over all ten collections (results.csv, job = significance, variant vs-*@answer).
+% Joint vs. isolated is part of RQ1 (docs/intent/paper-focus.md 3): explained by the state length the model was
+% trained on.
+% =====================================================================================
+\section{RQ1: Decision vs.\ Reranker Fine-Tuning}
+\label{sec:reranking}
+
+\input{tables/triplets}
+
+\paragraph{Up to 9B, reranker fine-tuning wins on every backbone.}
+On all five backbones from 0.6B to 9B, the reranker fine-tune ranks better than the decision fine-tune in either mode
+(Table~\ref{tab:triplets}). Averaged over the ten collections, its margin over the better decision mode ranges from
+5.2 points nDCG@10 at Qwen3.5-9B (Prism-9B 59.0 vs.\ Clef-Flash 53.8) to 28.8 points at Qwen3-0.6B (56.1 vs.\ 27.3).
+The difference is significant on 48 of the 60 pairs of reranker fine-tune and collection, and the decision fine-tune
+is never significantly better (${}^\ast$). The margin is not an artefact of evaluating on MS~MARCO. On the zero-shot
+subset, which no fine-tune was trained on, it ranges from 5.4 to 23.9 points. Nor does it depend on the undisclosed
+training recipes of the published rerankers: Ours-9B, trained on MS~MARCO alone with standard losses, matches Prism-9B
+on average (59.4 vs.\ 59.0) and exceeds it on the zero-shot subset (56.1 vs.\ 53.7).
+
+\paragraph{Decision fine-tuning does no better than asking the base model.}
+Up to 9B, the better mode of a decision fine-tune stays within $-2.5$ and $+0.7$ points of its zero-shot base model,
+with significant gains on at most three of ten collections (${}^\dagger$). Kev-4B is even 2.5 points below its base
+model. Reranker fine-tuning of the same backbones adds 5.9 (Prism-9B) to 29.5 points (Qwen3-Reranker-0.6B). Put
+bluntly, a user who takes the released Qwen3.5-4B or Qwen3.5-9B and asks it whether a passage answers the query gets
+the same ranking as from the decision fine-tunes built on it, at no training cost.
+
+\paragraph{27B: the one place where decision fine-tuning helps.}
+The largest backbone is the exception. Kev-27B improves on its base model by 3.7 points (60.1 vs.\ 56.4), significantly
+on eight collections, and is the best system in our study. Clef, the other 27B decision fine-tune, does not improve on
+its base model (54.8 joint, 53.9 isolated). Our 27B reranker fine-tune, trained from the same checkpoint, gains about as much
+over the base model (59.6) and ranks as well as Kev-27B: 59.6 vs.\ 60.1 on average and 54.9 vs.\ 55.0 on the
+zero-shot subset. The two differ significantly on one collection only, DBPedia, where ours is better (${}^\ast$). So
+at 27B, decision fine-tuning catches up with a plain reranker fine-tune; it does not overtake it. And Kev-27B is only 0.7 points ahead
+of Ours-9B, a reranker fine-tune a third of its size.
+
+\input{tables/context}
+
+\paragraph{Context.}
+Table~\ref{tab:context} places the triplets among other rerankers on the same candidates. \jev{} (59.1) is as
+effective as the reranker fine-tunes of 8B to 9B (59.0 to 59.4) and the Set-Encoder (59.0), and slightly behind
+Kev-27B (60.1). The open Kev-27B thus matches the closed model it imitates, which suggests that there is no secret in
+\jev{} that an open fine-tune of a strong backbone cannot reach. \laya{} (43.5) does not improve on its BM25
+candidates (43.2).
+
+\paragraph{Joint scoring helps only the largest models.}
+Scoring all candidates in one state gains about one point for Kev-27B (60.1 vs.\ 59.0) and Clef (54.8 vs.\ 53.9), but
+costs Kev-0.6B 12.2 points and Kev-8B 13.0 (${}^\ddagger$; significant on all ten and on five collections). A likely
+reason is the length of the state. A joint state of 100 passages has about 13k tokens on TREC DL and 40k or more on
+BEIR, whereas Kev-0.8B and Kev-4B were trained on states of at most 7,552 tokens, and Kev-27B on states of up to
+32,768~\cite{KevCards}.

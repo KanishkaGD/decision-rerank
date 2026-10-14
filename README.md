@@ -15,7 +15,7 @@ container/      Apptainer image with the dependencies (cdm.def, build.sh)
 src/cdm/        the Python package and `cdm` CLI: first stage, rerankers, evaluation, results.csv
 tests/          pytest
 results/        results.csv and generated tables -- tracked in git, written by the jobs in place
-paper/          LaTeX sources (LNCS), built with `make`
+paper/          LaTeX sources (ACM sigconf, acmart), built with `make`
 docs/           research plan (owner's, read-only), experiment log, notes, intent statements
 ```
 

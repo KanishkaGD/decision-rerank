@@ -1,0 +1,56 @@
+% =====================================================================================
+% Section 6 -- RQ2: calibration and its uses
+% Every number quoted here is in tables/calibration.tex (the paper's question). S1Rank's question only in Sect. 7.
+% Owner's framing (docs/intent/paper-focus.md 15-16): calibration does not rescue decision models; do not claim that
+% the count test proxies ranking.
+% =====================================================================================
+\section{RQ2: Are Decision Models at Least Better Calibrated?}
+\label{sec:calibration}
+
+\input{tables/calibration}
+
+Calibration is the main promise of decision models. Table~\ref{tab:calibration} reports it on the judged pairs of TREC
+DL 2019--2023, together with the two uses we test.
+
+\paragraph{Both kinds of fine-tuning improve on the small base models.}
+The zero-shot base models of 0.6B and 0.8B parameters are badly calibrated (ECE 0.750 and 0.617): they say ``yes'' to
+almost everything. Both decision and reranker fine-tuning fix much of this. From 4B on, however, the base models asked
+our question are already reasonably calibrated (ECE 0.117 to 0.231), and the gain from any fine-tuning is smaller.
+
+\paragraph{Decision fine-tunes beat the published rerankers, but not a plain reranker fine-tune.}
+With our question, the decision fine-tunes are better calibrated than the published reranker fine-tunes from 4B on
+(ECE: Kev-4B 0.132 vs.\ Prism-4B 0.218, Kev-8B 0.113 vs.\ Qwen3-Reranker-8B 0.257, Clef-Flash 0.112 vs.\ Prism-9B
+0.242). At 0.6B they tie (0.503 vs.\ 0.511), and at 0.8B Prism is better (0.243 vs.\ 0.336). The best calibrated
+systems in the study are \jev{} (0.075) and the 27B decision fine-tunes (Kev-27B 0.076, Clef 0.091). This is the one
+result in favour of decision models, and it does not survive a closer look. First, our reranker fine-tune of
+Qwen3.5-9B, which asks no question and was trained with a plain yes/no loss, is as well calibrated as the best decision
+fine-tune of its size (ECE 0.111 vs.\ 0.112) and has the lower Brier score (0.157 vs.\ 0.158). At 9B, calibration is
+a property of the training loss rather than of decision fine-tuning. At 27B the picture turns: Kev-27B is better
+calibrated than our reranker fine-tune (ECE 0.076 vs.\ 0.110, Brier 0.130 vs.\ 0.153). This is the one backbone where
+decision fine-tuning has a clear advantage in calibration over a reranker fine-tune of the same checkpoint. Second, the advantage over the
+published rerankers depends on the wording of the question: with S1Rank's question it is gone (Sect.~\ref{sec:question}).
+
+\paragraph{Calibration after the fact does not transfer.}
+Rerankers that are not calibrated can be fixed after training. Temperature scaling fitted on MS~MARCO dev lowers the
+ECE of the worst calibrated rerankers on TREC DL (Qwen3-Reranker-0.6B from 0.511 to 0.326, the Set-Encoder from 0.495
+to 0.250), but changes the others little. Platt scaling, which also shifts the scores, makes them worse at the fixed
+cutoff ($F_1$@.5 of 8.1 or less): MS~MARCO dev judges about one passage per query, so the fitted probabilities are far
+too low for the denser judgments of TREC DL. Calibration is only defined with respect to a notion of relevance and
+its base rate. We return to this point in Sect.~\ref{sec:discussion}.
+
+\paragraph{Calibration does not make decision models select better passages.}
+If every passage with $p \ge 0.5$ is kept, a reranker fine-tune keeps the better set on every backbone up to 9B
+(e.g.\ $F_1$@.5 of 51.0 for Prism-4B vs.\ 42.6 for Kev-4B, and 50.7 for Prism-9B vs.\ 47.1 for Clef-Flash). At 27B,
+Kev-27B keeps the better set (57.2 vs.\ 48.3): our fine-tune is underconfident, keeps only 7.9 passages per query,
+and loses 5.9 points against its best thresholds. Calibration does
+help in one respect: for the decision models, 0.5 is close to the best threshold of each collection (regret of 0.9 to
+3.1 points), whereas Prism-9B loses 4.0 points and Ours-9B 6.4 against their best thresholds. But the best threshold
+of a better ranker still yields the better set. A well-placed threshold on a worse ranking does not make up for the
+ranking.
+
+\paragraph{Counting relevant passages.}
+The count test asks for a use that ranking cannot serve: how many of a query's passages are relevant. Here most
+decision models from 4B on beat always guessing the median count (8.6), and they beat the published reranker
+fine-tunes of their backbones (Kev-8B 7.6 vs.\ Qwen3-Reranker-8B 12.9, Kev-4B 8.4 vs.\ Prism-4B 11.5). Decision
+fine-tuning is not what makes counting work, however. The untuned Qwen3.8-27B counts most accurately of all (5.8),
+ahead of Kev-27B (6.0) and \jev{} (6.3), and Ours-9B counts better than Clef-Flash (7.3 vs.\ 8.1).

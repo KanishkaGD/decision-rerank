@@ -1,0 +1,80 @@
+% Teaser figure (page 1): the design and the questions of the paper. Conceptual only -- no results, so nothing in it
+% has to come from results.csv. Colours: training objectives as in the tables (rowbase, rowdecision, rowreranker),
+% research questions as in rq-macros.tex (rq1, rq2).
+\centering
+\colorlet{ablation}{black!55}
+\begin{tikzpicture}[
+    font=\sffamily\footnotesize,
+    >={Stealth[length=2.2mm]},
+    every node/.style={inner sep=2pt},
+    variant/.style={draw=#1!70!black, fill=#1, rounded corners=2pt, minimum width=3.55cm, minimum height=0.92cm,
+      align=left, text width=3.35cm, inner xsep=4pt},
+    badge/.style={fill=#1, text=white, font=\sffamily\bfseries\scriptsize, rounded corners=1.2pt,
+      inner xsep=2.5pt, inner ysep=1.5pt},
+    rqbox/.style={draw=#1, fill=#1!6, line width=0.7pt, rounded corners=3pt, minimum width=7.6cm,
+      minimum height=1.36cm, text width=7.4cm, align=left},
+    title/.style={font=\sffamily\footnotesize\bfseries, inner xsep=4pt},
+    bubble/.style={draw=black!45, fill=white, rounded corners=5pt, font=\sffamily\scriptsize, align=left,
+      inner xsep=3pt, inner ysep=1.5pt},
+    flow/.style={->, line width=0.8pt, black!65},
+  ]
+
+  % ---------------- left: one backbone, three variants ----------------
+  \node[draw=black!60, fill=black!4, rounded corners=3pt, minimum height=3.5cm, text width=1.75cm, align=center]
+    (backbone) at (0,0) {\textbf{Qwen}\\\textbf{backbone}\\[3pt]{\scriptsize 0.6B, 0.8B,}\\{\scriptsize 4B, 8B,}\\
+    {\scriptsize 9B, 27B}};
+
+  \node[variant=rowbase] (base) at (4.25,1.22)
+    {$\circ$~\textbf{Base model}\\{\scriptsize the released model, asked zero-shot}};
+  \node[variant=rowdecision] (decision) at (4.25,0)
+    {$\blacktriangle$/$\triangle$~\textbf{Decision fine-tune}\\{\scriptsize System One: Kev, Clef; joint/isolated}};
+  \node[variant=rowreranker] (reranker) at (4.25,-1.22)
+    {$\blacksquare$~\textbf{Reranker fine-tune}\\{\scriptsize Qwen3-Reranker, Prism, ours}};
+
+  \foreach \v/\lab in {base/{no tuning}, decision/{decision\\fine-tuning}, reranker/{reranker\\fine-tuning}}{
+    \draw[flow] (backbone.east |- \v.west) -- node[above, font=\sffamily\tiny, black!70, inner sep=1pt,
+      align=center] {\lab} (\v.west);
+  }
+
+  % candidates in, probabilities out
+  \node[draw=black!45, dashed, rounded corners=2pt, align=center, font=\sffamily\scriptsize, text width=3.4cm]
+    (input) at (4.25,2.35) {query $q$ + BM25 top-100 $d_1,\dots,d_{100}$};
+  \draw[flow, dashed] (input) -- (base);
+
+  \node[fit=(base)(decision)(reranker), inner sep=3pt] (variants) {};
+  \node[align=center, font=\sffamily\scriptsize, text width=1.45cm] (prob) at (7.55,0)
+    {$p_i = $\\$P(\textit{yes} \mid q, d_i)$};
+  \draw[decorate, decoration={brace, amplitude=5pt}, line width=0.7pt, black!65]
+    (variants.north east) -- (variants.south east) coordinate[midway] (brace);
+  \draw[flow] ($(brace)+(0.22,0)$) -- (prob.west);
+
+  % ---------------- right: the questions ----------------
+  % Each box: a badge in the top left corner, the question next to it, details below.
+  \node[rqbox=rq1, anchor=west] (rq1) at (8.75,1.52) {%
+    \mbox{}\\[2pt]
+    {\scriptsize Does decision fine-tuning beat reranker fine-tuning, or even no fine-tuning, of the same
+    backbone? nDCG@10 on TREC DL 2019--2023 and five BEIR collections.}};
+  \node[badge=rq1, anchor=north west] (b1) at ($(rq1.north west)+(0.12,-0.1)$) {RQ1};
+  \node[title, anchor=west] at (b1.east) {Which variant ranks best?};
+
+  \node[rqbox=rq2, anchor=west] (rq2) at (8.75,0) {%
+    \mbox{}\\[2pt]
+    {\scriptsize Expected calibration error and Brier score; keeping every passage with $p \ge 0.5$; counting a
+    query's relevant passages from the summed $p_i$.}};
+  \node[badge=rq2, anchor=north west] (b2) at ($(rq2.north west)+(0.12,-0.1)$) {RQ2};
+  \node[title, anchor=west] at (b2.east) {Better calibrated, and of any use?};
+
+  \node[rqbox=ablation, anchor=west] (abl) at (8.75,-1.52) {\mbox{}\\[19pt]\mbox{}};
+  \node[badge=ablation, anchor=north west] (b3) at ($(abl.north west)+(0.12,-0.1)$) {Ablation};
+  \node[title, anchor=west] at (b3.east) {Does the wording of the question matter?};
+  \node[bubble, anchor=south west, text width=3.45cm] at ($(abl.south west)+(0.12,0.1)$)
+    {``Is document \{doc\} relevant to the query? Relevant means it answers the query or \dots''};
+  \node[bubble, anchor=south east, text width=2.95cm] at ($(abl.south east)+(-0.12,0.1)$)
+    {``Does document \{doc\} answer the query?''};
+  \node[font=\sffamily\scriptsize\bfseries, black!60] at ($(abl.south)+(0.3,0.4)$) {vs.};
+
+  \draw[flow] (prob.east) -- ++(0.18,0) coordinate (fork);
+  \foreach \t in {rq1, rq2, abl}{
+    \draw[flow] (fork) |- (\t.west);
+  }
+\end{tikzpicture}

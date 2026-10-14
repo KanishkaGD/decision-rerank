@@ -83,3 +83,11 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
     repository and as a comparison (on DL19-23 it gives slightly higher nDCG@10 for most decision models, -0.2 to
     -2.2 points with `answer`); the sanity check of `jev-joint` against S1Rank's published numbers uses S1Rank's
     question. The paper states that the question was fixed before the runs but not chosen on development data.
+21. **The arXiv narrative** (owner, 2026-10-14). Every result in the paper uses Kanishka's question (`answer`); S1Rank's
+    question appears only in an ablation (Sect. 7, `paper/tables/question-ablation.tex`) that compares the two
+    wordings and shows the lack of robustness (ranking hardly moves, calibration and the RQ2 verdict flip). The
+    introduction, title, RQ wording and conclusion follow the submitted ECIR paper (`ECIR-submission.pdf`), in a
+    slightly more provocative tone; a TikZ teaser figure on page 1 shows the triplet design and the questions. The
+    material cut for ECIR is back (all ten collections in Table 1, full context table, post-hoc scaling and the
+    fixed cutoff in the calibration table, a discussion and limitations section). Layout: two-column ACM
+    (`docs/intent/venue.md`).

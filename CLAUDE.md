@@ -92,7 +92,8 @@ Two people (and their agents) work in this repository with ordinary git branches
 
 ## Paper (`paper/`)
 
-- Target: the arXiv preprint (Springer LNCS layout, no page limit, with authors; `docs/intent/venue.md`).
+- Target: the arXiv preprint (two-column ACM layout, `acmart` sigconf/nonacm, no page limit, with authors;
+  `docs/intent/venue.md`).
   One file per section in `paper/sections/`; RQ wording only in `paper/rq-macros.tex`; build and check with `make` /
   `make check` in `paper/`.
 - Numbers in the paper come from `results/results.csv` and `results/literature.csv` via generated tables in

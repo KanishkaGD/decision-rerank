@@ -2,7 +2,8 @@
 % results/literature.csv -- do not edit by hand.
 \begin{table*}[!t]
 \caption{Context: other rerankers (nDCG@10, $\times 100$) on the BM25 top-100 of TREC DL 2019--2023 and
-five BEIR collections; System One models in joint mode (\laya{} isolated). $^\dagger$: published number on
+five BEIR collections; System One models in joint mode (\laya{} isolated), asked whether the passage answers
+the query (Sect.~\ref{sec:setup}). $^\dagger$: published number on
 the same candidates~\cite{Abdallah2025HowGood,SetEncoderCard}, not recomputed. Avg: mean over all ten
 collections (only where all are available). \$/1k: mean API cost in US dollars per 1,000 queries over the
 collections run. Best reranker per column in bold.}
@@ -20,7 +21,7 @@ System & Mode & DL19 & DL20 & DL21 & DL22 & DL23 & COVID & NFC & SciF & Touch\'e
 BM25 &  & 50.6 & 48.0 & 44.6 & 26.9 & 26.2 & 59.5 & 32.2 & 67.9 & 44.2 & 31.8 & 43.2 & -- \\
 \midrule
 \multicolumn{14}{l}{\textit{Listwise LLM rerankers}} \\
-RankGPT-4 &  & \textbf{75.6}\rlap{$^\dagger$} & 70.6\rlap{$^\dagger$} & -- & -- & -- & 85.5\rlap{$^\dagger$} & 38.5\rlap{$^\dagger$} & 75.0\rlap{$^\dagger$} & 38.6\rlap{$^\dagger$} & \textbf{47.1}\rlap{$^\dagger$} & -- & -- \\
+RankGPT-4 &  & \textbf{75.6}\rlap{$^\dagger$} & 70.6\rlap{$^\dagger$} & -- & -- & -- & \textbf{85.5}\rlap{$^\dagger$} & 38.5\rlap{$^\dagger$} & 75.0\rlap{$^\dagger$} & 38.6\rlap{$^\dagger$} & \textbf{47.1}\rlap{$^\dagger$} & -- & -- \\
 RankZephyr-7B &  & 74.3 & 70.0 & 67.9 & 50.5 & 44.1 & 80.7\rlap{$^\dagger$} & 36.6\rlap{$^\dagger$} & 75.1\rlap{$^\dagger$} & 31.1\rlap{$^\dagger$} & 43.2\rlap{$^\dagger$} & 57.3 & -- \\
 \midrule
 \multicolumn{14}{l}{\textit{Cross-encoders and LLM rerankers}} \\
@@ -30,12 +31,12 @@ Qwen3-Reranker-8B &  & 73.2 & 66.8 & 67.0 & 51.2 & 45.2 & 84.0 & 37.3 & 79.9 & \
 Set-Encoder-large &  & 75.0\rlap{$^\dagger$} & 72.2\rlap{$^\dagger$} & 69.9 & \textbf{53.4} & 47.7 & 81.2 & 36.8 & 73.8 & 33.2 & 47.0 & 59.0 & -- \\
 \midrule
 \multicolumn{14}{l}{\textit{System One models}} \\
-\jev{} & joint & 73.3 & 71.4 & \textbf{72.2} & 50.0 & 46.8 & 85.0 & 38.2 & 81.0 & 39.9 & 46.8 & 60.5 & 1.18 \\
-Clef-Flash & joint & 68.8 & 67.3 & 64.3 & 44.2 & 40.4 & 82.1 & 35.1 & 65.4 & 21.3 & 38.8 & 52.8 & -- \\
-Clef & joint & 71.4 & 70.1 & 68.6 & 49.3 & 45.9 & 82.9 & 36.3 & 62.9 & 30.8 & 42.8 & 56.1 & -- \\
-Kev-4B & joint & 65.5 & 62.9 & 62.4 & 37.7 & 38.3 & 75.3 & 29.3 & 62.4 & 23.7 & 40.7 & 49.8 & -- \\
-Kev-27B & joint & 73.9 & \textbf{73.3} & 69.9 & 51.1 & \textbf{49.3} & \textbf{85.9} & 38.7 & \textbf{81.1} & 40.8 & 46.9 & \textbf{61.1} & -- \\
-\laya{} & isolated & 60.1 & 54.5 & 53.7 & 35.3 & 33.1 & 74.3 & 28.8 & 43.7 & 24.0 & 32.7 & 44.0 & -- \\
+\jev{} & joint & 73.0 & 70.9 & \textbf{70.7} & 50.3 & 46.1 & 83.3 & 37.8 & 80.3 & 33.5 & 45.5 & 59.1 & 1.11 \\
+Clef-Flash & joint & 67.5 & 67.4 & 63.9 & 42.9 & 41.2 & 80.9 & 34.1 & 62.4 & 20.0 & 37.5 & 51.8 & -- \\
+Clef & joint & 70.5 & 72.4 & 66.2 & 48.2 & 45.9 & 80.7 & 35.6 & 58.7 & 29.2 & 40.9 & 54.8 & -- \\
+Kev-4B & joint & 62.5 & 63.2 & 60.8 & 37.0 & 36.3 & 75.3 & 29.3 & 58.4 & 19.9 & 39.8 & 48.2 & -- \\
+Kev-27B & joint & 72.8 & \textbf{72.9} & \textbf{70.7} & 50.9 & \textbf{49.2} & 83.9 & 38.4 & \textbf{81.1} & 36.1 & 44.9 & \textbf{60.1} & -- \\
+\laya{} & isolated & 59.5 & 54.6 & 52.8 & 35.3 & 32.7 & 73.8 & 28.7 & 44.8 & 21.8 & 31.3 & 43.5 & -- \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}

@@ -1,0 +1,39 @@
+% =====================================================================================
+% Section 7 -- Ablation: the wording of the question (docs/intent/paper-focus.md 16, 20)
+% Every number quoted here is in tables/question-ablation.tex, or for rerankers (no question) in
+% tables/calibration.tex.
+% =====================================================================================
+\section{Ablation: Does the Wording Matter?}
+\label{sec:question}
+
+\input{tables/question-ablation}
+
+Decision models are sold as models one can simply ask. So far we asked them one question, whether the passage answers
+the query. Table~\ref{tab:question-ablation} repeats every run of a decision or base model with the question of
+S1Rank~\cite{S1Rank}, which asks whether the passage is relevant and defines relevance more loosely: it ``answers the
+query or contains information that directly addresses it''. Both wordings are reasonable, and S1Rank's is the one
+under which \jev{} was first shown to be a good reranker.
+
+\paragraph{Ranking hardly moves.}
+The mean nDCG@10 of the decision fine-tunes changes by $-2.5$ to $+2.6$ points between the two questions, and our
+question is slightly worse for most of them (\jev{} joint 60.5 with S1Rank's question vs.\ 59.1 with ours, Kev-27B
+joint 61.1 vs.\ 60.1). None of the conclusions of RQ1 depends on the wording: the reranker fine-tunes ask no question,
+and with S1Rank's question the best decision fine-tune of every backbone up to 9B is still 4 points or more behind
+them.
+
+\paragraph{Calibration moves a lot.}
+The ECE, in contrast, drops for almost every model when it is asked our question: \jev{} joint from 0.224 to 0.075,
+Kev-8B joint from 0.243 to 0.113, Kev-27B joint from 0.156 to 0.076. The count error moves with it (\jev{} joint from
+11.3 to 6.3 passages). With S1Rank's question, the decision fine-tunes up to 8B are no better calibrated than the
+published reranker fine-tunes of the same backbone (Kev-4B 0.216 vs.\ Prism-4B 0.218 in Table~\ref{tab:calibration},
+Kev-8B 0.243 vs.\ Qwen3-Reranker-8B 0.257) or worse (Kev-0.8B 0.357 vs.\ Prism-0.8B 0.243). Clef-Flash keeps an edge
+over Prism-9B (0.140 vs.\ 0.242), but not over our 9B fine-tune (0.111). No decision model beats the median guess in the count test by more than a
+fraction of a passage (Clef joint 8.4 vs.\ 8.6). The answer to RQ2 thus flips with one sentence of the prompt.
+
+\paragraph{The base models move as much.}
+The untuned models gain as much from the wording as the decision fine-tunes (Qwen3-8B from 0.383 to 0.231,
+Qwen3.5-9B from 0.283 to 0.165). What matters is that the question matches the definition of relevance in the labels,
+not decision fine-tuning. A decision model's probability is calibrated against a notion of relevance that the user
+has to state in words, and a small change in the words changes the numbers by a factor of two or three. Reranker
+fine-tunes are not affected, since their notion of relevance is fixed by their training labels; they need no question
+to be worded, and none to be got wrong.

@@ -1,0 +1,17 @@
+% =====================================================================================
+% Abstract. Numbers only from tables/ (triplets.tex, calibration.tex, question-ablation.tex).
+% =====================================================================================
+System One models, or decision models, answer a question about an input with a probability instead of generated
+text. A month after the first of them was released, they are marketed for their calibrated probabilities and already
+used as rerankers. We ask whether the decision fine-tuning behind them makes a better reranker than the established
+alternative, plain reranker fine-tuning of the same model. For six Qwen backbones from 0.6B to 27B parameters and ten
+TREC DL and BEIR collections, we compare the zero-shot base model with its decision fine-tunes and its reranker
+fine-tunes, two of which we train ourselves on MS~MARCO. Up to 9B, reranker fine-tuning wins on every backbone, by
+5 to 29 points nDCG@10, also on collections that no fine-tune was trained on, while decision fine-tuning does no
+better than simply asking the base model. At 27B, the best decision fine-tune and our reranker fine-tune
+rank equally well. The calibration that decision models are advertised for does not rescue them either. Whether they
+are better calibrated than reranker fine-tunes flips with the wording of the relevance question; at 9B, our reranker
+fine-tune, trained with a plain yes/no loss, is as well calibrated as the best decision model; and up to 9B, a
+reranker fine-tune keeps the better passages at a fixed threshold. Only at 27B does decision fine-tuning have an edge,
+and it lies in calibration, not in ranking. As released so far, decision fine-tuning gives no reason to replace a
+reranker.

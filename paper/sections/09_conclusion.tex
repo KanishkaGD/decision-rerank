@@ -1,0 +1,16 @@
+% =====================================================================================
+% Section 9 -- Conclusion (from the ECIR 2027 submission, sharpened for arXiv)
+% Numbers only from tables/ (triplets.tex, calibration.tex).
+% =====================================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+Do System One models make better rerankers? No. On the same backbone, plain reranker fine-tuning beats decision
+fine-tuning up to 9B parameters, by 5 to 29 points nDCG@10, and decision fine-tuning buys nothing over simply asking
+the base model. At 27B, where Kev is the best system in our study, a reranker fine-tune trained with a public recipe
+ranks as well, although Kev-27B is better calibrated. Calibration, the main promise of decision models, is largely a property of the question rather
+than of decision fine-tuning: when the question matches the relevance labels, even the base models become much better
+calibrated, and when it does not, the decision models lose their edge over reranker fine-tunes. Our reranker
+fine-tune, which asks no question, is as well calibrated as the best decision model of its size, and up to 9B no
+decision model kept better passages at a fixed threshold than the reranker fine-tune of its backbone. If you need a reranker, fine-tune a
+reranker.
