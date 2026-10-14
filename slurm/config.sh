@@ -35,6 +35,16 @@ gpu_constraint_for() {
     esac
 }
 
+# Host memory of a rerank job: rerank.sbatch requests 48G. Our 27B reranker fine-tune (base model plus LoRA adapter)
+# was OOM-killed at 48G while loading (jobs 4458435-4458442); the FAITH GPU nodes have 1-2 TB.
+# Usage: rerank_mem_for <system> (empty: keep the default of rerank.sbatch)
+rerank_mem_for() {
+    case "$1" in
+        qwen3.8-27b-reranker) echo "128G" ;;
+        *) echo "" ;;
+    esac
+}
+
 # Dataset names as registered in src/cdm/datasets.py (`cdm datasets` lists them with their Pyserini ids). "all" in
 # `slurm/submit.sh ... --datasets all` means this list. Every dataset is reranked on the BM25 top-100
 # (docs/roadmap.md, "Setup").
@@ -92,8 +102,9 @@ SYSTEMS=(
     "kev-9b-isolated"
     "kev-9b-joint"
     "prism-9b"
-    "qwen3.8-27b-prompted" # Qwen3.8-27B | Kev-27B, Clef (above) | our reranker fine-tune, once trained
+    "qwen3.8-27b-prompted" # Qwen3.8-27B | Kev-27B, Clef (above) | our reranker fine-tune (below)
     "qwen3.5-9b-reranker"  # our reranker fine-tune of Qwen3.5-9B (recipe validation vs Prism-9B; reranker-27b-plan.md)
+    "qwen3.8-27b-reranker" # our reranker fine-tune of Qwen3.8-27B; checkpoint final (msmarco-dev, 4465814-4465822)
 )
 # Systems served by an external API: slurm/submit.sh runs them on the general (CPU) partition, no GPU.
 API_SYSTEMS=("jev-isolated" "jev-joint")

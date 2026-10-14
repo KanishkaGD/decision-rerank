@@ -12,6 +12,63 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-14 -- answer-question runs: one GPU OOM; 27B checkpoint selection out of host memory
+
+Of the 170 jobs 4458265-4458434, 167 completed, 2 were still running (4458394, 4458414) and one failed:
+clef-joint touche with `answer` (4458338), CUDA out of memory on an 80 GB GPU (long joint states on Touche; the
+s1rank run also needed an H200, 4409289). Resubmitted on an H200: 4465702 (`--gres gpu:h200:1`).
+
+All eight 27B checkpoint-selection jobs (4458435-4458442) were OOM-killed after 4-5 min while loading the model:
+host memory, not GPU (`rerank.sbatch` requests `--mem=48G`; Kev-27B and Clef load within it, the 27B base plus
+our LoRA adapter does not). Fix (owner's go, commit 6f19b0f): `rerank_mem_for` in `slurm/config.sh`, passed by
+`slurm/submit.sh` as `--mem`; 128G for `qwen3.8-27b-reranker`. Resubmitted from `dev-michael` at 6f19b0f:
+ckpt200-ckpt1400 4465814-4465820, `final` 4465822. CLAUDE.md's experiment rules now name the `answer` question
+(decision 20).
+
+## 2026-10-13 -- Tables 1 and 2 with the answer question; 27B checkpoint selection
+
+Owner's decision 20 (`docs/intent/paper-focus.md`): Tables 1 and 2 use Kanishka's question (`answer`) on all ten
+datasets. Before the switch, on DL19-23 the `answer` question lowered the mean nDCG@10 of every decision model but
+Kev-0.6B isolated (-0.2 Kev-27B joint to -2.2 Kev-9B joint; Kev-0.6B isolated +0.8); base models -2.9 (Qwen3-8B) to
++5.4 (Qwen3-0.6B). Submitted from `dev-michael` at 487451e (clean; the code is the same as on
+`feature/arxiv-cleanup`, which changes only docs and comments), 170 jobs 4458265-4458434:
+base models `*-prompted-answer` on the five BEIR sets (30); kev-0.6b/0.8b/4b-isolated, kev-4b/8b/9b/27b-joint,
+clef-flash-joint, clef-joint, jev-joint with `--phrasings answer` on BEIR (50); kev-0.6b/0.8b-joint,
+kev-8b/9b/27b-isolated, clef-flash-isolated, clef-isolated, jev-isolated, laya on all ten (90). Estimate from the
+s1rank runs: ~100 GPU-h, ~$6 for Jev.
+
+27B reranker fine-tune: checkpoint selection on msmarco-dev (200 queries), checkpoints 200-1400 as `ckpt<step>`
+(4458435-4458441) and `final` (4458442); rule fixed in advance (`docs/notes/reranker-27b-plan.md`, section 4).
+Our 9B fine-tune on the first 1,000 msmarco-dev queries for post-hoc scaling (4458443; it had only the 200-query
+selection runs).
+
+When done: switch `TABLE_PHRASINGS` in `src/cdm/paper_tables.py`, rerun significance tests and `cdm cutoff`,
+regenerate the tables; select the 27B checkpoint and submit its scoring and its 1,000-query dev run.
+
+## 2026-10-13 -- ECIR submitted; repository refocused on the arXiv paper
+
+The ECIR 2027 short paper was submitted on 2026-10-13 (owner); the submitted state is tagged `ecir2027-submission`
+(commit 487451e). The arXiv version is now the only task (owner): the ECIR paper plus what was cut for the 6-page
+limit and our 27B reranker fine-tune. Phase 2 of the old roadmap (probabilities as a control signal, fine-tuning for
+both, BRIGHT) is no longer planned. Straightening (`straighten-branch`):
+
+- `docs/intent/venue.md`: arXiv only (LNCS layout, no page limit, with authors); the ECIR and WSDM details removed.
+- `docs/intent/paper-focus.md`: the ECIR-specific decisions (13-20) consolidated into 13-19 for the arXiv paper;
+  space cuts (old 16, 18, 19) become "restore what was cut" (18). References in code and paper renumbered.
+- `docs/roadmap.md`: one "Done" paragraph and five arXiv steps replace Phases 1 and 2.
+- Removed: `paper/ecir2027-draft.pdf`, `docs/notes/paper-changes-answer-question.md` (change list for Kanishka,
+  outdated), `docs/notes/kanishka-notes-2026-10-11.md` (merged into the paper), `docs/notes/decision-rerank-status.md`
+  (status of 2026-10-11; the `project-report` skill regenerates it), `docs/notes/calibration-proposal.md` (the RQ2
+  brief; what was decided is in the roadmap and `paper-focus.md`).
+- Compacted: `docs/notes/paper-handoff.md` (arXiv handoff), `docs/notes/reranker-27b-plan.md` (recipe, selection
+  rule and the remaining 27B commands; the approval sections, compute estimates and timeline removed),
+  `docs/notes/paper-notes.md` (source register, sanity checks, model facts, caveats; stale findings and open
+  questions removed).
+- `paper/main.tex`: author block and disclosure of interests back (as `\TODO`s); the footnote's
+  `\TODO{anonymised link}` is now `\TODO{repository link}`.
+- CLAUDE.md, README, the `experiment-status` and `project-report` skills point to the arXiv paper; WSDM, Phase 1/2
+  and the removed notes added to the straightening's deprecated terms.
+
 ## 2026-10-13 -- New question on every calibration-table system: RQ2 reading changes
 
 All 50 remaining runs with the `answer` question done (Kev-9B joint 4451209-4451213; 4451247-4451291: Kev-0.6B/0.8B/4B

@@ -4,6 +4,8 @@ Research project: do System One decision models (Jev, Clef, Kev, Laya) make bett
 of the same backbone, and is their calibration of use? The plan of record is
 `docs/roadmap.md` (research questions, setup, order of work); the owner's decisions are in `docs/intent/`; what was
 tried, including failures, goes to `docs/experiment-log.md` (append-only); the paper lives in `paper/`.
+The ECIR 2027 short paper was submitted on 2026-10-13 (tag `ecir2027-submission`); the only task left is its arXiv
+version (`docs/notes/paper-handoff.md`).
 `docs/research-plan.md` is the owner's original proposal (read-only); where it differs, `docs/roadmap.md` holds.
 
 ## Working together
@@ -74,20 +76,23 @@ Two people (and their agents) work in this repository with ordinary git branches
 
 ## Experiment rules
 
-- One setup (`docs/roadmap.md`, "Setup"): BM25 top-100 candidates, S1Rank's question (`s1rank`) for all System One
-  models. Never tune or fit anything on test splits: post-hoc calibration (RQ2) is fitted on `msmarco-dev`, and a
-  different question would be chosen on `msmarco-dev` only and get a new phrasing id (never edit a frozen one).
+- One setup (`docs/roadmap.md`, "Setup"): BM25 top-100 candidates, Kanishka's question (`answer`) for all System One
+  models (`--phrasings answer`) and base models (`<name>-prompted-answer`) in both RQs (owner, 2026-10-13,
+  `docs/intent/paper-focus.md` 20). S1Rank's question (`s1rank`) stays as the comparison and for the sanity check
+  against S1Rank's published numbers; never delete its runs. `answer` was fixed before its runs but not chosen on
+  development data -- an owner's exception that the paper states. Otherwise, never tune or fit anything on test
+  splits: post-hoc calibration (RQ2) is fitted on `msmarco-dev`, and any further question would be chosen on
+  `msmarco-dev` only and get a new phrasing id (never edit a frozen one).
 - Don't recompute what is published on the same candidates: such cells come from `results/literature.csv`
   (`from_literature` in `slurm/config.sh`). Literature numbers are labelled as such in the paper.
 - System One modes are named in S1Rank's terms: `<model>-joint` / `<model>-isolated`, both pointwise. "Listwise" means
   a reranker that outputs a ranking (RankGPT, RankZephyr).
 - Store raw model outputs (score and probability per query and passage), not just rankings.
 - Fix seeds; record library, model and checkpoint versions (the manifests do this -- keep it that way).
-- Phase 2 of the roadmap (control signal, fine-tuning, BRIGHT) starts after the ECIR submission.
 
 ## Paper (`paper/`)
 
-- Target: ECIR 2027 short paper (Springer LNCS; page limit per the official call), deadline 2026-10-12 23:59 AoE (2026-10-13 13:59 CEST).
+- Target: the arXiv preprint (Springer LNCS layout, no page limit, with authors; `docs/intent/venue.md`).
   One file per section in `paper/sections/`; RQ wording only in `paper/rq-macros.tex`; build and check with `make` /
   `make check` in `paper/`.
 - Numbers in the paper come from `results/results.csv` and `results/literature.csv` via generated tables in

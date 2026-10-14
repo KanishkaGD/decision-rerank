@@ -1,7 +1,7 @@
 # Paper focus
 
 The owner's current decisions on what the paper claims; `docs/roadmap.md` turns them into the plan. Evidence:
-`docs/notes/paper-notes.md`, `docs/notes/decision-rerank-status.md`.
+`docs/notes/paper-notes.md` and `docs/experiment-log.md`.
 
 ## Narrative (decided 2026-10-09)
 
@@ -19,33 +19,22 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
    explained by the length of the joint state (tokens in one request) against the length the model was trained on,
    not by window splits.
 4. **RQ2: is calibration still of use?** Decision models give calibrated probabilities out of the box; reranker
-   fine-tunes do not. RQ2 asks whether that is worth anything once the reranker fine-tune ranks better. It is kept
-   as an open question and argued in a discussion, backed by three pieces of evidence (proposals in
-   `docs/notes/calibration-proposal.md`):
-   - ECE and Brier on the judged pairs of DL19-23 (as computed);
-   - **one fixed cutoff** (Part A): keep every passage with p >= 0.5, set precision/recall/F1 and the regret against
-     the per-dataset oracle cutoff -- from stored outputs, no new runs;
-   - **calibrated after the fact** (Part C): temperature and Platt scaling of the reranker fine-tunes, fitted on
-     `msmarco-dev` only, evaluated on DL19-23 and BEIR -- the answer to "just calibrate the reranker" (new runs on
-     msmarco-dev).
-
-   Query performance prediction (Kanishka's results) is named in the discussion as a further use; the study stays
-   Phase 2.
-5. **Our own 27B reranker fine-tune** (revised 2026-10-10; before: "not planned"). No published reranker fine-tune
-   of Qwen3.8-27B exists, so we train one with the recipe in `docs/notes/reranker-27b-plan.md` (LoRA on the
-   checkpoint Kev-27B and Clef start from; MS MARCO, 100k queries; ranking + yes/no loss; checkpoints chosen on
-   msmarco-dev only). First a 9B validation run with the same recipe (`qwen3.5-9b-reranker`) against Prism-9B. The
-   27B run (`qwen3.8-27b-reranker`) starts only if the validation succeeds, by the criterion fixed before its results:
-   average nDCG@10 over the ten datasets within 2 points of Prism-9B (>= 57.0) and above every 9B decision fine-tune
-   (Clef-Flash isolated, 54.7). Otherwise the paper keeps the claim at 0.6B-9B and says that no 27B reranker
-   fine-tune exists.
+   fine-tunes need not. RQ2 asks whether that is worth anything once the reranker fine-tune ranks better (wording
+   and answer: 15, 16). Evidence: ECE and Brier on the judged pairs of DL19-23; one fixed cutoff (keep every passage
+   with p >= 0.5; set F1 and the regret against the per-dataset oracle cutoff); the count test; the reranker
+   fine-tunes calibrated after the fact (temperature and Platt scaling fitted on `msmarco-dev` only). Query
+   performance prediction is named in the discussion as a further use, not studied.
+5. **Our own reranker fine-tunes** (2026-10-10). No published reranker fine-tune of Qwen3.8-27B exists, so we train
+   one with the recipe in `docs/notes/reranker-27b-plan.md` (LoRA on the checkpoint Kev-27B and Clef start from; MS
+   MARCO, 100k queries; ranking + yes/no loss; checkpoints chosen on msmarco-dev only). The 9B validation run with
+   the same recipe (`qwen3.5-9b-reranker`) passed the criterion fixed before its results (Avg within 2 points of
+   Prism-9B and above every 9B decision fine-tune), so the 27B run (`qwen3.8-27b-reranker`) was trained.
 6. **Triplets, full scale line.** On one backbone: the base model (zero-shot), its decision fine-tune and its
    reranker fine-tune -- Qwen3-0.6B, Qwen3-8B, Qwen3.5-0.8B, Qwen3.5-4B, Qwen3.5-9B and Qwen3.8-27B. Table in
    `docs/roadmap.md`, "Triplets".
 7. **Base row = the post-trained release** asked S1Rank's question zero-shot in its chat format (thinking off),
    P(yes) from the first answer token. Robustness check for Qwen3-8B: the pretrained -Base with a completion prompt.
-8. **Title: a question**, naming the setup and leaving the answer to the abstract. Working title: *Do System One
-   Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One Backbone*.
+8. **Title: a question**, leaving the answer to the abstract: *Do System One Models Make Better Rerankers?* (17).
 
 ## Tables and baselines (decided 2026-10-08, still current)
 
@@ -60,45 +49,37 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
     (A100-SXM-80GB) with an energy reading per run (NVML); the API model (Jev) gets cost and wall-clock time only.
 12. **Qwen3.7-Flash is not in the paper** (2026-10-09); its runs stay in `results/results.csv`.
 
-## ECIR short paper (decided 2026-10-12)
+## The arXiv paper (decided 2026-10-12/13; ECIR submission 2026-10-13)
 
-13. **Venue: ECIR 2027 short paper**, deadline 2026-10-12 23:59 AoE (2026-10-13 13:59 CEST) (`docs/intent/venue.md`); written with what exists.
-14. **RQ2 is a negative result too.** Overall answer to "are the hyped decision models of use to the IR community?":
-    no -- not as rerankers (RQ1), and not for their calibration either (RQ2), because reranker fine-tunes are
-    partly better calibrated (our Qwen3.5-9B reranker fine-tune: mean ECE 0.111 on DL19-23, below every decision
-    model; Prism-4B 0.218 vs Kev-4B 0.216; Qwen3-Reranker-8B 0.257 vs Kev-8B 0.243) and keep the better set at a
-    fixed cutoff.
-15. **Our 27B reranker fine-tune stays out of the ECIR paper** (supersedes 5 for this paper). The run continues and
-    goes into the arXiv version at the end of the week, next to the 9B fine-tune. **Our 9B fine-tune (`qwen3.5-9b-reranker`) is in**: a second reranker fine-tune of Qwen3.5-9B next to
-    Prism-9B, trained by us without any decision data (Avg 59.4 vs Prism 59.0, Clef-Flash 54.7).
-16. **Tables of the ECIR paper** (decided 2026-10-12, for the 6-page limit): (1) the full-width triplet table with
-    every dataset and our 9B fine-tune as `Ours-9B` (`triplets.tex`); (2) one RQ2 table merging ECE (native,
-    temperature, Platt), set F1 at 0.5 (native, Platt), regret and set size, one row per triplet system (decision
-    fine-tunes in their better-calibrated mode) plus Jev, monoT5, bge and the Set-Encoder (`calibration.tex`);
-    (3) a small context table with the DL/BEIR/Avg/ZS means of the systems outside the triplets
-    (`context-short.tex`). The full context, cutoff and post-hoc tables stay generated for the arXiv version.
-17. **RQ2 wording** (decided 2026-10-12): "Are decision models at least better calibrated than reranker fine-tunes of
-    the same backbone?" -- narrower than before: about ECE and the fixed cutoff, not about every use of the
-    probabilities.
-16. **The ECIR paper is written from Michael's draft in `paper/`** (decided 2026-10-12); Kanishka's draft
-    (`docs/paper/short/` in his checkout) is a reference.
-18. **Wording and layout of the ECIR draft** (decided 2026-10-12): title reduced to the question, *Do System One
-    Models Make Better Rerankers?*; "backbone" replaced by "foundation model" (also in the RQs); plain language without
-    dash asides; the triplet table leaves out DL20 and DL22 for space (they still count in Avg; all results in the
-    repository); best value bold and second best underlined in Tables 1 and 2; no limitations paragraph, the
-    conclusion gives a clear negative answer. Framing: Kev and Clef are open alternatives with Jev's kind of output,
-    not reproductions of Jev's training (RLCD is unpublished; Kev uses a cross-entropy fine-tune), so "decision
-    fine-tuning" means fine-tuning an open model to give Jev's kind of output.
-19. **Table design** (decided 2026-10-12): rows of Tables 1-3 shaded by training (base grey, decision fine-tune red,
-    reranker fine-tune blue; Table 1 without the Training column), our fine-tune set in italics (*Ours-9B*), Avg/ZS
-    grouped under "Mean". Table 3 reduced to ECE and Brier (ECE: calibration only; Brier: calibration plus
-    separation); the fixed cutoff, count test and post-hoc scaling stay in the text without numbers, the full table
-    (`calibration-full.tex`) is kept for the arXiv version.
-20. **RQ2 after the runs with the second question** (decided 2026-10-13; supersedes 14 and, for the count test, 19).
-    With Kanishka's question ("Does document … answer the query?", phrasing `answer`, DL19-23) decision models are
-    better calibrated than the published reranker fine-tunes from 4B on, so "not better calibrated" no longer holds.
-    The paper's RQ2 answer is now: their calibration depends on the wording of the question (a lack of robustness;
-    the base models move as much), it does not make them select better passages at a fixed cutoff, the count test
-    shows no benefit specific to decision fine-tuning (S1Rank's question: no better than guessing the median count;
-    second question: the untuned 27B counts best, Ours-9B beats Clef-Flash), and our reranker fine-tune matches the
-    best decision model of its size. The count error is back in Table 3, for both questions.
+13. **Target: the arXiv preprint** (`docs/intent/venue.md`). It starts from the submitted ECIR paper (tag
+    `ecir2027-submission`) and adds what was cut for space and our 27B reranker fine-tune.
+14. **Our reranker fine-tunes are in**: `qwen3.5-9b-reranker` (*Ours-9B*, a second reranker fine-tune of Qwen3.5-9B
+    next to Prism-9B, trained without any decision data; Avg 59.4 vs Prism 59.0, Clef-Flash 54.7) and
+    `qwen3.8-27b-reranker` (trained, job 4429626; it fills the empty reranker cell of the 27B triplet).
+15. **RQ2 wording**: "Are decision models at least better calibrated than reranker fine-tunes of the same foundation
+    model?" -- about ECE, Brier, the fixed cutoff and the count test, not every use of the probabilities.
+16. **RQ2 answer** (2026-10-13). Two questions are run on TREC DL 2019-2023: S1Rank's (`s1rank`) and Kanishka's
+    ("Does document ... answer the query?", phrasing `answer`; fixed before the runs but not chosen on development
+    data -- the owner's override of the CLAUDE.md rule, stated in the paper). The calibration of decision models
+    depends on the wording of the question (the base models move as much); it does not make them select better
+    passages at a fixed cutoff; the count test shows no benefit specific to decision fine-tuning; our reranker
+    fine-tune matches the best decision model of its size. Both answers are mostly negative.
+17. **Framing and wording**: title *Do System One Models Make Better Rerankers?*; "foundation model", not "backbone"
+    (also in the RQs); plain language without dash asides. Kev and Clef are open alternatives with Jev's kind of
+    output, not reproductions of Jev's training (RLCD is unpublished), so "decision fine-tuning" means fine-tuning an
+    open model to give Jev's kind of output.
+18. **Tables**: rows shaded by training (base grey, decision fine-tune red, reranker fine-tune blue), our
+    fine-tunes in italics, Avg/ZS grouped under "Mean", best bold and second underlined. The material cut for ECIR
+    comes back: the full calibration table (`calibration-full.tex`: native, temperature and Platt ECE, F1 at the
+    fixed cutoff, regret, set size; monoT5, bge and the Set-Encoder), the cutoff and post-hoc tables, the full
+    context table, DL20 and DL22 in the triplet table, regret and post-hoc scaling in the setup, a limitations
+    paragraph.
+19. **Sources**: the paper is written in `paper/` (Michael's draft, decided 2026-10-12); Kanishka revises on Overleaf,
+    and his edits are merged into `paper/` by hand.
+20. **One question for the whole arXiv paper** (decided 2026-10-13; extends the override in 16 from RQ2 to RQ1).
+    Tables 1 and 2 (triplets and context) are recomputed with Kanishka's question (`answer`) on all ten datasets: every
+    decision fine-tune in both modes, the base models (`<name>-prompted-answer`), Jev joint and isolated, Laya.
+    Reranker fine-tunes and cross-encoders ask no question and keep their runs. S1Rank's question stays in the
+    repository and as a comparison (on DL19-23 it gives slightly higher nDCG@10 for most decision models, -0.2 to
+    -2.2 points with `answer`); the sanity check of `jev-joint` against S1Rank's published numbers uses S1Rank's
+    question. The paper states that the question was fixed before the runs but not chosen on development data.

@@ -1,7 +1,7 @@
 % =====================================================================================
 % Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One Foundation Model
-% Working title (docs/roadmap.md). Target: ECIR 2027 short paper (Springer LNCS, llncs v2.24);
-% deadline 2026-10-12 23:59 AoE (2026-10-13 13:59 CEST) (docs/intent/venue.md).
+% Target: the arXiv preprint (Springer LNCS layout, llncs v2.24; no page limit; docs/intent/venue.md). The ECIR 2027
+% short paper as submitted is tagged ecir2027-submission.
 %
 % Build:  make          (or: latexmk)       Checks: make check
 % Layout: one file per section in sections/, generated tables in tables/ (from
@@ -58,10 +58,9 @@
 \title{Do System One Models Make Better Rerankers?}
 \titlerunning{Do System One Models Make Better Rerankers?}
 
-% Anonymous for review (ECIR 2027: double-anonymous); authors and affiliations go into the camera-ready.
-\author{Anonymous}
-\authorrunning{Anonymous}
-\institute{Anonymous}
+\author{\TODO{authors}}
+\authorrunning{\TODO{authors}}
+\institute{\TODO{affiliations}}
 
 \maketitle
 
@@ -83,12 +82,12 @@ threshold. Our own reranker fine-tune is as well calibrated as the best decision
 \input{sections/05_calibration}
 \input{sections/06_conclusion}
 
-% Acknowledgements and the disclosure of interests (mandatory in LNCS since llncs 2.23) are left out of the
-% anonymous submission for space (ECIR: double-anonymous); restore them for the camera-ready:
-% \begin{credits}
-% \subsubsection{\discintname}
-% The authors have no competing interests to declare that are relevant to the content of this article.
-% \end{credits}
+% Disclosure of interests (mandatory in LNCS since llncs 2.23); acknowledgements go here too.
+\begin{credits}
+\subsubsection{\discintname}
+The authors have no competing interests to declare that are relevant to the content of this article.
+\TODO{acknowledgements, if any; confirm the disclosure}
+\end{credits}
 
 \bibliographystyle{splncs04}
 \bibliography{sources}

@@ -138,6 +138,8 @@ for dataset in "${DATASET_LIST[@]}"; do
             else
                 RESOURCES=(--gres="${GPU_GRES}" --constraint="$(gpu_constraint_for "${SYSTEM}")")
             fi
+            MEM="$(rerank_mem_for "${SYSTEM}")"
+            [ -n "${MEM}" ] && RESOURCES+=(--mem="${MEM}")
             submit "${COMMON[@]}" "${RESOURCES[@]}" \
                 --time="${TIME_OVERRIDE:-$(time_for rerank "${dataset}" "${SYSTEM}")}" \
                 slurm/rerank.sbatch "${SYSTEM}" "${dataset}" "${PASSTHROUGH[@]}"

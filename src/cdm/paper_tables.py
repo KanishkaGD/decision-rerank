@@ -7,7 +7,7 @@ no number in the paper is typed by hand (CLAUDE.md, "Paper"). Standard library o
 Six tables: the triplets (RQ1's main table: per backbone the base model, its decision fine-tunes and its reranker
 fine-tune; triplets.tex), the context table (every other system on the same candidates; context.tex), the fixed
 cutoff (RQ2, Part A: `cdm cutoff` rows of results.csv; cutoff.tex) and the rerankers calibrated after the fact (RQ2,
-Part C: `cdm posthoc` rows; posthoc.tex); for the ECIR short paper, RQ2 in one table (calibration.tex) and
+Part C: `cdm posthoc` rows; posthoc.tex); for the paper's main text, RQ2 in one table (calibration.tex) and
 the context as means only (context-short.tex).
 Every reranker is read on its dataset's default candidates (BM25 top-100, docs/roadmap.md "Setup"); cells taken from
 the literature (role `baseline` in results/literature.csv) win over computed ones and are marked with a dagger.
@@ -93,7 +93,7 @@ TRIPLETS: List[Tuple[str, List[Tuple[str, str, str, str]]]] = [
             ("clef-flash-joint", "Clef-Flash", "decision", "joint"),
             ("clef-flash-isolated", "Clef-Flash", "decision", "isolated"),
             ("prism-9b", "Prism-9B", "reranker", ""),
-            # Our reranker fine-tune of the same checkpoint (docs/notes/reranker-27b-plan.md; paper-focus.md 15).
+            # Our reranker fine-tune of the same checkpoint (docs/notes/reranker-27b-plan.md; paper-focus.md 14).
             ("qwen3.5-9b-reranker", "\\textit{Ours-9B}", "reranker", ""),
         ],
     ),
@@ -221,7 +221,7 @@ def _header(lines: List[str], first: str, extra: List[str], shown: Optional[List
     ]
 
 
-# The ECIR paper's triplet table leaves out DL20 and DL22 for space (owner, 2026-10-12); they still count in Avg.
+# The triplet table leaves out DL20 and DL22 for space (owner, 2026-10-12, for ECIR); they still count in Avg.
 TRIPLET_HIDDEN = ("dl20", "dl22")
 
 
@@ -638,7 +638,7 @@ def posthoc_table(rows: PosthocRows, cutoff: CutoffRows, ece: Dict[Tuple[str, st
     return "\n".join(lines)
 
 
-# The ECIR short paper's RQ2 table (docs/intent/paper-focus.md 16): per backbone the base model, each decision
+# The compact RQ2 table (docs/intent/paper-focus.md 18): per backbone the base model, each decision
 # fine-tune in its better-calibrated mode and the reranker fine-tunes, then the other systems; calibration (ECE, also
 # after temperature and Platt scaling for the rerankers) and the fixed cutoff in one table.
 CALIBRATION_GROUPS: List[Tuple[str, List[Tuple[List[str], str, str]]]] = [
@@ -660,13 +660,13 @@ CALIBRATION_GROUPS: List[Tuple[str, List[Tuple[List[str], str, str]]]] = [
 ]
 
 
-# RQ2 with Kanishka's question ("answer", DL19-23 only; docs/notes/paper-changes-answer-question.md): the ECE' column
+# RQ2 with Kanishka's question ("answer", DL19-23 only; docs/experiment-log.md, 2026-10-13): the ECE' column
 # reads the same system as the row's ECE (decision fine-tunes in the same mode, with phrasing "answer"; base models via
 # their "<name>-answer" system). Rerankers ask no question: their ECE is repeated in brackets.
 
 
 # Groups in the left panel of the calibration table; the rest goes right. Chosen so both panels have the same height
-# (page budget of the ECIR short paper).
+# (page budget of the ECIR version).
 CALIBRATION_LEFT_PANEL = {"Qwen3-0.6B", "Qwen3-8B", "Qwen3.5-0.8B", "Other systems"}
 
 
@@ -678,7 +678,7 @@ def calibration_ece_brier_table(
     count_answer: Optional[Dict[Tuple[str, str], float]] = None,
     count_reference: Optional[float] = None,
 ) -> str:
-    """RQ2 for the short paper: mean ECE, Brier score and count error over DL 2019-2023, decision fine-tunes in their
+    """RQ2 in one compact table: mean ECE, Brier score and count error over DL 2019-2023, decision fine-tunes in their
     better-calibrated mode (lower ECE); per group and column the lowest value in bold and the second lowest
     underlined. "Answers?": ECE and count error with Kanishka's question for the same system (rerankers ask no
     question: their values repeated in brackets)."""
@@ -814,7 +814,7 @@ def calibration_table(cutoff: CutoffRows, posthoc: PosthocRows, ece: Dict[Tuple[
         "\\cmidrule(lr){2-4}\\cmidrule(lr){5-6}",
         "System & N & T & P & N & P & Regret & $|S|$ & Count \\\\",
     ]
-    # Two panels side by side (CALIBRATION_LEFT_PANEL, then the rest), to fit the short paper's page limit.
+    # Two panels side by side (CALIBRATION_LEFT_PANEL, then the rest), to fit a short paper's page limit.
     panels: List[List[str]] = [list(header), list(header)]
     for index, (heading, members) in enumerate(CALIBRATION_GROUPS):
         panel = panels[0 if heading in CALIBRATION_LEFT_PANEL else 1]
@@ -847,7 +847,7 @@ def calibration_table(cutoff: CutoffRows, posthoc: PosthocRows, ece: Dict[Tuple[
     return "\n".join(lines)
 
 
-# The ECIR short paper's context table (docs/intent/paper-focus.md 16): systems outside the triplets, means only.
+# The compact context table (docs/intent/paper-focus.md 18): systems outside the triplets, means only.
 CONTEXT_SHORT: List[Row] = [
     ("bm25", "BM25", ""),
     ("rankgpt-4", "RankGPT-4", "listwise"),

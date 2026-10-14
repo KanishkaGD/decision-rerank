@@ -52,21 +52,21 @@ through `slurm/exec.sh` or `slurm/submit.sh` (CLAUDE.md, "Where things run").
 To say what comes next, read `docs/roadmap.md` -- research questions, the fixed setup and the order of work -- and,
 for recent events, the newest entries of `docs/experiment-log.md`. Then apply the roadmap's rules:
 
-- **Order**: Phase 1 (paper: candidate sets, sanity checks, grid runs, analysis, writing) before Phase 2 (control
-  signal, fine-tuning, BRIGHT), which starts after the WSDM submission.
+- **Order**: the grid and the analyses are done; what remains is the arXiv paper (`docs/roadmap.md`, "Order of
+  work"), mainly the 27B reranker fine-tune (checkpoint selection on msmarco-dev, then scoring).
 - **The grid is the plan.** `slurm/config.sh` SYSTEMS x DATASETS on the BM25 top-100 is everything the paper needs;
   cells marked `lit` come from `results/literature.csv` and must not be recomputed. The `next` section prints the
   submit commands for the missing cells (first stage first, reranks with `--after` its job ids).
 - **Sanity checks before trusting a dataset**: our BM25 first stage must equal Pyserini's 2CR score
   (`results/literature.csv`, role `reference`); monoT5-3B on DL19/20 within about one point of 71.83 / 68.89;
   `jev-joint` close to S1Rank's numbers. A miss means the candidates differ -- investigate before running more.
-- **Fixed question**: System One models run with `--phrasings s1rank` only.
+- **Fixed question**: System One models run with `--phrasings answer` (base models: `<name>-prompted-answer`); `s1rank` runs are kept as the comparison (`docs/intent/paper-focus.md` 20).
 - **RQ1 (triplets)** needs, per backbone, the base model, the decision fine-tune in both modes (joint and isolated)
   and the reranker fine-tune on every dataset; the context systems (Jev, Clef, Laya, trained and listwise rerankers)
   complete the context table. **RQ2** (calibration) adds the reranker fine-tunes on a msmarco-dev subset for
   post-hoc scaling (`docs/roadmap.md`, step 7).
 - **Kanishka's numbers** (branch `master`) rerank the 1000-candidate official DL19/20 pools, not our candidates:
-  not directly comparable; useful as context and for Phase 2 (his QPP work).
+  not directly comparable; useful as context (his QPP work).
 - **Cost**: Jev (TypeSafe, or OpenRouter) costs money -- about $0.005 (joint) and $0.017 (isolated)
   per 1k query-passage pairs for Jev, measured on DL21-23; estimate before proposing and let the user decide.
   A missing API key in `.env` means the run can't start.

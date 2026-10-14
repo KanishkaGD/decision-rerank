@@ -4,10 +4,10 @@ The plan of record: what the paper claims, how it is tested, and the order of th
 `docs/intent/`, what happened along the way in `docs/experiment-log.md`. Keep this file current -- it describes the
 plan as it is, not how it got here (the `straighten-branch` skill does that sweep).
 
-**Working title:** *Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One Backbone*
-(a question; `docs/intent/paper-focus.md`).
-**Venue:** ECIR 2027 short paper (Springer LNCS), deadline **2026-10-12, 23:59 AoE** (2026-10-13, 13:59 CEST) (`docs/intent/venue.md`;
-decided 2026-10-12, replaces WSDM). Writing handoff: `docs/notes/paper-handoff.md`.
+**Title:** *Do System One Models Make Better Rerankers?* (`docs/intent/paper-focus.md`).
+**Target:** the arXiv preprint, end of the week of 2026-10-12 (`docs/intent/venue.md`): the submitted ECIR 2027 short
+paper (tag `ecir2027-submission`) plus what was cut for space and our 27B reranker fine-tune. Handoff for the next
+session: `docs/notes/paper-handoff.md`.
 
 ## Contribution
 
@@ -20,14 +20,15 @@ fine-tunes lack, calibrated probabilities, is still of use.
 
 **Headline** (`docs/intent/paper-focus.md`): a negative result -- reranker fine-tuning beats decision fine-tuning at
 every size where both exist (0.6B-9B). Decision fine-tuning stays within a few points of the zero-shot base model at
-every size (-3.6 to +3.7), reranker fine-tuning adds 5-32 points; at 27B no reranker fine-tune exists.
+every size (-3.6 to +3.7), reranker fine-tuning adds 5-32 points. At 27B no published reranker fine-tune exists;
+ours (`qwen3.8-27b-reranker`) fills that cell.
 
 ## Research questions (paper)
 
 | RQ | Question | Evidence |
 | --- | --- | --- |
 | RQ1 | On the same foundation model, does decision fine-tuning make a better reranker than reranker fine-tuning or no fine-tuning? | nDCG@10 of the triplets on all ten datasets (average and zero-shot subset), decision fine-tunes joint and isolated with paired tests; joint vs. isolated against the state length the model was trained on; the other systems as context |
-| RQ2 | Are decision models at least better calibrated than reranker fine-tunes of the same foundation model? | ECE on DL19-23 (incl. our calibrated 9B reranker fine-tune); one fixed cutoff (p >= 0.5): set F1 and regret against the oracle cutoff; reranker fine-tunes calibrated after the fact on msmarco-dev; a discussion (`docs/notes/calibration-proposal.md`) |
+| RQ2 | Are decision models at least better calibrated than reranker fine-tunes of the same foundation model? | ECE and Brier on DL19-23 with two questions (S1Rank's and `answer`), incl. our reranker fine-tunes; one fixed cutoff (p >= 0.5): set F1 and regret against the oracle cutoff; the count test; reranker fine-tunes calibrated after the fact on msmarco-dev |
 
 Terminology (S1Rank's): every System One run is **pointwise** -- one Noul probability per candidate, ranked by it.
 **Joint** = all candidates of a query in one state; **isolated** = one candidate per request. "Listwise" is reserved
@@ -70,20 +71,23 @@ and isolated) and reranker fine-tuning (Qwen3-Reranker, Prism). All computed on 
 | Qwen3-8B | `qwen3-8b-prompted`; `qwen3-8b-base-prompted` (-Base, completion prompt: robustness check) | Kev-8B (on -Base) | Qwen3-Reranker-8B (on -Base) |
 | Qwen3.5-0.8B | `qwen3.5-0.8b-prompted` | Kev-0.8B (on -Base) | Prism-0.8B (checkpoint not stated) |
 | Qwen3.5-4B | `qwen3.5-4b-prompted` | Kev-4B (on -Base) | Prism-4B |
-| Qwen3.5-9B | `qwen3.5-9b-prompted` | Kev-9B (on -Base), Clef-Flash | Prism-9B |
-| Qwen3.8-27B | `qwen3.8-27b-prompted` | Kev-27B, Clef (on the post-trained release) | -- (none exists) |
+| Qwen3.5-9B | `qwen3.5-9b-prompted` | Kev-9B (on -Base), Clef-Flash | Prism-9B; ours: `qwen3.5-9b-reranker` |
+| Qwen3.8-27B | `qwen3.8-27b-prompted` | Kev-27B, Clef (on the post-trained release) | ours: `qwen3.8-27b-reranker` (none published) |
 
 Training data differs between the fine-tunes: Qwen3-Reranker and Prism are trained on MS MARCO among much else
 (in-domain for DL19-23); Kev's public sources contain no MS MARCO or BEIR. The paper reports the BEIR collections
 without training splits (TREC-COVID, Touché, DBPedia) as the zero-shot subset next to the averages.
 
-**Question.** S1Rank's Noul question (phrasing `s1rank`), fixed for all System One models; no phrasing search.
+**Question.** Kanishka's question (phrasing `answer`: ``Does document `{doc}` answer the `query`?``) for all
+System One and base models in both RQs (`docs/intent/paper-focus.md` 16, 20); fixed before the runs, not chosen on
+development data (stated in the paper). S1Rank's question (`s1rank`) stays as the comparison and for the sanity check
+against S1Rank's published numbers.
 
 **Metrics.** nDCG@10 everywhere; ECE (15 bins) and Brier on judged pairs of DL19-23, relevant from grade 2; API
 cost. Latency and energy from one efficiency run: every local model on DL19/20 on one A100-SXM-80GB, energy from
 NVML per run; API models get cost and wall-clock time only.
 
-**RQ2 evidence** (`docs/notes/calibration-proposal.md`, Parts A and C). *One fixed cutoff:* per query keep the
+**RQ2 evidence.** *One fixed cutoff:* per query keep the
 candidates with p >= 0.5 (0.3 and 0.7 as a sensitivity check); set precision, recall and F1 against the judgments,
 mean set size, share of empty sets; regret = F1 of the per-dataset oracle cutoff minus F1 at 0.5; baselines fixed
 top-k (5, 10, 20) and the reranker fine-tunes' native probabilities. DL19-23 only (judged non-relevant passages).
@@ -91,7 +95,9 @@ From stored outputs, no new runs. *Calibrated after the fact:* temperature and P
 fine-tune's logit, fitted on the first 1,000 msmarco-dev queries x BM25 top-100 with every candidate labelled
 (msmarco-dev judges only relevant passages, so unjudged = non-relevant), evaluated with ECE, Brier and the cutoff F1
 on DL19-23 and with ECE on BEIR (unjudged = non-relevant, as a shift check). Systems:
-Qwen3-Reranker-0.6B/8B, Prism-0.8B/4B/9B, monoT5-3B, bge-reranker-v2-m3, Set-Encoder-large.
+Qwen3-Reranker-0.6B/8B, Prism-0.8B/4B/9B, monoT5-3B, bge-reranker-v2-m3, Set-Encoder-large. *Count test:* per query
+the sum of the probabilities over the judged passages against the number of relevant ones (mean absolute error;
+baseline: always the median count).
 
 **Main table.** The triplets: per backbone the base model, the decision fine-tunes (joint and isolated) and the
 reranker fine-tune; average over ten datasets and over the zero-shot subset. **Context table:** the other systems on
@@ -107,37 +113,25 @@ runs); the paper says so.
 
 ## Order of work
 
-### Phase 1 -- the paper (ECIR short paper, until 2026-10-12 23:59 AoE (2026-10-13 13:59 CEST))
+**Done** (details in `docs/experiment-log.md`): candidate sets and sanity checks; the full grid and the triplet runs
+(DL19-23 and BEIR); RankZephyr and the efficiency run; the RQ1 and RQ2 analyses (paired tests, cutoff, post-hoc
+scaling, count test, the `answer` question); our 9B reranker fine-tune (scored, in the paper) and the training of the
+27B one (job 4429626, all checkpoints in `checkpoints/qwen3.8-27b-reranker/`); the ECIR short paper, submitted
+2026-10-13 (tag `ecir2027-submission`).
 
-1. **Candidate sets** for all ten datasets; check BM25 against 2CR. *DL21-23 done (exact match).*
-2. **Sanity checks**: monoT5-3B on DL19/20, `jev-joint` against S1Rank.
-3. **Grid runs** -- the cells of `slurm/config.sh` (`experiment-status` skill, section `next`). *Done 2026-10-08
-   (146 computed, 14 from the literature).*
-4. **RankZephyr and the efficiency run** (`docs/intent/paper-focus.md`): RankZephyr-7B on DL19-23 with rank_llm's
-   prompt (`src/cdm/rerankers/listwise.py`; DL19/20 against the published 74.2 / 70.2); GPU energy from NVML in
-   results.csv (`src/cdm/energy.py`); all local models on DL19/20 on one A100-SXM-80GB. *Done 2026-10-09
-   (RankZephyr DL19/20 74.3 / 70.0); reruns with the causal-conv1d kernel done 2026-10-10.*
-5. **Triplet runs** (`slurm/config.sh`, the triplet systems): base models, Kev-0.6B/0.8B/8B/9B, Qwen3-Reranker-0.6B,
-   Prism-0.8B/4B/9B on all ten datasets. *325 of 350 cells done 2026-10-09.*
-6. **Analysis for RQ1**: triplet table and context table generated from `results/results.csv` and
-   `results/literature.csv` into `paper/tables/` (`src/cdm/paper_tables.py`); paired tests; joint gain against the
-   state length per model (tokens per joint request vs. the length in the model card).
-7. **RQ2**: the cutoff analysis from stored outputs (Part A: `cdm cutoff`, `paper/tables/cutoff.tex`; *done
-   2026-10-09*); the trained rerankers on the first 1,000 msmarco-dev queries (`bm25-d100-max1000`) and their
-   post-hoc scaling (Part C: `cdm posthoc`, `paper/tables/posthoc.tex`; *first fit done 2026-10-09, fit data open*);
-   calibration table; the discussion.
-8. **Our reranker fine-tunes** (`docs/notes/reranker-27b-plan.md`): the 9B run passed and is in the paper
-   (`qwen3.5-9b-reranker`, *done 2026-10-11*); the 27B run (submitted 2026-10-11) stays out of the ECIR paper
-   (`docs/intent/paper-focus.md` 15).
-9. **Related-work check** for System One reranking papers newer than Oct 2026; write (LNCS); submit to ECIR.
+**The arXiv paper** (end of the week of 2026-10-12):
 
-### Phase 2 -- after the submission (arXiv extension, follow-up paper)
-
-10. **Probabilities as a control signal**: query performance prediction (Kanishka's QPP results on DL19/20 are the
-   starting point), "no relevant document" detection, adaptive rerank depth. Uses the Phase 1 outputs; little new
-   compute.
-11. **Fine-tuning for both**: reranker fine-tuning with a calibration term in the loss, or decision fine-tuning
-    followed by reranker fine-tuning, on MS MARCO (`msmarco-dev` for selection) -- can one model rank like a
-    reranker fine-tune and stay calibrated like a decision model? Backbone chosen from the Phase 1 triplets.
-12. **BRIGHT**: where fast System One judges fail on reasoning-intensive queries, against an LLM reranker, with an
-   error analysis of 20 failure cases.
+1. **27B reranker fine-tune**: checkpoint selection on msmarco-dev (`docs/notes/reranker-27b-plan.md`, section 4),
+   then scoring on all ten datasets, DL19-23 calibration rows and post-hoc scaling (msmarco-dev fit); add it to
+   `SYSTEMS` in `slurm/config.sh` and to the triplet and calibration tables (`src/cdm/paper_tables.py`).
+2. **Restore what was cut for ECIR** (`docs/intent/paper-focus.md` 18): DL20/DL22 in the triplet table, the full
+   calibration table, cutoff and post-hoc tables, the full context table, regret and post-hoc scaling in the setup,
+   the longer related work, a limitations paragraph.
+3. **Tables 1 and 2 with `answer`** (`docs/intent/paper-focus.md` 20): 170 reranking runs (decision fine-tunes in
+   both modes, base models, Jev, Laya on all ten datasets, where not yet run); then switch `TABLE_PHRASINGS` in
+   `src/cdm/paper_tables.py`, rerun the significance tests and `cdm cutoff`, regenerate the tables, and report
+   S1Rank's question as a comparison.
+4. **Text**: the 27B result in abstract, introduction, Sect. 4-5 and conclusion (does the headline extend to 27B?).
+5. **De-anonymise**: authors and affiliations, the disclosure of interests, the repository link (code release on
+   branch `feature/release-20261012`).
+6. **Merge Kanishka's Overleaf edits** into `paper/`; `make check`; final read; post to arXiv.
