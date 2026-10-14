@@ -14,7 +14,7 @@ Open questions or follow-ups.
 
 ## 2026-10-14 -- answer-question runs: one GPU OOM; 27B checkpoint selection out of host memory
 
-Of the 170 jobs 4458265-4458434, 169 completed (the last two of them still running at the time of writing). Failed:
+Of the 170 jobs 4458265-4458434, 167 completed, 2 were still running (4458394, 4458414) and one failed:
 clef-joint touche with `answer` (4458338), CUDA out of memory on an 80 GB GPU (long joint states on Touche; the
 s1rank run also needed an H200, 4409289). Resubmitted on an H200: 4465702 (`--gres gpu:h200:1`).
 
