@@ -92,9 +92,10 @@ model beats the median count guess by more than a fraction of a passage (best: C
 
 ### Cost and efficiency (not in the paper)
 
-Jev API cost for the whole grid: $3.16 (joint), $6.23 (isolated). On one A100 (DL19, p50 s/query): decision
-fine-tunes are about 4–5× slower than the reranker fine-tune of the same backbone (Kev-9B joint 16.7 s vs Prism-9B
-4.3 s; Kev-4B joint 10.1 s vs Prism-4B 2.6 s; Kev-8B joint 13.7 s vs Qwen3-Reranker-8B 2.9 s). A possible fourth point if we want it: slower *and* worse.
+Jev API cost for the whole grid: $3.16 (joint), $6.23 (isolated). On one A100 (DL19, p50 s/query), Kev is about
+4–5× slower than the reranker fine-tune of the same backbone (Kev-9B joint 16.7 s vs Prism-9B 4.3 s; Kev-4B joint
+10.1 s vs Prism-4B 2.6 s; Kev-8B joint 13.7 s vs Qwen3-Reranker-8B 2.9 s), but Clef-Flash joint is faster than
+Prism-9B (2.1 s). So the slowness is Kev's inference path, not decision models as such: not a punchline.
 
 ### Sanity checks
 
@@ -124,7 +125,7 @@ fine-tunes are about 4–5× slower than the reranker fine-tune of the same back
 ## Open questions for the meeting
 
 1. Title: *System One Models Are Not Better Rerankers* — happy with the claim at 27B being a tie?
-2. Add efficiency as a fourth punchline ("slower and worse") with a small table, or leave it out?
+2. Efficiency stays out of the paper (Kev is slow, Clef is not)? Or a small appendix table?
 3. Terminology: the ECIR text uses "backbone"; decision 17 asked for "foundation model". Keep "backbone"?
 4. Do we state the 27B calibration result (Kev-27B better calibrated than ours) in the abstract, or only in Sect. 6
    as now?
