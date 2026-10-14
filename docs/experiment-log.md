@@ -12,6 +12,18 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-14 -- 27B reranker scored: ties Kev-27B, no clear win at 27B
+
+`qwen3.8-27b-reranker` (checkpoint final) on nine of ten datasets (4469257-4469266); DL22 (4469260) hung after
+loading the model on kuat2 and hit its 1:30 limit (the others took 8-68 min), resubmitted as 4470335. nDCG@10 x 100
+(DL19, DL20, DL21, DL23, TREC-COVID, NFCorpus, SciFact, Touche, DBPedia): 74.6 69.6 69.0 48.3 83.0 38.0 79.2 34.6
+47.1, mean 60.4 over these nine. Kev-27B joint with `answer` on the same nine: 61.1; Ours-9B: 60.2. Zero-shot subset
+(TREC-COVID, Touche, DBPedia): 54.9 vs Kev-27B joint 55.0. So at 27B our reranker fine-tune does **not** beat the
+decision fine-tune (a tie within a point, Kev-27B slightly ahead on average) and gains little over our 9B one; the
+headline "reranker fine-tuning wins at every size" holds for 0.6B-9B only. Paired tests pending. ECE on DL19-23
+(four sets so far): .124 (Kev-27B joint .076, Ours-9B .111). msmarco-dev, first 1,000 queries (4469267): MRR@10 .385
+(Ours-9B .374).
+
 ## 2026-10-14 -- 27B reranker: checkpoint final selected; scoring submitted; answer grid complete
 
 Checkpoint selection on the first 200 msmarco-dev queries (4465814-4465822, 128G host memory, ~20 min each), MRR@10:
