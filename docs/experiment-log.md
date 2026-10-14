@@ -12,6 +12,30 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-14 -- arXiv paper in ACM layout; tables with the answer question; Ours-27B complete
+
+Owner's decisions (paper-focus.md 21, venue.md): two-column ACM layout (acmart sigconf/nonacm), the `answer`
+question for every result, S1Rank's question only in a question ablation, the ECIR narrative, a teaser figure.
+Branch `feature/arxiv-acm`.
+
+Code (36b102b): `cdm.paper_tables` reads every table for one question (`QUESTION = "answer"`; base models
+`<name>-prompted-answer` are filed under `<name>-prompted`); new `question-ablation.tex`; the main RQ2 table
+(`calibration.tex`) now has Brier and the other systems, the ECIR two-question table is gone; DL20/DL22 back in
+Table 1; `qwen3.8-27b-reranker` (Ours-27B) in the triplets. `cdm significance --phrasing` (default `answer`): it used
+to key rows by (system, dataset) only, so with both questions stored it would have mixed them; rows of other
+questions than S1Rank's get the variant `vs-<other>@<phrasing>`, so the S1Rank rows are kept.
+
+Analyses (compute node, srun with CDM_ROOT = main checkout and the branch's code snapshot): `cdm cutoff` (all
+systems, both questions), `cdm posthoc --systems qwen3.5-9b-reranker,qwen3.8-27b-reranker`, `cdm significance
+--phrasing answer`; after DL22 of the 27B fine-tune (4470335) the 27B cutoff/posthoc and all significance tests again.
+
+With `answer` (Table 1): reranker fine-tune vs. best decision fine-tune significant on 48 of 60 pairs (0.6B-9B), never
+worse; decision fine-tune vs. base: -2.5 to +0.7 Avg up to 9B (Kev-4B below its base). Ours-27B Avg 59.6 vs Kev-27B
+joint 60.1, ZS 54.9 vs 55.0, significant on DBPedia only (ours better). RQ2 at 27B goes to Kev-27B: ECE .076 vs .110,
+F1@.5 57.2 vs 48.3 (ours underconfident: 7.9 passages kept, regret 5.9). Platt scaling fitted on msmarco-dev (683
+relevant of 100k pairs) collapses F1@.5 on DL to 8.1 or less for every reranker; temperature scaling helps only the
+worst calibrated (Qwen3-Reranker-0.6B .511 -> .326, Set-Encoder .495 -> .250).
+
 ## 2026-10-14 -- 27B reranker scored: ties Kev-27B, no clear win at 27B
 
 `qwen3.8-27b-reranker` (checkpoint final) on nine of ten datasets (4469257-4469266); DL22 (4469260) hung after

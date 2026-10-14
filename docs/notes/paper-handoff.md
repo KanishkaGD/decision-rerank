@@ -1,5 +1,14 @@
 # Handoff: the arXiv paper
 
+**Update 2026-10-14 (branch `feature/arxiv-acm`).** The paper is now in the two-column ACM layout (acmart sigconf,
+nonacm) with the ECIR narrative, the `answer` question in every result and S1Rank's question only in the ablation
+(Sect. 7, `tables/question-ablation.tex`); Ours-27B is in every table (ties Kev-27B in ranking, worse calibrated).
+Sections: 00 abstract, 01 introduction (teaser `figures/teaser.tex`), 02 related work, 03 decision models as
+rerankers, 04 setup, 05 RQ1, 06 RQ2, 07 question ablation, 08 discussion and limitations, 09 conclusion. Open:
+authors and affiliations, subtitle (optional), repository link, acknowledgements (`\TODO`s in `main.tex` and the
+introduction), Kanishka's Overleaf edits, merge into `dev-michael`/`master`. Sections 2-3 below describe the state
+before this update (two questions in Table 3, LNCS) and are kept for the history.
+
 Rewritten 2026-10-13, after the ECIR 2027 short paper was submitted (tag `ecir2027-submission`; the ECIR handoff is
 in the history of this file). For a **new session that continues the paper**: read this file, then `docs/roadmap.md`
 ("Order of work"). The experiments of the ECIR paper are done; do not redo them. The arXiv paper is the ECIR paper
