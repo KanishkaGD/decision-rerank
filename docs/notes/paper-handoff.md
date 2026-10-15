@@ -5,8 +5,10 @@ nonacm) with the ECIR narrative, the `answer` question in every result and S1Ran
 (Sect. 7, `tables/question-ablation.tex`); Ours-27B is in every table (ties Kev-27B in ranking, worse calibrated).
 Sections: 00 abstract, 01 introduction (teaser `figures/teaser.tex`), 02 related work, 03 decision models as
 rerankers, 04 setup, 05 RQ1, 06 RQ2, 07 question ablation, 08 discussion and limitations, 09 conclusion. Open:
-authors and affiliations, subtitle (optional), repository link, acknowledgements (`\TODO`s in `main.tex` and the
-introduction), Kanishka's Overleaf edits, merge into `dev-michael`/`master`. Sections 2-3 below describe the state
+Kanishka's surname and the two missing emails, repository link, acknowledgements (`\TODO`s in `main.tex`
+and the introduction), merge into `master`. Kanishka's Overleaf edits (as in `ECIR-submission.pdf`; no Overleaf
+source is in the repository) are merged (2026-10-15); edits made on Overleaf after the submission still need the
+Overleaf source. Sections 2-3 below describe the state
 before this update (two questions in Table 3, LNCS) and are kept for the history.
 
 Rewritten 2026-10-13, after the ECIR 2027 short paper was submitted (tag `ecir2027-submission`; the ECIR handoff is

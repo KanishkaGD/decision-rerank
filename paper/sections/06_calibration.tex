@@ -12,7 +12,9 @@ DL 2019--2023, together with the two uses we test.
 
 \paragraph{Asked our question, decision models are well calibrated.}
 The untuned base models of 0.6B and 0.8B parameters say ``yes'' to almost everything (ECE 0.750 and 0.617); from 4B
-on, they are reasonably calibrated already (0.117 to 0.231). The decision fine-tunes improve on them and, from 4B on,
+on, they are reasonably calibrated already (0.117 to 0.231). On the small backbones, fine-tuning of either kind
+improves on the base model, reranker fine-tuning as much as decision fine-tuning (0.6B: Kev 0.503, Qwen3-Reranker
+0.511; 0.8B: Kev 0.336, Prism 0.243). From 4B on, the decision fine-tunes
 are better calibrated than the published reranker fine-tunes (ECE: Kev-4B 0.132 vs.\ Prism-4B 0.218, Kev-8B 0.113 vs.\
 Qwen3-Reranker-8B 0.257, Clef-Flash 0.112 vs.\ Prism-9B 0.242). The best calibrated systems in the study are \jev{}
 (0.075) and Kev-27B (0.076); Kev-27B is also better calibrated than our 27B reranker fine-tune (0.110). Decision
