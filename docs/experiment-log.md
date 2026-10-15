@@ -12,6 +12,16 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-15 -- Branches consolidated on dev-michael; authors complete
+
+Owner's request: everything from the feature branches into `dev-michael`, feature branches and their worktrees
+removed. `feature/arxiv-acm` (the arXiv paper, the answer-question tables, Ours-27B), `feature/arxiv-cleanup`
+(experiment-log entries; already contained) and `feature/release-20261012` (adds `release/`, the pruned code and
+results behind the ECIR submission; `pytest` keeps to `tests/`) are merged; `dev-michael` was fast-forwarded, no
+rewrite. The orphan branch `release_20261012` (the published code release) stays. Authors: Kanishka Ghosh-Dastidar
+(kanishka.ghosh-dastidar@it-u.at), Michael Granitzer (michael.granitzer@uni-passau.de). Kanishka's Overleaf edits
+were merged from the submitted ECIR PDF (no Overleaf source in the repository).
+
 ## 2026-10-14 -- arXiv paper in ACM layout; tables with the answer question; Ours-27B complete
 
 Owner's decisions (paper-focus.md 21, venue.md): two-column ACM layout (acmart sigconf/nonacm), the `answer`

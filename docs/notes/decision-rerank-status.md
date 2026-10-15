@@ -1,12 +1,12 @@
-# System One Models Are Not Better Rerankers — status 2026-10-14
+# System One Models Are Not Better Rerankers — status 2026-10-15
 
 > **The paper in one sentence:** on the same backbone, decision fine-tuning never makes a better reranker than plain
 > reranker fine-tuning, and the calibration it is advertised for comes from how the question is worded, not from the
 > model. **Where we are:** every experiment is done, including our 27B reranker fine-tune (all ten collections,
-> post-hoc scaling, significance tests). The draft is in the two-column ACM layout on branch `feature/arxiv-acm`
-> (9 sections, teaser figure, 4 generated tables). Left before arXiv: Kanishka's surname and the emails, the
-> repository link, acknowledgements, Kanishka's Overleaf edits, a final read. Target: arXiv, end of the week of
-> 2026-10-12.
+> post-hoc scaling, significance tests). The draft is in the two-column ACM layout on `dev-michael` (9 sections,
+> teaser figure, 4 generated tables, three authors with affiliations and e-mails); all feature branches are merged
+> into it and removed. Left before arXiv: the repository link, acknowledgements, any Overleaf edits made after the
+> ECIR submission, a final read, and the merge into `master`. Target: arXiv, end of the week of 2026-10-12.
 
 ## The narrative: three punchlines
 
@@ -111,16 +111,23 @@ Prism-9B (2.1 s). So the slowness is Kev's inference path, not decision models a
 - 2026-10-13: ECIR short paper submitted (tag `ecir2027-submission`); Kanishka's question (`answer`) for all
   results (decision 20).
 - 2026-10-14: two-column ACM layout; S1Rank's question only in the ablation (21); title *System One Models Are Not
-  Better Rerankers*, three authors (Dinzinger, Kanishka, Granitzer), the three-punchline narrative (22).
+  Better Rerankers*, three authors (Dinzinger, Ghosh-Dastidar, Granitzer), the three-punchline narrative (22).
+- 2026-10-15: Kanishka's edits from the submitted ECIR PDF merged; feature branches (`feature/arxiv-acm`,
+  `feature/arxiv-cleanup`, `feature/release-20261012`) merged into `dev-michael` and deleted; the code release lives
+  in `release/` and on the orphan branch `release_20261012`.
 
 ## TODOs
 
-- Kanishka's surname and email, Michael Granitzer's email (`paper/main.tex`).
-- Repository link (code release branch `feature/release-20261012`) in the introduction's footnote.
-- Acknowledgements / compute / disclosure (`paper/main.tex`).
-- Merge Kanishka's Overleaf edits; final read; `make check`.
-- Merge `feature/arxiv-acm` into `dev-michael` and `master` (commit or discard the uncommitted `results.csv` in the
-  main checkout first; the branch has the same rows committed).
+- [x] Authors, affiliations and e-mails (`paper/main.tex`).
+- [x] Kanishka's edits from the submitted ECIR PDF (no Overleaf source in the repository).
+- [x] Feature branches merged into `dev-michael` and removed.
+- [ ] Repository link in the introduction's footnote. The code release (`release/`, orphan branch
+      `release_20261012`) still holds the ECIR state: S1Rank's question only, no Ours-27B. Update it for the arXiv
+      version or link the main repository?
+- [ ] Acknowledgements / compute / disclosure (`paper/main.tex`).
+- [ ] Overleaf edits made after the ECIR submission, if any (needs the Overleaf source); final read; `make check`.
+- [ ] Merge `dev-michael` into `master`: merge `master` in first (10 commits by Kanishka: QPP, Qwen3.7-Flash judge),
+      run `pytest`.
 
 ## Open questions for the meeting
 
@@ -130,6 +137,8 @@ Prism-9B (2.1 s). So the slowness is Kev's inference path, not decision models a
 4. Do we state the 27B calibration result (Kev-27B better calibrated than ours) in the abstract, or only in Sect. 6
    as now?
 5. Should a third wording (chosen on msmarco-dev) be run to make punchline 3 firmer than two questions?
+6. Code release for arXiv: refresh `release/` with the `answer` question and Ours-27B, or point to the full
+   repository?
 
 ## Risks and limitations
 

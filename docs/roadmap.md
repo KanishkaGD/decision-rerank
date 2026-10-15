@@ -119,19 +119,15 @@ scaling, count test, the `answer` question); our 9B reranker fine-tune (scored, 
 27B one (job 4429626, all checkpoints in `checkpoints/qwen3.8-27b-reranker/`); the ECIR short paper, submitted
 2026-10-13 (tag `ecir2027-submission`).
 
-**The arXiv paper** (end of the week of 2026-10-12):
+**The arXiv paper** (end of the week of 2026-10-12). Done by 2026-10-15 (`docs/experiment-log.md`): our 27B reranker
+fine-tune scored and in every table; what was cut for ECIR restored; Tables 1-3 with the `answer` question, S1Rank's
+question in the ablation table; the text along `docs/notes/narrative.md` (title *System One Models Are Not Better
+Rerankers*, two-column ACM layout, teaser figure); authors and e-mails; Kanishka's edits from the submitted ECIR PDF.
+Left:
 
-1. **27B reranker fine-tune**: checkpoint selection on msmarco-dev (`docs/notes/reranker-27b-plan.md`, section 4),
-   then scoring on all ten datasets, DL19-23 calibration rows and post-hoc scaling (msmarco-dev fit); add it to
-   `SYSTEMS` in `slurm/config.sh` and to the triplet and calibration tables (`src/cdm/paper_tables.py`).
-2. **Restore what was cut for ECIR** (`docs/intent/paper-focus.md` 18): DL20/DL22 in the triplet table, the full
-   calibration table, cutoff and post-hoc tables, the full context table, regret and post-hoc scaling in the setup,
-   the longer related work, a limitations paragraph.
-3. **Tables 1 and 2 with `answer`** (`docs/intent/paper-focus.md` 20): 170 reranking runs (decision fine-tunes in
-   both modes, base models, Jev, Laya on all ten datasets, where not yet run); then switch `TABLE_PHRASINGS` in
-   `src/cdm/paper_tables.py`, rerun the significance tests and `cdm cutoff`, regenerate the tables, and report
-   S1Rank's question as a comparison.
-4. **Text**: the 27B result in abstract, introduction, Sect. 4-5 and conclusion (does the headline extend to 27B?).
-5. **De-anonymise**: authors and affiliations, the disclosure of interests, the repository link (code release on
-   branch `feature/release-20261012`).
-6. **Merge Kanishka's Overleaf edits** into `paper/`; `make check`; final read; post to arXiv.
+1. **Repository link** in the introduction's footnote (code release: `release/` on `dev-michael`, orphan branch
+   `release_20261012`; it still holds the ECIR state, S1Rank's question only) and acknowledgements / disclosure in
+   `paper/main.tex`.
+2. **Overleaf edits after the ECIR submission**, if any (needs the Overleaf source); `make check`; final read; post
+   to arXiv.
+3. **Merge `dev-michael` into `master`** (merge `master` in first: 10 commits by Kanishka; `pytest`).

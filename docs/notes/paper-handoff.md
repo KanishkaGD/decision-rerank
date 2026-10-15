@@ -1,6 +1,6 @@
 # Handoff: the arXiv paper
 
-**Update 2026-10-14 (branch `feature/arxiv-acm`).** The paper is now in the two-column ACM layout (acmart sigconf,
+**Update 2026-10-14 (on `dev-michael` since 2026-10-15).** The paper is now in the two-column ACM layout (acmart sigconf,
 nonacm) with the ECIR narrative, the `answer` question in every result and S1Rank's question only in the ablation
 (Sect. 7, `tables/question-ablation.tex`); Ours-27B is in every table (ties Kev-27B in ranking, worse calibrated).
 Sections: 00 abstract, 01 introduction (teaser `figures/teaser.tex`), 02 related work, 03 decision models as
