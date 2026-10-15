@@ -92,7 +92,7 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
     fixed cutoff in the calibration table, a discussion and limitations section). Layout: two-column ACM
     (`docs/intent/venue.md`).
 22. **Title, authors, one narrative** (owner, 2026-10-14). Title *System One Models Are Not Better Rerankers*, no
-    subtitle (replaces 8 and 17's question title). Authors: Michael Dinzinger (University of Passau), Kanishka Ghosh-Dastidar (IT:U
+    subtitle (replaces 8 and 17's question title). Authors: Michael Dinzinger (University of Passau), Kanishka Ghosh Dastidar (IT:U
     Linz), Michael Granitzer (University of Passau and IT:U Linz). The narrative is fixed in
     `docs/notes/narrative.md`: three punchlines (reranker fine-tuning beats decision fine-tuning; up to 9B decision
     fine-tuning adds nothing over the base model; the calibration advantage comes from the question, not from the

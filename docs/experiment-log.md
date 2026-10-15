@@ -12,6 +12,11 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-15 -- Author name corrected; repository link
+
+Owner: the second author is Kanishka Ghosh Dastidar, without a hyphen (the entry below has the wrong spelling). The
+paper links the full repository, https://github.com/KanishkaGD/decision-rerank, in the introduction's footnote.
+
 ## 2026-10-15 -- Branches consolidated on dev-michael; authors complete
 
 Owner's request: everything from the feature branches into `dev-michael`, feature branches and their worktrees

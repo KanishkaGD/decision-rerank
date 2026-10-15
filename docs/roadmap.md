@@ -125,9 +125,9 @@ question in the ablation table; the text along `docs/notes/narrative.md` (title 
 Rerankers*, two-column ACM layout, teaser figure); authors and e-mails; Kanishka's edits from the submitted ECIR PDF.
 Left:
 
-1. **Repository link** in the introduction's footnote (code release: `release/` on `dev-michael`, orphan branch
-   `release_20261012`; it still holds the ECIR state, S1Rank's question only) and acknowledgements / disclosure in
-   `paper/main.tex`.
+1. **Acknowledgements / disclosure** in `paper/main.tex`. (The repository link is in: the full repository,
+   https://github.com/KanishkaGD/decision-rerank; `release/` and the orphan branch `release_20261012` still hold the
+   ECIR state.)
 2. **Overleaf edits after the ECIR submission**, if any (needs the Overleaf source); `make check`; final read; post
    to arXiv.
 3. **Merge `dev-michael` into `master`** (merge `master` in first: 10 commits by Kanishka; `pytest`).
