@@ -6,10 +6,11 @@ $\times 100$, BM25 top-100). Base and decision models are asked whether the pass
 Avg: mean over all ten collections; ZS: mean over the collections without a training split in any
 fine-tune's data (TREC-COVID, Touch\'e, DBPedia). Per backbone and column: best in bold, second best
 underlined. Training: $\circ$~base model, $\blacktriangle$/$\triangle$~decision fine-tune (joint/isolated), $\blacksquare$~reranker fine-tune (rows shaded grey, red, blue);
-\textit{Ours}: our reranker fine-tunes.
+\textit{Ours-9B}: our reranker fine-tune.
 Paired $t$-test, Holm-corrected over
 the ten collections, $p < 0.05$: $^\ast$ reranker fine-tune vs.\ the decision fine-tune with the best Avg,
-$^\dagger$ that decision fine-tune vs.\ the base model, $^\ddagger$ joint vs.\ isolated.}
+$^\dagger$ that decision fine-tune vs.\ the base model, $^\ddagger$ joint vs.\ isolated. No reranker
+fine-tune of the 27B backbone has been released.}
 \label{tab:triplets}
 \centering
 \scriptsize
@@ -56,11 +57,10 @@ $^\dagger$ that decision fine-tune vs.\ the base model, $^\ddagger$ joint vs.\ i
 \midrule
 \multicolumn{15}{l}{\textit{Qwen3.8-27B}} \\
 \rowcolor{rowbase}$\circ$ & Qwen3.8-27B &  & 71.9 & 68.7 & 66.9 & 45.8 & 44.7 & 82.6 & 37.2 & 74.5 & 30.1 & 41.7 & 56.4 & 51.5 \\
-\rowcolor{rowdecision}$\blacktriangle$ & Kev-27B & joint & 72.8 & \textbf{72.9}\rlap{$^{\dagger}$} & \textbf{70.7}\rlap{$^{\dagger}$} & \underline{50.9}\rlap{$^{\dagger}$} & \textbf{49.2}\rlap{$^{\dagger}$} & \textbf{83.9} & \textbf{38.4}\rlap{$^{\dagger}$} & \textbf{81.1}\rlap{$^{\dagger}$} & \textbf{36.1}\rlap{$^{\dagger}$} & 44.9\rlap{$^{\dagger}$} & \textbf{60.1} & \textbf{55.0} \\
-\rowcolor{rowdecision}$\triangle$ & Kev-27B & isolated & \underline{73.6} & 70.5 & \underline{70.1} & 50.5 & 46.7 & \underline{83.2} & 37.9 & \underline{80.6} & 32.1 & \underline{45.2} & 59.0 & 53.5 \\
+\rowcolor{rowdecision}$\blacktriangle$ & Kev-27B & joint & \underline{72.8} & \textbf{72.9}\rlap{$^{\dagger}$} & \textbf{70.7}\rlap{$^{\dagger}$} & \textbf{50.9}\rlap{$^{\dagger}$} & \textbf{49.2}\rlap{$^{\dagger}$} & \textbf{83.9} & \textbf{38.4}\rlap{$^{\dagger}$} & \textbf{81.1}\rlap{$^{\dagger}$} & \textbf{36.1}\rlap{$^{\dagger}$} & \underline{44.9}\rlap{$^{\dagger}$} & \textbf{60.1} & \textbf{55.0} \\
+\rowcolor{rowdecision}$\triangle$ & Kev-27B & isolated & \textbf{73.6} & 70.5 & \underline{70.1} & \underline{50.5} & \underline{46.7} & \underline{83.2} & \underline{37.9} & \underline{80.6} & \underline{32.1} & \textbf{45.2} & \underline{59.0} & \underline{53.5} \\
 \rowcolor{rowdecision}$\blacktriangle$ & Clef & joint & 70.5 & \underline{72.4} & 66.2 & 48.2 & 45.9 & 80.7 & 35.6 & 58.7 & 29.2 & 40.9 & 54.8 & 50.3 \\
 \rowcolor{rowdecision}$\triangle$ & Clef & isolated & 69.4 & 68.5 & 66.5 & 43.7 & 43.3 & 80.3 & 36.2 & 62.7 & 28.1 & 40.5 & 53.9 & 49.6 \\
-\rowcolor{rowreranker}$\blacksquare$ & \textit{Ours-27B} &  & \textbf{74.6} & 69.6 & 69.0 & \textbf{52.3} & \underline{48.3} & 83.0 & \underline{38.0} & 79.2 & \underline{34.6} & \textbf{47.1}\rlap{$^{\ast}$} & \underline{59.6} & \underline{54.9} \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}

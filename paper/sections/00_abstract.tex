@@ -5,11 +5,12 @@ System One models, or decision models, answer a question about an input with a c
 generated text. A month after the first of them was released, they are already used as rerankers. We test whether
 the decision fine-tuning behind them makes a better reranker than plain reranker fine-tuning of the same model. For
 six Qwen backbones from 0.6B to 27B parameters and ten TREC DL and BEIR collections, we compare the zero-shot base
-model with its decision fine-tunes and its reranker fine-tunes, two of which we train ourselves. Decision
-fine-tuning never makes the better reranker. From 0.6B to 9B, reranker fine-tuning wins on every backbone by 5 to 29
-points nDCG@10, also on collections that no fine-tune was trained on, and at 27B the two tie. Up to 9B, decision
-fine-tuning adds nothing over simply asking the base model. The calibration that decision models are advertised for
+model with its decision fine-tunes and its reranker fine-tunes, one of which we train ourselves. On every
+backbone where both exist (0.6B to 9B), reranker fine-tuning wins, by 5 to 29 points nDCG@10, also on collections
+that no fine-tune was trained on. Up to 9B, decision fine-tuning adds nothing over simply asking the base model; only
+the largest decision model improves on its base model, and it is barely ahead of reranker fine-tunes a third of its
+size. The calibration that decision models are advertised for
 comes from the question, not from the model: asked whether a passage answers the query, they are well calibrated;
 asked S1Rank's looser question, the same models lose their advantage over reranker fine-tunes, and the untuned base
-models gain as much from the wording. Nor does calibration buy better passage selection: up to 9B, a reranker
-fine-tune keeps the better passages at a fixed threshold. If you need a reranker, fine-tune a reranker.
+models gain as much from the wording. Nor does calibration buy better passage selection: a reranker fine-tune keeps
+the better passages at a fixed threshold. If you need a reranker, fine-tune a reranker.

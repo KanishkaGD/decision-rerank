@@ -12,6 +12,15 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-19 -- Our 27B reranker fine-tune out of the paper
+
+Owner's decision 23 (`docs/intent/paper-focus.md`): as in the ECIR version, the paper has no reranker fine-tune of
+the 27B backbone. `qwen3.8-27b-reranker` removed from `TRIPLETS` in `src/cdm/paper_tables.py` (so from Tables 1 and
+3); its rerank, cutoff, post-hoc and significance rows stay in `results/results.csv`. Text along the updated
+`docs/notes/narrative.md`: RQ1 holds on every backbone where both kinds of fine-tuning exist (0.6B-9B); at 27B Kev-27B
+is the best system (60.1), 0.7 points ahead of Qwen3-Reranker-8B and Ours-9B (59.4), and the RQ1 comparison is open
+there. Platt-scaled F1@.5 bound in Sect. 6 is now 7.4 (the 8.1 was Ours-27B). The question wording stays as before.
+
 ## 2026-10-15 -- Author name corrected; repository link
 
 Owner: the second author is Kanishka Ghosh Dastidar, without a hyphen (the entry below has the wrong spelling). The

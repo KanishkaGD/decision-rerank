@@ -1,6 +1,6 @@
 % =====================================================================================
 % Section 4 -- Experimental Setup
-% Source of truth: docs/roadmap.md ("Setup"), docs/notes/reranker-27b-plan.md (our fine-tunes),
+% Source of truth: docs/roadmap.md ("Setup"), docs/notes/reranker-27b-plan.md (the recipe of our 9B fine-tune),
 % src/cdm/{datasets,rerankers,phrasings}.py, slurm/config.sh; the question: docs/intent/paper-focus.md 20.
 % =====================================================================================
 \section{Experimental Setup}
@@ -15,18 +15,18 @@ post-trained 27B model) and Clef-Flash (9B) and Clef (27B)~\cite{Clef}, each run
 (Sect.~\ref{sec:decision-models}). We call them decision fine-tunes because they fine-tune an open model to give
 \jev{}'s kind of output; they are not reproductions of RLCD, which is unpublished~\cite{KevCards}. The \emph{reranker
 fine-tunes} are Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding}, built on the same pretrained checkpoints as Kev, and
-Prism~\cite{Zhang2026Prism}, both scored by the probability of ``yes'' against ``no''.
+Prism~\cite{Zhang2026Prism}, both scored by the probability of ``yes'' against ``no''. No reranker fine-tune of Qwen3.8-27B has been released, so this variant is missing at 27B.
 
-\paragraph{Our reranker fine-tunes.}
-No reranker fine-tune of Qwen3.8-27B has been released, so we train one ourselves (\emph{Ours-27B}), from exactly the
-checkpoint that Kev-27B and Clef start from. As a control, we train a second one with the same recipe on Qwen3.5-9B
-(\emph{Ours-9B}), where it can be compared with Prism-9B. The recipe is public and deliberately plain: LoRA ($r=32$)
+\paragraph{Our reranker fine-tune.}
+As a control for the undisclosed recipes of the published rerankers, we train a reranker fine-tune of Qwen3.5-9B
+ourselves (\emph{Ours-9B}), which can be compared with Prism-9B on the same backbone. This gives us one reranker
+fine-tune whose training data and losses we control. The recipe is public and deliberately plain: LoRA ($r=32$)
 in Qwen3-Reranker's prompt format, one epoch over 100k MS~MARCO training queries~\cite{Nguyen2016MSMARCO}, each with
 one relevant passage and 15 hard negatives (eight from a dense retriever, seven from BM25), and a ranking loss
 (InfoNCE over the group) plus a yes/no classification loss (binary cross-entropy of every passage's score). The second
 term gives the model a meaningful $P(\textit{yes})$. We removed training queries that match a test or development
 topic and chose the checkpoint on 200 MS~MARCO dev queries by a rule fixed in advance. No decision data and no
-hyperparameter search are involved. Qwen3-Reranker, Prism and our fine-tunes saw MS~MARCO in training; Kev's training
+hyperparameter search are involved. Qwen3-Reranker, Prism and Ours-9B saw MS~MARCO in training; Kev's training
 data contain neither MS~MARCO nor BEIR~\cite{KevCards}.
 
 \paragraph{The question.}

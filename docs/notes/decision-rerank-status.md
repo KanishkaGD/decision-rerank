@@ -1,9 +1,10 @@
-# System One Models Are Not Better Rerankers — status 2026-10-15
+# System One Models Are Not Better Rerankers — status 2026-10-19
 
-> **The paper in one sentence:** on the same backbone, decision fine-tuning never makes a better reranker than plain
+> **The paper in one sentence:** on the same backbone, decision fine-tuning does not make a better reranker than plain
 > reranker fine-tuning, and the calibration it is advertised for comes from how the question is worded, not from the
-> model. **Where we are:** every experiment is done, including our 27B reranker fine-tune (all ten collections,
-> post-hoc scaling, significance tests). The draft is in the two-column ACM layout on `dev-michael` (9 sections,
+> model. **Where we are:** every experiment is done. **New (2026-10-19):** our 27B reranker fine-tune is out of the
+> paper again, as in the ECIR version; the 27B triplet has no reranker fine-tune (its runs stay in
+> `results/results.csv`). The question wording stays: our question for every result, S1Rank's in the ablation. The draft is in the two-column ACM layout on `dev-michael` (9 sections,
 > teaser figure, 4 generated tables, three authors with affiliations and e-mails); all feature branches are merged
 > into it and removed. Left before arXiv: acknowledgements, any Overleaf edits made after the
 > ECIR submission, a final read, and the merge into `master`. Target: arXiv, end of the week of 2026-10-12.
@@ -15,21 +16,21 @@ this order and without hedging chains; everything else is a result in its sectio
 
 | # | Punchline | Evidence (paper's question, Tables 1, 3, 4) | Firmness |
 |---|---|---|---|
-| 1 | **Reranker fine-tuning beats decision fine-tuning.** On no backbone does decision fine-tuning make the better reranker. | 0.6B–9B: reranker fine-tune ahead by 5.2–28.8 points nDCG@10 (Avg of ten), 5.4–23.9 on the zero-shot subset; significant on 48 of 60 backbone–collection pairs, never significantly worse. 27B: tie, Ours-27B 59.6 vs Kev-27B 60.1 (ZS 54.9 vs 55.0), significant on one collection only (DBPedia, ours better). | Supported |
-| 2 | **Up to 9B, decision fine-tuning adds nothing over the base model.** | Better decision mode vs base asked the same question: −2.5 to +0.7 points; reranker fine-tuning adds 5.9–29.5. At 27B both add about the same: Kev-27B +3.7 (significant on 8 collections), Ours-27B +3.2; Clef adds nothing (54.8 vs 56.4). | Supported |
-| 3 | **The calibration advantage comes from the question, not from the model.** | With "Does the passage answer the query?": decision fine-tunes beat the published rerankers from 4B (Kev-8B ECE .113 vs Qwen3-Reranker-8B .257). With S1Rank's question the same models are at best as well calibrated as the best reranker fine-tune of their backbone (Kev-8B .243 vs .257, Kev-27B .156 vs Ours-27B .110), while nDCG@10 moves by only −2.5 to +2.6. Base models move as much (Qwen3-8B .383 → .231). Up to 9B, a reranker fine-tune keeps the better set at p ≥ 0.5 (e.g. Prism-4B F1 51.0 vs Kev-4B 42.6). | Supported (two wordings only; the question was fixed before the runs, not chosen on dev data) |
+| 1 | **Reranker fine-tuning beats decision fine-tuning** on every backbone where both exist (0.6B–9B). | Reranker fine-tune ahead by 5.2–28.8 points nDCG@10 (Avg of ten), 5.4–23.9 on the zero-shot subset; significant on 48 of 60 backbone–collection pairs, never significantly worse. 27B: no reranker fine-tune; Kev-27B (60.1) is the best system, 0.7 ahead of Qwen3-Reranker-8B and Ours-9B (59.4). | Supported for 0.6B–9B; open at 27B |
+| 2 | **Up to 9B, decision fine-tuning adds nothing over the base model.** | Better decision mode vs base asked the same question: −2.5 to +0.7 points; reranker fine-tuning adds 5.9–29.5. Only Kev-27B clearly improves on its base model: +3.7 (significant on 8 collections); Clef adds nothing (54.8 vs 56.4). | Supported |
+| 3 | **The calibration advantage comes from the question, not from the model.** | With "Does the passage answer the query?": decision fine-tunes beat the published rerankers from 4B (Kev-8B ECE .113 vs Qwen3-Reranker-8B .257). With S1Rank's question the same models are at best as well calibrated as the best reranker fine-tune of their backbone (Kev-8B .243 vs .257, Clef-Flash .140 vs Ours-9B .111), while nDCG@10 moves by only −2.5 to +2.6. Base models move as much (Qwen3-8B .383 → .231). On every backbone with both, a reranker fine-tune keeps the better set at p ≥ 0.5 (e.g. Prism-4B F1 51.0 vs Kev-4B 42.6). | Supported (two wordings only; the question was fixed before the runs, not chosen on dev data) |
 
 Closing line of abstract, introduction and conclusion: **"If you need a reranker, fine-tune a reranker."**
 
-Title: **System One Models Are Not Better Rerankers** (no subtitle). It states punchline 1, which holds on all six
-backbones (worse up to 9B, a tie at 27B — "not better" in both cases).
+Title: **System One Models Are Not Better Rerankers** (no subtitle). It states punchline 1, which holds on every
+backbone where both kinds of fine-tuning exist (0.6B–9B); at 27B the comparison is open (see open question 1).
 
 ## Research questions
 
 - **RQ1:** Do decision models rerank better than their base models or than reranker fine-tunes of the same backbone?
   → No (punchlines 1 and 2).
 - **RQ2:** Are their relevance probabilities better calibrated than either, and is that calibration of any use?
-  → Only with a question that matches the labels, and up to 9B it does not buy better passage selection
+  → Only with a question that matches the labels, and it does not buy better passage selection
   (punchline 3).
 
 ## Results
@@ -45,7 +46,7 @@ All numbers from `paper/tables/*.tex` (generated from `results/results.csv`), th
 | Qwen3.5-0.8B | 33.9 | Kev isolated 34.2 | Prism 57.1 | +22.9 |
 | Qwen3.5-4B | 52.4 | Kev isolated 49.9 | Prism 58.7 | +8.8 |
 | Qwen3.5-9B | 53.1 | Clef-Flash isolated 53.8 | Prism 59.0 · *Ours* 59.4 | +5.2 · +5.6 |
-| Qwen3.8-27B | 56.4 | Kev joint 60.1 | *Ours* 59.6 | −0.5 (n.s. except DBPedia, ours better) |
+| Qwen3.8-27B | 56.4 | Kev joint 60.1 | none released | – |
 
 Ours-9B matches Prism-9B (59.4 vs 59.0; ZS 56.1 vs 53.7) with a public recipe and no decision data, so the gap is not
 about the undisclosed recipes of the published rerankers.
@@ -60,22 +61,21 @@ explain it (Kev: 0 splits except Touché).
 
 ### RQ1 — context (Table 2, System One models in joint mode)
 
-Jev 59.1 ≈ reranker fine-tunes of 8–9B (59.0–59.4) ≈ Set-Encoder 59.0; Kev-27B 60.1 and Ours-27B 59.6 match the
-closed Jev; Laya 43.5 ≈ BM25 43.2. RankZephyr 57.3, monoT5-3B 57.5, bge-reranker-v2-m3 56.6 (BEIR cells of these
+Jev 59.1 ≈ reranker fine-tunes of 8–9B (59.0–59.4) ≈ Set-Encoder 59.0; Kev-27B 60.1 matches the closed Jev; Laya 43.5 ≈ BM25 43.2. RankZephyr 57.3, monoT5-3B 57.5, bge-reranker-v2-m3 56.6 (BEIR cells of these
 three partly literature, marked † in the paper).
 
 ### RQ2 — calibration and its uses (Table 3, judged pairs of DL19–23)
 
 - **ECE (paper's question):** Jev .075, Kev-27B .076, Clef .091 are the best calibrated. Ours-9B .111 = Clef-Flash
-  .112 (Brier .157 vs .158). At 27B Kev-27B .076 beats Ours-27B .110. Small base models say "yes" to everything
+  .112 (Brier .157 vs .158). Small base models say "yes" to everything
   (.750, .617).
-- **Fixed cutoff p ≥ 0.5:** up to 9B a reranker fine-tune keeps the better set on every backbone, although it is the
+- **Fixed cutoff p ≥ 0.5:** a reranker fine-tune keeps the better set on every backbone where both exist, although it is the
   worse calibrated model on most of them. Decision models' regret is small (0.9–3.1 points), Prism-9B 4.0, Ours-9B
-  6.4. At 27B Kev-27B keeps the better set (57.2 vs 48.3; ours underconfident, 7.9 passages kept).
+  6.4.
 - **Count test:** most decision models from 4B beat the median guess (8.6) and the published rerankers; the untuned
   Qwen3.8-27B counts best (5.8); Ours-9B beats Clef-Flash (7.3 vs 8.1).
 - **Post-hoc scaling (MS MARCO dev):** temperature scaling helps only the worst calibrated rerankers
-  (Qwen3-Reranker-0.6B .511 → .326, Set-Encoder .495 → .250). Platt scaling collapses F1@.5 to ≤ 8.1 for every
+  (Qwen3-Reranker-0.6B .511 → .326, Set-Encoder .495 → .250). Platt scaling collapses F1@.5 to ≤ 7.4 for every
   reranker: MS MARCO dev's sparse labels (≈1 relevant per query) set the wrong base rate for DL.
 
 ### Ablation — the wording (Table 4, S1Rank's question vs ours)
@@ -102,7 +102,7 @@ Prism-9B (2.1 s). So the slowness is Kev's inference path, not decision models a
 - BM25, monoT5-3B, RankZephyr reproduce published numbers within 0.2 points — pass.
 - Jev joint with S1Rank's question reproduces S1Rank within 0.5 points on four of five collections (1.5 below on
   TREC-COVID) — pass.
-- 27B checkpoint chosen on msmarco-dev by a rule fixed in advance (final, MRR@10 .417) — pass.
+- 27B checkpoint chosen on msmarco-dev by a rule fixed in advance (final, MRR@10 .417) — pass (not in the paper).
 
 ## Decisions so far (docs/intent/paper-focus.md)
 
@@ -115,6 +115,8 @@ Prism-9B (2.1 s). So the slowness is Kev's inference path, not decision models a
 - 2026-10-15: Kanishka's edits from the submitted ECIR PDF merged; feature branches (`feature/arxiv-acm`,
   `feature/arxiv-cleanup`, `feature/release-20261012`) merged into `dev-michael` and deleted; the code release lives
   in `release/` and on the orphan branch `release_20261012`.
+- 2026-10-19: our 27B reranker fine-tune out of the paper, as in the ECIR version (23); Ours-9B stays; the question
+  wording stays.
 
 ## TODOs
 
@@ -129,19 +131,21 @@ Prism-9B (2.1 s). So the slowness is Kev's inference path, not decision models a
 
 ## Open questions for the meeting
 
-1. Title: *System One Models Are Not Better Rerankers* — happy with the claim at 27B being a tie?
+1. Title: *System One Models Are Not Better Rerankers* — still the right claim now that 27B has no reranker
+   fine-tune (Kev-27B is the best system there)? Alternative: back to the ECIR question title.
 2. Efficiency stays out of the paper (Kev is slow, Clef is not)? Or a small appendix table?
 3. Terminology: the ECIR text uses "backbone"; decision 17 asked for "foundation model". Keep "backbone"?
-4. Do we state the 27B calibration result (Kev-27B better calibrated than ours) in the abstract, or only in Sect. 6
-   as now?
+4. Our 27B fine-tune is scored (it ties Kev-27B: 59.6 vs 60.1). Mention it anywhere (e.g. the repository README),
+   or leave it out entirely?
 5. Should a third wording (chosen on msmarco-dev) be run to make punchline 3 firmer than two questions?
 6. The repository linked in the paper is the full project repository. Should `release/` (still the ECIR state:
-   S1Rank's question only, no Ours-27B) be refreshed, or removed to avoid confusion?
+   S1Rank's question only) be refreshed, or removed to avoid confusion?
 
 ## Risks and limitations
 
 - Punchline 3 rests on two wordings; the paper's question was fixed before the runs but not chosen on dev data.
 - We compare released models: the decision fine-tunes are not RLCD, and training data differ across fine-tunes.
-- Our reranker fine-tunes were trained once, with one recipe, no hyperparameter search.
+- Ours-9B was trained once, with one recipe, no hyperparameter search.
+- At 27B, where Kev is the best system, no reranker fine-tune is compared.
 - Calibration only on TREC DL (judged non-relevant passages), one relevance grade, one threshold.
 - The models are a month old; newer releases may change the picture.

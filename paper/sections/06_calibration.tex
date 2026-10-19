@@ -17,7 +17,7 @@ improves on the base model, reranker fine-tuning as much as decision fine-tuning
 0.511; 0.8B: Kev 0.336, Prism 0.243). From 4B on, the decision fine-tunes
 are better calibrated than the published reranker fine-tunes (ECE: Kev-4B 0.132 vs.\ Prism-4B 0.218, Kev-8B 0.113 vs.\
 Qwen3-Reranker-8B 0.257, Clef-Flash 0.112 vs.\ Prism-9B 0.242). The best calibrated systems in the study are \jev{}
-(0.075) and Kev-27B (0.076); Kev-27B is also better calibrated than our 27B reranker fine-tune (0.110). Decision
+(0.075) and Kev-27B (0.076). Decision
 fine-tuning is not the only way there: our 9B reranker fine-tune, which asks no question and was trained with a plain
 yes/no loss, is as well calibrated as Clef-Flash (0.111 vs.\ 0.112) and has the lower Brier score (0.157 vs.\ 0.158).
 
@@ -27,13 +27,11 @@ S1Rank's looser question: the same decision models then lose their advantage ove
 their ranking hardly moves. The calibration of a decision model is a property of the question it is asked.
 
 \paragraph{Calibration does not buy better passage selection.}
-If every passage with $p \ge 0.5$ is kept, a reranker fine-tune keeps the better set on every backbone up to 9B
+If every passage with $p \ge 0.5$ is kept, a reranker fine-tune keeps the better set on every backbone where both exist
 (e.g.\ $F_1$@.5 of 51.0 for Prism-4B vs.\ 42.6 for Kev-4B, and 50.7 for Prism-9B vs.\ 47.1 for Clef-Flash), although
 it is the worse calibrated model on most of them. For the decision models, 0.5 is close to the best threshold of each
 collection (regret of 0.9 to 3.1 points), whereas Prism-9B loses 4.0 points and Ours-9B 6.4 against their best
-thresholds. A well-placed threshold on a worse ranking still yields the worse set. At 27B, where the two kinds of
-fine-tuning rank equally well, the better calibrated Kev-27B keeps the better set (57.2 vs.\ 48.3); our fine-tune is
-underconfident and keeps only 7.9 passages per query.
+thresholds. A well-placed threshold on a worse ranking still yields the worse set.
 
 \paragraph{Counting relevant passages.}
 The count test asks how many of a query's judged passages are relevant, which a ranking cannot tell. Most decision
@@ -45,7 +43,7 @@ question, with or without decision fine-tuning.
 \paragraph{Calibration after the fact.}
 Rerankers can also be calibrated after training. Temperature scaling fitted on MS~MARCO dev lowers the ECE of the
 worst calibrated rerankers on TREC DL (Qwen3-Reranker-0.6B from 0.511 to 0.326, the Set-Encoder from 0.495 to 0.250)
-and changes the others little. Platt scaling makes every reranker worse at the fixed cutoff ($F_1$@.5 of 8.1 or less):
+and changes the others little. Platt scaling makes every reranker worse at the fixed cutoff ($F_1$@.5 of 7.4 or less):
 MS~MARCO dev judges about one passage per query, so the fitted probabilities are far too low for the denser judgments
 of TREC DL. Calibration is defined only with respect to a notion of relevance and its base rate
 (Sect.~\ref{sec:discussion}).

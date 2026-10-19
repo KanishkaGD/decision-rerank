@@ -30,22 +30,23 @@ of any use:
 
 Figure~\ref{fig:teaser} shows how a decision model reranks and what we compare. For six Qwen backbones from 0.6B to
 27B parameters, we evaluate the base model asked zero-shot, its decision fine-tunes (Kev and Clef) and its reranker
-fine-tunes, including two we train ourselves on MS~MARCO alone (at 9B as a control, at 27B where none has been
-released). All of them rerank the same BM25 candidates of TREC DL 2019--2023 and five BEIR collections, and all
+fine-tunes, including one we train ourselves on MS~MARCO alone as a control for the undisclosed recipes of the
+published ones. No reranker fine-tune of the 27B backbone has been released. All of them rerank the same BM25 candidates of TREC DL 2019--2023 and five BEIR collections, and all
 return a probability of relevance per passage. Decision and base models are asked whether the passage answers the
 query; an ablation asks S1Rank's looser question instead~\cite{S1Rank}. We find:
 \begin{enumerate}
   \item \emph{Reranker fine-tuning beats decision fine-tuning.} From 0.6B to 9B, the reranker fine-tune ranks better
   on every backbone, by 5 to 29 points nDCG@10, significantly on 48 of 60 pairs of backbone and collection, never
-  significantly worse, and also on collections that no fine-tune was trained on. At 27B, the two tie. On no backbone
-  does decision fine-tuning make the better reranker.
+  significantly worse, and also on collections that no fine-tune was trained on. At 27B, where no reranker fine-tune exists,
+  Kev-27B is the best system in our study, but only 0.7 points ahead of reranker fine-tunes a third of its size.
   \item \emph{Up to 9B, decision fine-tuning adds nothing over the base model.} It stays within $-2.5$ and $+0.7$
   points of simply asking the untuned model the same question, while reranker fine-tuning adds 6 to 30 points.
+  Only Kev-27B clearly improves on its base model.
   \item \emph{The calibration advantage comes from the question, not from the model.} Asked whether a passage answers
   the query, decision models are well calibrated. Asked S1Rank's question, the same models lose their advantage over
   reranker fine-tunes while their ranking hardly moves, and the untuned base models gain as much from the wording.
-  Up to 9B, calibration does not even buy better passage selection: a reranker fine-tune keeps the better set at a
-  fixed threshold.
+  Calibration does not even buy better passage selection: a reranker fine-tune keeps the better set at
+  a fixed threshold on every backbone where both exist.
 \end{enumerate}
 If you need a reranker, fine-tune a reranker. Code, raw model outputs (a probability per query and passage) and all
 results are public.\footnote{\url{https://github.com/KanishkaGD/decision-rerank}}

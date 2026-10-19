@@ -16,7 +16,7 @@ collections that neither kind of fine-tune was trained on.
 \paragraph{What calibration means for relevance.}
 A probability of relevance is calibrated only with respect to a definition of relevance and its base rate. Our
 results show three ways to move it: the wording of the question (Sect.~\ref{sec:question}), the labels of the
-training data (our reranker fine-tunes) and the labels a scaling is fitted on (Platt scaling on MS~MARCO dev,
+training data (our reranker fine-tune) and the labels a scaling is fitted on (Platt scaling on MS~MARCO dev,
 Sect.~\ref{sec:calibration}). A model that is ``calibrated out of the box'' is calibrated against a notion of
 relevance that someone chose, and the user of a decision model has to put that notion into words. For ranking none of
 this matters; for a threshold or a count it matters a lot.
@@ -24,8 +24,9 @@ this matters; for a threshold or a count it matters a lot.
 \paragraph{Limitations.}
 We compare released models, and the fine-tunes of a backbone differ in their training data as well as in their
 objective. Our results therefore describe decision fine-tuning as it is available today, not RLCD as such, which is
-unpublished and may be done better. The controlled comparison rests on our own reranker fine-tunes at 9B and 27B,
-which were trained once, with one recipe and without any hyperparameter search. We measured calibration only on TREC
+unpublished and may be done better. Our own reranker fine-tune, the control for the published
+recipes, was trained once, with one recipe and without any hyperparameter search. At 27B, where Kev is the best
+system, no reranker fine-tune exists for comparison. We measured calibration only on TREC
 DL, where non-relevant passages are judged, and at a single relevance grade and a single threshold. Our question was
 fixed before the runs but not chosen on development data, and we tried only one other wording. All decision models
 are at most a month old, and newer versions may change the picture; we release all raw outputs so that the comparison

@@ -6,7 +6,7 @@ plan as it is, not how it got here (the `straighten-branch` skill does that swee
 
 **Title:** *Do System One Models Make Better Rerankers?* (`docs/intent/paper-focus.md`).
 **Target:** the arXiv preprint, end of the week of 2026-10-12 (`docs/intent/venue.md`): the submitted ECIR 2027 short
-paper (tag `ecir2027-submission`) plus what was cut for space and our 27B reranker fine-tune. Handoff for the next
+paper (tag `ecir2027-submission`) plus what was cut for space (our 27B reranker fine-tune is not in the paper; owner, 2026-10-19). Handoff for the next
 session: `docs/notes/paper-handoff.md`.
 
 ## Contribution
@@ -120,7 +120,7 @@ scaling, count test, the `answer` question); our 9B reranker fine-tune (scored, 
 2026-10-13 (tag `ecir2027-submission`).
 
 **The arXiv paper** (end of the week of 2026-10-12). Done by 2026-10-15 (`docs/experiment-log.md`): our 27B reranker
-fine-tune scored and in every table; what was cut for ECIR restored; Tables 1-3 with the `answer` question, S1Rank's
+fine-tune scored (left out of the paper on 2026-10-19, as in the ECIR version); what was cut for ECIR restored; Tables 1-3 with the `answer` question, S1Rank's
 question in the ablation table; the text along `docs/notes/narrative.md` (title *System One Models Are Not Better
 Rerankers*, two-column ACM layout, teaser figure); authors and e-mails; Kanishka's edits from the submitted ECIR PDF.
 Left:
