@@ -1,4 +1,4 @@
-# System One Models Are Not Better Rerankers — status 2026-10-15
+# System One Models Are Not Better Rerankers — status 2026-10-19
 
 > **The paper in one sentence:** on the same backbone, decision fine-tuning never makes a better reranker than plain
 > reranker fine-tuning, and the calibration it is advertised for comes from how the question is worded, not from the
@@ -115,6 +115,8 @@ Prism-9B (2.1 s). So the slowness is Kev's inference path, not decision models a
 - 2026-10-15: Kanishka's edits from the submitted ECIR PDF merged; feature branches (`feature/arxiv-acm`,
   `feature/arxiv-cleanup`, `feature/release-20261012`) merged into `dev-michael` and deleted; the code release lives
   in `release/` and on the orphan branch `release_20261012`.
+- 2026-10-19: our 27B reranker fine-tune briefly removed (23, to stay close to the ECIR version) and restored the
+  same day (24): it is what makes the title hold at 27B.
 
 ## TODOs
 

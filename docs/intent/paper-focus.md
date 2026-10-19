@@ -98,3 +98,12 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
     fine-tuning adds nothing over the base model; the calibration advantage comes from the question, not from the
     model), no hedging chains in abstract, introduction and conclusion. The teaser figure shows how System One models
     rerank and what we test, without the RQ boxes.
+23. **No 27B reranker fine-tune in the paper** (owner, 2026-10-19). The arXiv paper goes back to the ECIR version in
+    this respect: our 27B reranker fine-tune (`qwen3.8-27b-reranker`, decision 14) is removed from the tables and the
+    text, and the 27B triplet has no reranker fine-tune ("none has been released"); its runs stay in
+    `results/results.csv`. Ours-9B stays. What stays from the arXiv revision: our question for every result and
+    S1Rank's only in the ablation (20, 21), the restored tables, the layout, title and authors (22). Narrative:
+    `docs/notes/narrative.md`.
+24. **Our 27B reranker fine-tune back in** (owner, 2026-10-19; reverses 23 the same day). Without it, Kev-27B is the
+    best system and the title would be untested at 27B; with it, RQ1 is answered on all six backbones (a tie at 27B).
+    Review effort of a draft closer to the ECIR version was weighed and accepted. Everything else of 22 stands.

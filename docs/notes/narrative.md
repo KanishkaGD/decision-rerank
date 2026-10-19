@@ -9,6 +9,11 @@ are those of the generated tables (`paper/tables/`); quote no others.
 **System One Models Are Not Better Rerankers** (no subtitle). It states the finding (RQ1: never better on the same
 backbone; worse up to 9B, a tie at 27B), it is short, and it reads as a claim, not a question.
 
+## Scope
+
+Our 27B reranker fine-tune is in the paper (owner, 2026-10-19, decision 24, after a same-day removal was reverted):
+it gives RQ1 a measured answer at 27B, which the title needs.
+
 ## One sentence
 
 On the same backbone, decision fine-tuning never makes a better reranker than plain reranker fine-tuning, and the
