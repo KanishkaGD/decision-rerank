@@ -5,10 +5,9 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-System One models are not better rerankers. On every backbone where both exist, plain reranker fine-tuning beats
-decision fine-tuning, by 5 to 29 points nDCG@10 from 0.6B to 9B, and up to 9B decision fine-tuning adds nothing over
-simply asking the base model. Only at 27B, where no reranker fine-tune exists, does a decision model stand out, and it
-is barely ahead of reranker fine-tunes a third of its size. The calibration that decision models are advertised for
-comes from the question, not from the model: a question that matches the relevance labels makes decision and base
-models alike much better calibrated, a looser one takes the advantage away, and either way calibration does not buy
-better passage selection. If you need a reranker, fine-tune a reranker.
+System One models are not better rerankers. On the same backbone, decision fine-tuning never makes the better
+reranker: plain reranker fine-tuning wins by 5 to 29 points nDCG@10 from 0.6B to 9B, and the two tie at 27B. Up to 9B,
+decision fine-tuning adds nothing over simply asking the base model. The calibration that decision models are
+advertised for comes from the question, not from the model: a question that matches the relevance labels makes
+decision and base models alike much better calibrated, a looser one takes the advantage away, and either way calibration
+does not buy better passage selection up to 9B. If you need a reranker, fine-tune a reranker.

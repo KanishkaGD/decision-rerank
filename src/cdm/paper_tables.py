@@ -109,8 +109,8 @@ TRIPLETS: List[Tuple[str, List[Tuple[str, str, str, str]]]] = [
             ("kev-27b-isolated", "Kev-27B", "decision", "isolated"),
             ("clef-joint", "Clef", "decision", "joint"),
             ("clef-isolated", "Clef", "decision", "isolated"),
-            # No reranker fine-tune of this backbone in the paper: ours (qwen3.8-27b-reranker, scored, its rows stay in
-            # results.csv) was left out by the owner on 2026-10-19 to keep the paper's setup as in the ECIR version.
+            # Our reranker fine-tune (docs/notes/reranker-27b-plan.md; checkpoint final, chosen on msmarco-dev).
+            ("qwen3.8-27b-reranker", "\\textit{Ours-27B}", "reranker", ""),
         ],
     ),
 ]
@@ -341,11 +341,10 @@ def triplet_table(cells: Cells, significance: Optional[Significance] = None) -> 
         "Avg: mean over all ten collections; ZS: mean over the collections without a training split in any",
         "fine-tune's data (TREC-COVID, Touch\\'e, DBPedia). Per backbone and column: best in bold, second best",
         f"underlined. Training: {SYMBOL_LEGEND} (rows shaded grey, red, blue);",
-        "\\textit{Ours-9B}: our reranker fine-tune.",
+        "\\textit{Ours}: our reranker fine-tunes.",
         "Paired $t$-test, Holm-corrected over",
         "the ten collections, $p < 0.05$: $^\\ast$ reranker fine-tune vs.\\ the decision fine-tune with the best Avg,",
-        "$^\\dagger$ that decision fine-tune vs.\\ the base model, $^\\ddagger$ joint vs.\\ isolated. No reranker",
-        "fine-tune of the 27B backbone has been released.}",
+        "$^\\dagger$ that decision fine-tune vs.\\ the base model, $^\\ddagger$ joint vs.\\ isolated.}",
         "\\label{tab:triplets}",
         "\\centering",
         "\\scriptsize",

@@ -100,20 +100,20 @@ def test_posthoc_table():
 def test_calibration_table():
     from cdm.paper_tables import DL_DATASETS, calibration_table
 
-    ece = {("kev-9b-joint", d): 0.15 for d in DL_DATASETS}
-    ece.update({("kev-9b-isolated", d): 0.25 for d in DL_DATASETS})
-    ece.update({("prism-9b", d): 0.2 for d in DL_DATASETS})
-    brier = {("kev-9b-joint", d): 0.16 for d in DL_DATASETS}
-    cutoff = {("kev-9b-joint", d): {"cut_F1@0.5": "0.4", "cut_F1@oracle": "0.5", "cut_regret": "0.1",
+    ece = {("kev-27b-joint", d): 0.15 for d in DL_DATASETS}
+    ece.update({("kev-27b-isolated", d): 0.25 for d in DL_DATASETS})
+    ece.update({("qwen3.8-27b-reranker", d): 0.2 for d in DL_DATASETS})
+    brier = {("kev-27b-joint", d): 0.16 for d in DL_DATASETS}
+    cutoff = {("kev-27b-joint", d): {"cut_F1@0.5": "0.4", "cut_F1@oracle": "0.5", "cut_regret": "0.1",
                                      "cut_oracle_tau": "0.5", "cut_size@0.5": "8", "topk_F1@10": "0.3",
                                      "count_MAE": "7", "count_median_ref": "8.6"}
               for d in DL_DATASETS}
-    posthoc = {("prism-9b", d, "temperature"): {"ECE": "0.1"} for d in DL_DATASETS}
+    posthoc = {("qwen3.8-27b-reranker", d, "temperature"): {"ECE": "0.1"} for d in DL_DATASETS}
     tex = calibration_table(cutoff, posthoc, ece, brier)
     # Better-calibrated mode; per group and column the best value bold, the second underlined; |S| is not ranked.
-    kev = "& Kev-9B (j) & \\textbf{0.150} & -- & -- & \\textbf{0.160} & \\textbf{40.0} & -- & \\textbf{10.0} & 8.0 & " \
+    kev = "& Kev-27B (j) & \\textbf{0.150} & -- & -- & \\textbf{0.160} & \\textbf{40.0} & -- & \\textbf{10.0} & 8.0 & " \
           "\\textbf{7.0} \\\\"
-    ours = "& Prism-9B & \\underline{0.200} & \\textbf{0.100} & -- & -- & -- & -- & -- & -- & -- \\\\"
+    ours = "& \\textit{Ours-27B} & \\underline{0.200} & \\textbf{0.100} & -- & -- & -- & -- & -- & -- & -- \\\\"
     assert any(line.endswith(kev) for line in tex.splitlines())
     assert any(line.endswith(ours) for line in tex.splitlines())
     assert "\\label{tab:calibration}" in tex and "median count: 8.6" in tex
