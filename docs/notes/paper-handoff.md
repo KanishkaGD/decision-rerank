@@ -1,5 +1,10 @@
 # Handoff: the arXiv paper
 
+**Update 2026-10-19 (`feature/paper-clarity`).** Clarity revision (`docs/intent/paper-focus.md` 25): the question
+ablation is now part of Sect. 6 (RQ2), so the sections are 00-06 as before, 07 discussion and limitations, 08
+conclusion; "untuned model" replaces "base model"; Sect. 3 defines all terms; punchline 3 reworded (see
+`docs/notes/narrative.md`).
+
 **Update 2026-10-14 (on `dev-michael` since 2026-10-15).** The paper is now in the two-column ACM layout (acmart sigconf,
 nonacm) with the ECIR narrative, the `answer` question in every result and S1Rank's question only in the ablation
 (Sect. 7, `tables/question-ablation.tex`); Ours-27B is in every table (ties Kev-27B in ranking, worse calibrated).

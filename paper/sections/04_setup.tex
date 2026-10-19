@@ -7,15 +7,14 @@
 \label{sec:setup}
 
 \paragraph{Backbones and variants.}
-We study six Qwen backbones: Qwen3-0.6B and 8B, Qwen3.5-0.8B, 4B and 9B, and Qwen3.8-27B. Each is evaluated in up to
-three variants (Figure~\ref{fig:teaser}). The \emph{base model} is the released model, asked the question in its chat
-format with thinking off and scored by the probability of ``yes'' as the first answer token. The \emph{decision
-fine-tunes} are Kev~\cite{Kev,KevCards} (LoRA on the pretrained checkpoints up to 9B, a full fine-tune of the
-post-trained 27B model) and Clef-Flash (9B) and Clef (27B)~\cite{Clef}, each run in isolated and joint mode
-(Sect.~\ref{sec:decision-models}). We call them decision fine-tunes because they fine-tune an open model to give
-\jev{}'s kind of output; they are not reproductions of RLCD, which is unpublished~\cite{KevCards}. The \emph{reranker
-fine-tunes} are Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding}, built on the same pretrained checkpoints as Kev, and
-Prism~\cite{Zhang2026Prism}, both scored by the probability of ``yes'' against ``no''.
+We study six Qwen backbones: Qwen3-0.6B and 8B, Qwen3.5-0.8B, 4B and 9B, and Qwen3.8-27B, each in the three variants
+of Sect.~\ref{sec:decision-models} (Figure~\ref{fig:teaser}). The untuned model is asked with thinking off. The
+decision fine-tunes are Kev~\cite{Kev,KevCards} on every backbone, Clef-Flash on the 9B and Clef on the 27B
+backbone~\cite{Clef}, each run in isolated and in joint mode. Kev up to 9B is a LoRA fine-tune of the pretrained
+checkpoint; Kev-27B is a full fine-tune of the released chat model. The decision fine-tunes are trained to give
+\jev{}'s kind of output; they are not reproductions of RLCD, which is unpublished~\cite{KevCards}. The reranker
+fine-tunes are Qwen3-Reranker~\cite{Zhang2025Qwen3Embedding} (0.6B, 8B), built on the same pretrained checkpoints as
+Kev, and Prism~\cite{Zhang2026Prism} (0.8B, 4B, 9B).
 
 \paragraph{Our reranker fine-tunes.}
 No reranker fine-tune of Qwen3.8-27B has been released, so we train one ourselves (\emph{Ours-27B}), from exactly the
@@ -30,13 +29,13 @@ hyperparameter search are involved. Qwen3-Reranker, Prism and our fine-tunes saw
 data contain neither MS~MARCO nor BEIR~\cite{KevCards}.
 
 \paragraph{The question.}
-Every decision and base model is asked one question per passage: ``Does document \texttt{\{doc\}} answer the
+Every decision and untuned model is asked one question per passage: ``Does document \texttt{\{doc\}} answer the
 \texttt{query}?'' It matches the relevance labels we evaluate against (on TREC DL, a passage counts as relevant if it
 answers the query, from grade~2). We fixed this question before running the experiments, but did not choose it on
 development data, and we report every result with it. The only other wording we ran is the question of
 S1Rank~\cite{S1Rank}: ``Is document \texttt{\{doc\}} relevant to the \texttt{query}? Relevant means it answers the
-query or contains information that directly addresses it.'' It is the subject of the ablation in
-Sect.~\ref{sec:question}. Reranker fine-tunes ask no question of this kind; they keep their own prompt.
+query or contains information that directly addresses it.'' Section~\ref{sec:calibration} compares the two.
+Reranker fine-tunes ask no question of this kind; they keep their own prompt.
 
 \paragraph{Collections and candidates.}
 We use TREC DL
@@ -56,19 +55,21 @@ RankGPT-4~\cite{Sun2023RankGPT} (published numbers only).
 
 \paragraph{Ranking.}
 We measure nDCG@10 and test differences with paired $t$-tests over queries, Holm-corrected across the ten
-collections ($p < 0.05$). Per backbone, we test the reranker fine-tune against the decision fine-tune with the best
-average (in its better mode), that decision fine-tune against the base model, and joint against isolated mode.
+collections ($p < 0.05$). Per backbone, we test three differences: the reranker fine-tune against the strongest decision
+fine-tune (the decision fine-tune and mode with the best average), that decision fine-tune against the untuned model,
+and joint against isolated mode.
 
 \paragraph{Calibration and its uses.}
 We compute the expected calibration error (ECE, 15 equal-width bins)~\cite{Guo2017Calibration} and the Brier score
 (the mean squared error of the probability against the binary label, which also rewards separating relevant from
 non-relevant passages) on the judged query--passage pairs of TREC DL 2019--2023, the only collections that also judge
-many non-relevant passages; a passage counts as relevant from grade~2. We test two uses of the probabilities. A
-\emph{fixed cutoff} keeps every candidate with $p \ge 0.5$; we report the $F_1$ of this set (unjudged passages count
-as non-relevant), its size, and its \emph{regret}: the $F_1$ at the best threshold of each collection, chosen
-afterwards, minus the $F_1$ at 0.5. The \emph{count} test sums a query's probabilities over its judged passages, which
-estimates how many of them are relevant, and reports the mean absolute error of this estimate in passages; always
-guessing the median count is the trivial baseline. Reranker fine-tunes are also calibrated after the fact, with
+many non-relevant passages; a passage counts as relevant from grade~2. We test two uses of the probabilities. The \emph{fixed cutoff} keeps every candidate with $p \ge 0.5$; we report the
+$F_1$ of this set (unjudged passages count as non-relevant) and its size. Its \emph{regret} is what a better threshold
+would gain: the $F_1$ at the best threshold of each collection, chosen afterwards, minus the $F_1$ at 0.5. The
+\emph{count test} adds up a query's probabilities over its judged passages. If the probabilities are calibrated, this
+sum estimates how many of the passages are relevant. We report the mean absolute error of this estimate, in
+passages. As a reference, always guessing the median number of relevant passages of the collection is off by 8.6
+passages. Reranker fine-tunes are also calibrated after the fact, with
 temperature and Platt scaling of their logit fitted on 1,000 MS~MARCO dev queries, never on a test collection.
 
 \paragraph{Sanity checks.}
