@@ -1,7 +1,7 @@
 # Decision Models as Rerankers
 
-Code and results for the arXiv paper *System One Models Are Not Better Rerankers* (the extended version of the ECIR
-2027 short paper submission *Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One
+Code and results for the arXiv paper *System One Models Are Not Better Rerankers* 
+*Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One
 Backbone*; see "Versions" below).
 
 System One decision models (Jev, Clef, Kev, Laya) answer a typed question about an input with a calibrated
