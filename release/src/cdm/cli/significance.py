@@ -5,12 +5,15 @@ TEST = "dl19,dl20,dl21,dl22,dl23,trec-covid,nfcorpus,scifact,touche,dbpedia"
 
 @click.command("significance")
 @click.option("--datasets", default=TEST, show_default=True, help="Comma-separated; Holm corrects across these.")
-def significance(datasets):
+@click.option("--phrasing", default="answer", show_default=True, help="Question of the decision models (and base models).")
+def significance(datasets, phrasing):
     """
     RQ1: paired t-tests over queries (nDCG@10 from the stored perquery.csv) for the triplet comparisons -- reranker
     fine-tune vs. the best decision fine-tune, that one vs. the base model, joint vs. isolated -- Holm-corrected across
     the datasets per comparison. Reads stored outputs only; writes one row per comparison and dataset (job =
-    significance, system = the first system, variant = vs-<second system>) to results.csv.
+    significance, system = the first system, variant = vs-<second system>, with "@<phrasing>" for any question but
+    S1Rank's) to results.csv. Systems that ask no question (phrasing none) are compared with the decision and base
+    models of the given question; the triplets' base rows are the paper's (cdm.paper_tables.TRIPLETS).
     """
     from cdm.datasets import get_dataset
     from cdm.provenance import code_revision
@@ -20,6 +23,7 @@ def significance(datasets):
     names = datasets.split(",")
     df = load_results()
     df = df[(df["job"] == "rerank") & (df["subset"] == "") & (df["variant"] == "") & (df["output"] != "")]
+    df = df[df["phrasing"].isin([phrasing, "none", ""])]
     rows = {}
     for dataset in names:
         first_stage = get_dataset(dataset).default_first_stage
@@ -33,7 +37,7 @@ def significance(datasets):
     systems = {s for s, _ in rows}
     revision = code_revision()
     code = revision.get("describe", revision.get("commit", ""))
-    for a, b, comparison in comparisons({s: average(s) for s in systems}):
+    for a, b, comparison in comparisons({s: average(s) for s in systems}, phrasing):
         tested = [d for d in names if (a, d) in rows and (b, d) in rows]
         if not tested:
             click.echo(f"  {a} vs {b}: no common outputs, skipped", err=True)
@@ -43,7 +47,7 @@ def significance(datasets):
         flags = holm_flags([r["p"] for r in results], ALPHA)
         for dataset, result, significant in zip(tested, results, flags):
             key = {c: rows[(a, dataset)][c] for c in RESULT_KEY_COLUMNS}
-            key.update(job="significance", variant=f"vs-{b}")
+            key.update(job="significance", variant=f"vs-{b}" + ("" if phrasing == "s1rank" else f"@{phrasing}"))
             save_result(key, {
                 "sig_comparison": comparison, "sig_other": b, "sig_metric": METRIC, "sig_test": "paired-t",
                 "sig_correction": f"holm-{len(tested)}", "sig_delta": result["delta"], "sig_t": result["t"],

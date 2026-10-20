@@ -93,14 +93,14 @@
   \input{figures/teaser}
   \caption{How System One models rerank and what we compare. (a)~A decision model is asked, for each BM25
   candidate, whether the passage answers the query, and the candidates are sorted by the probability of ``yes''. The
-  state holds one passage (isolated mode) or all 100 candidates (joint mode). (b)~On one Qwen backbone, the base
+  state, the input the model is asked about, holds one passage (isolated mode) or all 100 candidates (joint mode). (b)~On one Qwen backbone, the untuned
   model, its decision fine-tunes and its reranker fine-tunes rerank the same candidates and are compared on ranking
   and on calibration.}
   \Description{Two panels. Panel a: a query with one passage per state (isolated mode) or with all 100 candidate
   passages in one state (joint mode) goes into a decision model together with the question ``Does document doc answer
   the query?'', asked once per passage. The model returns a probability of yes for every passage, shown as bars on
   example passages in BM25 order, and sorting by this probability gives the reranked list. Panel b: one Qwen backbone
-  of 0.6B to 27B parameters branches into three variants: the base model asked zero-shot, a decision fine-tune (Kev,
+  of 0.6B to 27B parameters branches into three variants: the untuned model asked zero-shot, a decision fine-tune (Kev,
   Clef) and a reranker fine-tune (Qwen3-Reranker, Prism, ours). All three read the same BM25 top-100 of TREC DL
   2019--2023 and five BEIR collections and return a probability of yes, which is evaluated for ranking (nDCG@10) and
   for calibration (predicted probability against observed relevance).}
@@ -115,9 +115,8 @@
 \input{sections/04_setup}
 \input{sections/05_reranking}
 \input{sections/06_calibration}
-\input{sections/07_question}
-\input{sections/08_discussion}
-\input{sections/09_conclusion}
+\input{sections/07_discussion}
+\input{sections/08_conclusion}
 
 \begin{acks}
 \TODO{acknowledgements, if any; compute (FAITH cluster, University of Passau); disclosure of competing interests}

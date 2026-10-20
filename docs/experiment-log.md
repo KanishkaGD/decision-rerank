@@ -12,6 +12,31 @@ What was tried / decided, why, and what happened. Job ids, output paths, commits
 Open questions or follow-ups.
 ```
 
+## 2026-10-20 -- release/ updated to the arXiv version
+
+Owner: "update the release repository if it is not yet updated", then "please use the release/ folder". `release/`
+still held the ECIR state (S1Rank's question only, no `answer` phrasing, no Ours-27B, tables `triplets`,
+`context-short`, `calibration`, `context`, `calibration-full`; none byte-identical to the arXiv `paper/tables`).
+Branch `feature/release-arxiv` (from `feature/paper-clarity` 7177b05), pruned the same way as the ECIR release:
+
+- Code: the changes to `src/cdm` since the release (cb3c6d5^..7177b05) merged three-way into the pruned copy
+  (`cdm significance --phrasing`, base models `<name>-prompted-answer`, posthoc list with Ours-9B/27B, the
+  `answer`-question `paper_tables`); `answer` phrasing and its templates restored, `qwen3.8-27b-reranker` (Ours-27B,
+  checkpoint `final`) registered. `paper_tables` writes only the arXiv paper's tables (`triplets`, `context`,
+  `calibration`, `question-ablation`); cutoff, posthoc and context-short dropped like cutoff/posthoc were for ECIR.
+  Generated table headers keep "(make tables, in paper/)" so the tables are byte-identical to the paper's.
+- Results: `scripts/release_results.py` (new) filters `results/results.csv` to the systems registered in the release
+  code and the first stage, drops the cluster columns (output, slurm_job_id, code, source_output, no_yes_no_answer),
+  copies `literature.csv`: 1,738 rows (ECIR release: 1,052; all of them contained, values identical except
+  `updated_at` of 170 recomputed cutoff rows). Applied to the ECIR state, the same rule reproduces the old filter.
+- `run_all.sh`: both questions, Ours-27B (4 GPUs, `final` selection row), `cdm significance --phrasing answer`;
+  README: arXiv version, Ours-27B, the question ablation, and a "Versions" section on the ECIR state.
+
+Checks (compute node, `slurm/exec.sh`, pytest from `data/devtools`): release tables regenerated from
+`release/results` are byte-identical to `paper/tables/{triplets,context,calibration,question-ablation}.tex`, and
+`paper/tables` regenerate unchanged from `results/`; pytest 81 passed (repo) and 78 passed (`release/tests`).
+The orphan branch `release_20261012` was left untouched (owner: use `release/`).
+
 ## 2026-10-19 -- Our 27B reranker fine-tune back in the paper
 
 Owner's decision 24, the same day: the removal below is reverted (`git revert` of 202ce12). Reason: without our 27B

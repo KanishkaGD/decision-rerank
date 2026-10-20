@@ -27,7 +27,7 @@
   % (a) How a System One model reranks   (x from 0 to 9.05)
   % ===================================================================================
   \draw[panel] (0,0) rectangle (9.05,5.3);
-  \node[ptitle] at (0.2,5.1) {(a) How a System One model reranks};
+  \node[ptitle] at (0.2,5.1) {(a) How a decision model reranks};
 
   % ---- states: isolated (top), joint (bottom) ----
   \node[head, anchor=west] at (0.3,4.5) {$\triangle$ Isolated mode};
@@ -103,7 +103,7 @@
     0.6B\\to 27B};
 
   \node[variant=rowbase] (base) at (3.35,3.05)
-    {$\circ$~\textbf{Base model}\\[1pt]asked zero-shot};
+    {$\circ$~\textbf{Untuned model}\\[1pt]asked zero-shot};
   \node[variant=rowdecision] (decision) at (3.35,2.0)
     {$\blacktriangle$/$\triangle$~\textbf{Decision fine-tune}\\[1pt]Kev, Clef};
   \node[variant=rowreranker] (reranker) at (3.35,0.95)

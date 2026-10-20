@@ -43,3 +43,8 @@ def test_passage_cut_to_budget_prompt_kept():
     assert COMPLETION.endswith("Answer:")
     assert j.count_truncated("q?", ["x" * 500, "short"]) == 1
 
+
+def test_answer_question_template():
+    j = judge(question="answer")
+    assert j.prefix_text == "Query: {query}\nDocument: "
+    assert j.suffix_text == "\nDoes the document answer the query? Answer yes or no.\nAnswer:"
