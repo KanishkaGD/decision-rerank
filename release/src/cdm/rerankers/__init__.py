@@ -57,14 +57,17 @@ PRISM_REVISIONS = {
     "9b": "1c40be94424cde2e8a3be44487492e63861e1601",
 }
 
-# Our own reranker fine-tune (`cdm finetune-data`, `cdm finetune`; Ours-9B in the paper): a LoRA adapter on the
-# post-trained release, trained with Qwen3-Reranker's prompt and read like it. (name, base, revision, dtype at scoring
-# time, batch size)
+# Our own reranker fine-tunes (`cdm finetune-data`, `cdm finetune`; Ours-27B and Ours-9B in the paper): a LoRA
+# adapter on the post-trained release, trained with Qwen3-Reranker's prompt and read like it. The 27B one fills the
+# reranker cell of the Qwen3.8-27B triplet (no reranker fine-tune of it is released); the 9B one validates the recipe
+# against Prism-9B on the same backbone. (name, base, revision, dtype at scoring time, batch size)
 OWN_RERANKERS = [
+    ("qwen3.8-27b-reranker", "Qwen/Qwen3.8-27B", "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0", "bfloat16", 16),
     ("qwen3.5-9b-reranker", "Qwen/Qwen3.5-9B", "c202236235762e1c871ad0ccb60c8ee5ba337b9a", "float32", 16),
 ]
 # The checkpoint each fine-tune is scored with, chosen on msmarco-dev by the rule fixed in the plan (keep `final`
-# unless an earlier checkpoint is more than 1 point better on MRR@10).
+# unless an earlier checkpoint is more than 1 point better on MRR@10): checkpoint-800 for the 9B one, `final` for the
+# 27B one.
 SELECTED_CHECKPOINT = {"qwen3.5-9b-reranker": "checkpoint-800"}
 
 
@@ -131,6 +134,19 @@ SYSTEMS: Dict[str, SystemSpec] = {
         *[
             SystemSpec(name, "prompted", model_id, {"dtype": dtype, "mode": mode, "batch_size": 16}, revision=rev)
             for name, model_id, rev, dtype, mode in PROMPTED
+        ],
+        # The base models asked the paper's question ("answer"; the decision models get it as a phrasing): the systems
+        # <name>-answer. The ones above ask S1Rank's question (question ablation).
+        *[
+            SystemSpec(
+                f"{name}-answer",
+                "prompted",
+                model_id,
+                {"dtype": dtype, "mode": mode, "question": "answer", "batch_size": 16},
+                revision=rev,
+            )
+            for name, model_id, rev, dtype, mode in PROMPTED
+            if mode == "chat"
         ],
         *[
             SystemSpec(

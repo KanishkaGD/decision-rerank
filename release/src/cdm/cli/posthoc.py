@@ -3,7 +3,10 @@ import os
 import click
 
 # The trained rerankers whose native probabilities are scaled after the fact.
-RERANKERS = "qwen3-reranker-0.6b,qwen3-reranker-8b,prism-0.8b,prism-4b,prism-9b,monot5-3b,bge-m3,set-encoder-large"
+RERANKERS = (
+    "qwen3-reranker-0.6b,qwen3-reranker-8b,prism-0.8b,prism-4b,prism-9b,monot5-3b,bge-m3,set-encoder-large,"
+    "qwen3.5-9b-reranker,qwen3.8-27b-reranker"
+)
 TEST = "dl19,dl20,dl21,dl22,dl23,trec-covid,nfcorpus,scifact,touche,dbpedia"
 # Where a default cell comes from the literature, the probabilities come from our efficiency run on the same
 # candidates (as in `cdm cutoff`); the stored row records it in source_variant.
