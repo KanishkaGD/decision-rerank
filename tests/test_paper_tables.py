@@ -116,7 +116,7 @@ def test_calibration_table():
     ours = "& \\textit{Ours-27B} & \\underline{0.200} & \\textbf{0.100} & -- & -- & -- & -- & -- & -- & -- \\\\"
     assert any(line.endswith(kev) for line in tex.splitlines())
     assert any(line.endswith(ours) for line in tex.splitlines())
-    assert "\\label{tab:calibration}" in tex and "guessing the median: 8.6" in tex
+    assert "\\label{tab:calibration}" in tex and "median count: 8.6" in tex
 
 
 def test_count_median_reference():

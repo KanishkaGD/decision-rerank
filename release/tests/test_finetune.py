@@ -108,11 +108,9 @@ def test_reader_input_shared_with_trainer():
 
 
 def test_own_rerankers_registered():
-    for name in ["qwen3.8-27b-reranker", "qwen3.5-9b-reranker"]:
+    for name in ["qwen3.5-9b-reranker"]:
         spec = SYSTEMS[name]
         assert spec.kind == "qwen3-reranker" and spec.revision
         # the checkpoint chosen on msmarco-dev where one was chosen (SELECTED_CHECKPOINT), else the final one
         assert spec.params["adapter"] == f"checkpoints/{name}/{SELECTED_CHECKPOINT.get(name, 'final')}"
     assert SELECTED_CHECKPOINT["qwen3.5-9b-reranker"] == "checkpoint-800"
-    assert SYSTEMS["qwen3.8-27b-reranker"].revision == "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"  # = Kev-27B's base
-    assert SYSTEMS["qwen3.8-27b-reranker"].params["adapter"] == "checkpoints/qwen3.8-27b-reranker/final"

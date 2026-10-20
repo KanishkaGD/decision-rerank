@@ -7,9 +7,8 @@
 # Commands run directly when `cdm` is importable from src/ (a Python environment with pyproject.toml's dependencies),
 # or inside the Apptainer images when CDM_CONTAINER=1 (container/cdm.sif, container/lightning-ir.sif for the
 # Set-Encoder). On a cluster, run the steps -- or the single `cdm rerank` calls -- as batch jobs; the commands are the
-# same. GPUs: 48 GB suffice for most systems; the 27B models, the 8B/9B models in fp32 and the fine-tunes (Ours-9B on
-# 2 GPUs, Ours-27B on 4) need 80 GB. Jev runs through the TypeSafe API (TYPESAFE_API_KEY, see .env.example) and needs
-# no GPU.
+# same. GPUs: 48 GB suffice for most systems; the 27B models, the 8B/9B models in fp32 and the fine-tune (2 GPUs) need
+# 80 GB. Jev runs through the TypeSafe API (TYPESAFE_API_KEY, see .env.example) and needs no GPU.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "${ROOT}"
@@ -23,22 +22,17 @@ export HF_HOME="${HF_HOME:-${CDM_DATA}/hf_cache}" PYSERINI_CACHE="${PYSERINI_CAC
 TEST="dl19 dl20 dl21 dl22 dl23 trec-covid nfcorpus scifact touche dbpedia"
 DL="dl19 dl20 dl21 dl22 dl23"
 # The triplets (base model | decision fine-tunes, joint and isolated | reranker fine-tunes), then the other systems.
-# Base models: <name>-prompted-answer asks the paper's question, <name>-prompted S1Rank's (question ablation). The
-# decision models get both questions as phrasings (`cdm rerank` runs every phrasing by default: answer and s1rank).
-TRIPLETS="qwen3-0.6b-prompted-answer qwen3-0.6b-prompted kev-0.6b-joint kev-0.6b-isolated qwen3-reranker-0.6b
-          qwen3-8b-prompted-answer qwen3-8b-prompted kev-8b-joint kev-8b-isolated qwen3-reranker-8b
-          qwen3.5-0.8b-prompted-answer qwen3.5-0.8b-prompted kev-0.8b-joint kev-0.8b-isolated prism-0.8b
-          qwen3.5-4b-prompted-answer qwen3.5-4b-prompted kev-4b-joint kev-4b-isolated prism-4b
-          qwen3.5-9b-prompted-answer qwen3.5-9b-prompted kev-9b-joint kev-9b-isolated clef-flash-joint
-          clef-flash-isolated prism-9b qwen3.5-9b-reranker
-          qwen3.8-27b-prompted-answer qwen3.8-27b-prompted kev-27b-joint kev-27b-isolated clef-joint clef-isolated
-          qwen3.8-27b-reranker"
+TRIPLETS="qwen3-0.6b-prompted kev-0.6b-joint kev-0.6b-isolated qwen3-reranker-0.6b
+          qwen3-8b-prompted kev-8b-joint kev-8b-isolated qwen3-reranker-8b
+          qwen3.5-0.8b-prompted kev-0.8b-joint kev-0.8b-isolated prism-0.8b
+          qwen3.5-4b-prompted kev-4b-joint kev-4b-isolated prism-4b
+          qwen3.5-9b-prompted kev-9b-joint kev-9b-isolated clef-flash-joint clef-flash-isolated prism-9b
+          qwen3.5-9b-reranker
+          qwen3.8-27b-prompted kev-27b-joint kev-27b-isolated clef-joint clef-isolated"
 OTHERS="bge-m3 monot5-3b set-encoder-large jev-joint jev-isolated laya"
-# Our reranker fine-tunes (Ours-9B, Ours-27B) and the GPUs each was trained on.
-FINETUNED="qwen3.5-9b-reranker:2 qwen3.8-27b-reranker:4"
 # Rerankers whose probabilities are scaled after the fact; fitted on 1,000 MS MARCO dev queries.
-POSTHOC="qwen3-reranker-0.6b qwen3-reranker-8b prism-0.8b prism-4b prism-9b monot5-3b bge-m3 set-encoder-large
-         qwen3.5-9b-reranker qwen3.8-27b-reranker"
+POSTHOC="qwen3-reranker-0.6b qwen3-reranker-8b prism-0.8b prism-4b prism-9b monot5-3b bge-m3 set-encoder-large"
+FINETUNED="qwen3.5-9b-reranker"
 
 cdm() {
     local image="container/cdm.sif"
@@ -71,26 +65,18 @@ step_first_stage() {
 }
 
 step_finetune() {
-    # Ours-9B and Ours-27B, the same recipe: a LoRA adapter (r 32) on the post-trained Qwen3.5-9B / Qwen3.8-27B, 100k
-    # MS MARCO training queries, 1 positive + 15 negatives each, listwise and pointwise loss, one epoch (1,562 steps,
-    # bf16) on 2 / 4 GPUs. Checkpoints every 200 steps under checkpoints/<system>/.
+    # Ours-9B: a LoRA adapter on Qwen3.5-9B, 100k MS MARCO training queries, 1 positive + 15 negatives each, listwise
+    # and pointwise loss, one epoch on 2 GPUs (bf16). Checkpoints every 200 steps under checkpoints/qwen3.5-9b-reranker/.
     export HF_HUB_OFFLINE=1
     cdm finetune-data msmarco-mix-100k --queries 100000
-    for entry in ${FINETUNED}; do
-        system="${entry%%:*}" gpus="${entry##*:}"
-        FINETUNE_ARGS=("${system}" msmarco-mix-100k --loss both)
-        torchrun_cdm --standalone --nproc_per_node="${gpus}"
-        # Checkpoint selection on 200 msmarco-dev queries: keep `final` unless an earlier checkpoint is more than 1
-        # point better on MRR@10 (SELECTED_CHECKPOINT in src/cdm/rerankers/__init__.py: checkpoint-800 for Ours-9B,
-        # `final` for Ours-27B; its `final` row is the one without a variant).
-        for ckpt in checkpoints/${system}/checkpoint-*; do
-            n="${ckpt##*-}"
-            cdm rerank "${system}" msmarco-dev --first-stage bm25-d100-max1000 --max-queries 200 \
-                --adapter "${ckpt}" --variant "ckpt${n}"
-        done
-        if [ "${system}" = qwen3.8-27b-reranker ]; then
-            cdm rerank "${system}" msmarco-dev --first-stage bm25-d100-max1000 --max-queries 200
-        fi
+    FINETUNE_ARGS=("${FINETUNED}" msmarco-mix-100k --loss both)
+    torchrun_cdm --standalone --nproc_per_node=2
+    # Checkpoint selection on 200 msmarco-dev queries: keep `final` unless an earlier checkpoint is more than 1 point
+    # better on MRR@10 (it was: checkpoint-800, set in SELECTED_CHECKPOINT in src/cdm/rerankers/__init__.py).
+    for ckpt in checkpoints/${FINETUNED}/checkpoint-*; do
+        n="${ckpt##*-}"
+        cdm rerank "${FINETUNED}" msmarco-dev --first-stage bm25-d100-max1000 --max-queries 200 \
+            --adapter "${ckpt}" --variant "ckpt${n}"
     done
 }
 
@@ -105,9 +91,8 @@ step_rerank() {
 }
 
 step_analyses() {
-    # Read the stored outputs only (CPU): significance (RQ1, the paper's question), the fixed cutoff and count test
-    # (every system and question), post-hoc scaling (RQ2).
-    cdm significance --phrasing answer
+    # Read the stored outputs only (CPU): significance (RQ1), the fixed cutoff and count test, post-hoc scaling (RQ2).
+    cdm significance
     cdm cutoff
     cdm posthoc --systems "$(echo ${POSTHOC} | tr ' ' ,)"
 }

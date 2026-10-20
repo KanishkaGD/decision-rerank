@@ -1,66 +1,51 @@
 % =====================================================================================
-% Section 6 -- RQ2: calibration, its dependence on the question, and its uses (punchline 3 of
-% docs/notes/narrative.md). Every number quoted here is in tables/calibration.tex (the paper's question) or
-% tables/question-ablation.tex (S1Rank's question against ours).
+% Section 6 -- RQ2: calibration and its uses (punchline 3 of docs/notes/narrative.md; its proof, the wording, is in
+% Sect. 7). Every number quoted here is in tables/calibration.tex (the paper's question).
 % =====================================================================================
-\section{RQ2: Are Decision Models Better Calibrated?}
+\section{RQ2: Are Decision Models at Least Better Calibrated?}
 \label{sec:calibration}
 
 \input{tables/calibration}
 
 Calibration is the main promise of decision models. Table~\ref{tab:calibration} reports it on the judged pairs of TREC
-DL 2019--2023, together with the two uses we test. Table~\ref{tab:question-ablation} repeats every run of a decision
-or untuned model with S1Rank's question.
+DL 2019--2023, together with the two uses we test.
 
 \paragraph{Asked our question, decision models are well calibrated.}
-The untuned models of 0.6B and 0.8B parameters say ``yes'' to almost everything (ECE 0.750 and 0.617); from 4B on,
-they are reasonably calibrated already (0.117 to 0.231). Decision fine-tuning improves on the untuned model on every
-backbone, for example from 0.231 to 0.113 on Qwen3-8B. From 4B on, the decision fine-tunes are also better calibrated
-than the published reranker fine-tunes (Kev-8B 0.113 vs.\ Qwen3-Reranker-8B 0.257); on the two smallest backbones they
-are not. The best calibrated systems in the study are \jev{} (0.075) and Kev-27B (0.076). Decision fine-tuning is not
-the only way there: our 9B reranker fine-tune, trained with a plain yes/no loss, is as well calibrated as Clef-Flash
-(0.111 vs.\ 0.112). Our 27B reranker fine-tune is less well calibrated than Kev-27B (0.110).
+The untuned base models of 0.6B and 0.8B parameters say ``yes'' to almost everything (ECE 0.750 and 0.617); from 4B
+on, they are reasonably calibrated already (0.117 to 0.231). On the small backbones, fine-tuning of either kind
+improves on the base model, reranker fine-tuning as much as decision fine-tuning (0.6B: Kev 0.503, Qwen3-Reranker
+0.511; 0.8B: Kev 0.336, Prism 0.243). From 4B on, the decision fine-tunes
+are better calibrated than the published reranker fine-tunes (ECE: Kev-4B 0.132 vs.\ Prism-4B 0.218, Kev-8B 0.113 vs.\
+Qwen3-Reranker-8B 0.257, Clef-Flash 0.112 vs.\ Prism-9B 0.242). The best calibrated systems in the study are \jev{}
+(0.075) and Kev-27B (0.076); Kev-27B is also better calibrated than our 27B reranker fine-tune (0.110). Decision
+fine-tuning is not the only way there: our 9B reranker fine-tune, which asks no question and was trained with a plain
+yes/no loss, is as well calibrated as Clef-Flash (0.111 vs.\ 0.112) and has the lower Brier score (0.157 vs.\ 0.158).
 
-\paragraph{The advantage depends on the question.}
-S1Rank's question asks whether the passage is relevant and defines relevance more loosely: the passage ``answers the
-query or contains information that directly addresses it''. Both wordings are reasonable, and S1Rank's is the one
-under which \jev{} was first shown to be a good reranker. The ranking hardly moves between the two: the mean nDCG@10
-of the decision fine-tunes changes by $-2.5$ to $+2.6$ points, and with S1Rank's question, too, the best decision
-fine-tune of every backbone up to 9B is 4 points or more behind the reranker fine-tune. The answer to RQ1 does not
-depend on the wording. Calibration moves a lot. With S1Rank's question, almost every model is worse calibrated, often
-by a factor of two or three (\jev{} joint: ECE 0.224 instead of 0.075). The decision fine-tunes are then at best as
-well calibrated as the best reranker fine-tune of their backbone (Kev-8B 0.243 vs.\ Qwen3-Reranker-8B 0.257, Kev-27B
-0.156 vs.\ Ours-27B 0.110). One sentence of the prompt decides whether decision models are better calibrated than
-reranker fine-tunes.
+\paragraph{The advantage comes from the question.}
+All of this holds for a question that matches the relevance labels. Section~\ref{sec:question} repeats every run with
+S1Rank's looser question: the same decision models then lose their advantage over the reranker fine-tunes, while
+their ranking hardly moves. The calibration of a decision model is a property of the question it is asked.
 
-The untuned models gain as much from our wording as the decision fine-tunes (Qwen3-8B: 0.383 with S1Rank's question,
-0.231 with ours). A question that matches the definition of relevance in the labels makes the probabilities better
-calibrated, with or without decision fine-tuning. The user of a decision model has to put that definition into words,
-and a small change in the words changes the calibration severalfold. A reranker fine-tune has no such knob: its
-notion of relevance is fixed by its training labels.
-
-\paragraph{Calibration does not make up for a worse ranking.}
+\paragraph{Calibration does not buy better passage selection.}
 If every passage with $p \ge 0.5$ is kept, a reranker fine-tune keeps the better set on every backbone up to 9B
-(e.g.\ $F_1$@.5 of 51.0 for Prism-4B vs.\ 42.6 for Kev-4B), although it is the worse calibrated model on most of
-them. The threshold is not the problem: for the decision models, 0.5 is close to the best threshold of each
-collection (regret of 0.9 to 3.1 points). A well-placed threshold on a worse ranking still yields the worse set. Where
-the rankings are equally good, calibration does pay off: at 27B, the better calibrated Kev-27B keeps the better set
-(57.2 vs.\ 48.3), while our fine-tune is underconfident and keeps only 7.9 passages per query.
+(e.g.\ $F_1$@.5 of 51.0 for Prism-4B vs.\ 42.6 for Kev-4B, and 50.7 for Prism-9B vs.\ 47.1 for Clef-Flash), although
+it is the worse calibrated model on most of them. For the decision models, 0.5 is close to the best threshold of each
+collection (regret of 0.9 to 3.1 points), whereas Prism-9B loses 4.0 points and Ours-9B 6.4 against their best
+thresholds. A well-placed threshold on a worse ranking still yields the worse set. At 27B, where the two kinds of
+fine-tuning rank equally well, the better calibrated Kev-27B keeps the better set (57.2 vs.\ 48.3); our fine-tune is
+underconfident and keeps only 7.9 passages per query.
 
 \paragraph{Counting relevant passages.}
-A ranking cannot tell how many passages are relevant; the sum of calibrated probabilities can. Asked our question,
-most decision models from 4B on count better than the median guess (8.6 passages off) and better than the published
-reranker fine-tunes of their backbone (Kev-8B 7.6 vs.\ Qwen3-Reranker-8B 12.9). Decision fine-tuning is not what makes
-this work: the untuned Qwen3.8-27B counts most accurately of all (5.8), and Ours-9B counts better than Clef-Flash (7.3
-vs.\ 8.1). With S1Rank's question, no decision model beats the median guess by more than a fraction of a passage
-(best: Clef joint, 8.4).
+The count test asks how many of a query's judged passages are relevant, which a ranking cannot tell. Most decision
+models from 4B on beat always guessing the median count (8.6) and the published reranker fine-tunes of their
+backbones (Kev-8B 7.6 vs.\ Qwen3-Reranker-8B 12.9, Kev-4B 8.4 vs.\ Prism-4B 11.5). The untuned Qwen3.8-27B counts most
+accurately of all (5.8), and Ours-9B counts better than Clef-Flash (7.3 vs.\ 8.1): counting works with a matching
+question, with or without decision fine-tuning.
 
 \paragraph{Calibration after the fact.}
 Rerankers can also be calibrated after training. Temperature scaling fitted on MS~MARCO dev lowers the ECE of the
-worst calibrated rerankers (Qwen3-Reranker-0.6B from 0.511 to 0.326) and changes the others little. Platt scaling
-backfires at the fixed cutoff ($F_1$@.5 of 8.1 or less): MS~MARCO dev has about one relevant passage per query, so the
-fitted probabilities are far too low for TREC DL, where queries have many more. A calibration holds only for the
-notion of relevance and the base rate it was fitted on (Sect.~\ref{sec:discussion}).
-
-% After the text, so that LaTeX does not stack it with Table 3 on one page (that page overflows).
-\input{tables/question-ablation}
+worst calibrated rerankers on TREC DL (Qwen3-Reranker-0.6B from 0.511 to 0.326, the Set-Encoder from 0.495 to 0.250)
+and changes the others little. Platt scaling makes every reranker worse at the fixed cutoff ($F_1$@.5 of 8.1 or less):
+MS~MARCO dev judges about one passage per query, so the fitted probabilities are far too low for the denser judgments
+of TREC DL. Calibration is defined only with respect to a notion of relevance and its base rate
+(Sect.~\ref{sec:discussion}).

@@ -1,5 +1,5 @@
 % =====================================================================================
-% Section 7 -- Discussion and limitations (restored for arXiv: docs/intent/paper-focus.md 18)
+% Section 8 -- Discussion and limitations (restored for arXiv: docs/intent/paper-focus.md 18)
 % No new numbers here.
 % =====================================================================================
 \section{Discussion and Limitations}
@@ -9,20 +9,13 @@
 A reranker fine-tune is trained on the very task it is tested on: telling relevant from non-relevant passages of a
 query, with a ranking loss over hard negatives. The decision fine-tunes we tested learned to answer many kinds of
 questions about many kinds of states, and Kev's training data contain no MS~MARCO and no BEIR~\cite{KevCards}. That
-general skill transfers to relevance about as well as the untuned model's own instruction following, which is what we
+general skill transfers to relevance about as well as the base model's own instruction following, which is what we
 observe up to 9B. The zero-shot subset shows that the gap is not about having seen the test domain: it persists on
 collections that neither kind of fine-tune was trained on.
 
-\paragraph{Why 27B is different.}
-Kev-27B is the only decision fine-tune that adds to its untuned model. It differs from the smaller Kevs in more than
-size: it is a full fine-tune of the released chat model, whereas the smaller Kevs are LoRA fine-tunes of pretrained
-checkpoints, and it was trained on longer states (Sect.~\ref{sec:reranking}). We cannot tell which of these matters.
-Size alone is not enough: Clef, a decision fine-tune of the same 27B model, adds nothing. Reranker fine-tuning also
-adds less at 27B than on the smaller backbones, because the untuned 27B model already ranks well.
-
 \paragraph{What calibration means for relevance.}
 A probability of relevance is calibrated only with respect to a definition of relevance and its base rate. Our
-results show three ways to move it: the wording of the question (Sect.~\ref{sec:calibration}), the labels of the
+results show three ways to move it: the wording of the question (Sect.~\ref{sec:question}), the labels of the
 training data (our reranker fine-tunes) and the labels a scaling is fitted on (Platt scaling on MS~MARCO dev,
 Sect.~\ref{sec:calibration}). A model that is ``calibrated out of the box'' is calibrated against a notion of
 relevance that someone chose, and the user of a decision model has to put that notion into words. For ranking none of

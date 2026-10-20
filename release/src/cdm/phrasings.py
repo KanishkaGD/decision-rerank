@@ -6,10 +6,9 @@ A question refers to the state the reranker builds, not to the texts themselves:
 `query`, and {doc} is replaced by the path of the document being judged (`documents.D3`). Questions are templates, so
 call question.format(doc=...); a literal brace must be doubled.
 
-The paper asks every System One model the `answer` question ("Does document ... answer the query?"); S1Rank's
-question (`s1rank`) appears in the question ablation and in the ECIR 2027 submission. Both were fixed before any run.
-A different question would be chosen on msmarco-dev only and get a new id; never edit a frozen phrasing in place, so
-results.csv rows stay interpretable. Rerankers that take no question use the id "none".
+All System One runs use S1Rank's question, fixed in advance. A different question would be chosen on msmarco-dev
+only and get a new id; never edit a frozen phrasing in place, so results.csv rows stay interpretable. Rerankers that
+take no question use the id "none".
 """
 
 from dataclasses import dataclass
@@ -36,10 +35,6 @@ PHRASINGS: Dict[str, Phrasing] = {
             "contains information that directly addresses it.",
             frozen=True,
         ),
-        # The paper's question (fixed 2026-10-06, before any run): asks whether the passage *answers* the query, which
-        # matches the relevance grade we score (>= 2 on TREC DL); S1Rank's wording also admits partially relevant
-        # passages. Fixed in advance but not chosen on msmarco-dev (the paper states this exception).
-        Phrasing("answer", "Does document `{doc}` answer the `query`?", frozen=True),
     ]
 }
 

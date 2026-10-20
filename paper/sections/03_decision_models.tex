@@ -1,33 +1,25 @@
 % =====================================================================================
-% Section 3 -- Decision models as rerankers (from the ECIR 2027 submission, Sect. 3), with the terms of the paper
+% Section 3 -- Decision models as rerankers (from the ECIR 2027 submission, Sect. 3)
 % =====================================================================================
 \section{Decision Models as Rerankers}
 \label{sec:decision-models}
 
-A decision model takes an input, the \emph{state}, together with one or more questions about it, and returns a
-probability for each possible answer. We use binary questions only, so every question yields one number, the
-probability of ``yes''. Reranking follows directly: for a query $q$ with candidates $d_1, \dots, d_k$ from a
+A decision model takes a structured input, the \emph{state}, together with one or more questions about it, and
+returns a probability for each possible answer. We use binary questions only, so every question yields one number,
+the probability of ``yes''. Reranking follows directly: for a query $q$ with candidates $d_1, \dots, d_k$ from a
 first-stage retriever, we ask about each passage $d_i$ whether it answers $q$ and order the passages by the returned
 probabilities $p_i$.
 
-For the state, we consider two modes, the same as S1Rank~\cite{S1Rank}. In \emph{isolated} mode, the state holds the
-query and a single passage, so that $p_i = P(\textit{yes} \mid q, d_i)$, as in a cross-encoder. In \emph{joint} mode,
-the state holds the query and all $k$ candidates in first-stage order, and the $k$ questions are asked about this one
-state, so that $p_i = P(\textit{yes} \mid q, d_1, \dots, d_k)$ can depend on the other candidates. Joint mode sees the
-same input as a listwise reranker such as RankGPT, but it returns a score per passage instead of an order, like the
-Set-Encoder~\cite{Schlatt2025SetEncoder}. In both modes the model scores each passage on its own scale, so both are
-pointwise rerankers.
+For the state, we consider two modes. In \emph{isolated} mode, the state holds the query and a single passage, so that
+$p_i = P(\textit{yes} \mid q, d_i)$. This is a pointwise reranker, like a cross-encoder. In \emph{joint} mode, the
+state holds the query and all $k$ candidates in first-stage order, and the $k$ questions are asked about this one
+state, so that $p_i = P(\textit{yes} \mid q, d_1, \dots, d_k)$ can depend on the other candidates. Joint mode shares
+its input with listwise rerankers but returns a score per passage instead of a permutation, like the
+Set-Encoder~\cite{Schlatt2025SetEncoder}. Both modes are pointwise in what they output, and both are the modes of
+S1Rank~\cite{S1Rank}.
 
-\paragraph{Terms.}
-A \emph{backbone} is one pretrained Qwen model of a given size. For every backbone we compare three variants, all of
-which return a probability of relevance per query and passage:
-\begin{itemize}
-  \item The \emph{untuned model} is the released chat model of the backbone, not fine-tuned by anyone for ranking or
-  for decisions. We ask it the decision models' question in its chat format and take $p_i$ as the probability of
-  ``yes'' as its first answer token.
-  \item A \emph{decision fine-tune} (Kev, Clef) is the backbone fine-tuned to act as a decision model.
-  \item A \emph{reranker fine-tune} (Qwen3-Reranker, Prism, ours) is the backbone fine-tuned on relevance labels. It
-  keeps its own prompt with $q$ and $d_i$ and gives $p_i$ as the probability of ``yes'' against ``no''.
-\end{itemize}
-We can therefore rank by $p_i$ (RQ1) and read it on an absolute scale (RQ2) for every variant. \emph{Decision
-models} are all models of this kind, including \jev{} (closed) and \laya{}, which we report for context only.
+The two alternatives have the same interface. A reranker fine-tune such as Qwen3-Reranker reads $p_i$ from the
+probability of ``yes'' against ``no'' after a prompt that holds $q$ and $d_i$. A base model, asked the decision
+models' question in its chat format, gives $p_i$ as the probability of ``yes'' as its first answer token. All three
+variants of a backbone therefore produce a probability of relevance for every query and passage, which we can rank by
+(RQ1) and read on an absolute scale (RQ2).

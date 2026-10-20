@@ -28,10 +28,3 @@ def test_paired_t():
     result = paired_t(a, b)
     assert result["n"] == 4 and result["delta"] == pytest.approx(0.375) and result["p"] < 0.01
     assert paired_t(a, a)["p"] == 1.0
-
-
-def test_comparisons_with_another_question_use_its_base_models():
-    averages = {"kev-4b-joint": 0.49, "kev-4b-isolated": 0.51, "prism-4b": 0.58, "qwen3.5-4b-prompted-answer": 0.52}
-    pairs = comparisons(averages, "answer")
-    assert ("kev-4b-isolated", "qwen3.5-4b-prompted-answer", "decision-vs-base") in pairs
-    assert ("prism-4b", "kev-4b-isolated", "reranker-vs-decision") in pairs

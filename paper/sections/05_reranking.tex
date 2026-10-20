@@ -23,12 +23,12 @@ fine-tune of the checkpoint that Kev-27B starts from reaches 59.6 against Kev-27
 the zero-shot subset; they differ significantly on one collection only, DBPedia, where ours is better. On no backbone
 does decision fine-tuning make the better reranker.
 
-\paragraph{Up to 9B, decision fine-tuning adds nothing over the untuned model.}
-Up to 9B, the better mode of a decision fine-tune stays within $-2.5$ and $+0.7$ points of its untuned model, asked
-the same question, with significant gains on at most three of ten collections (${}^\dagger$). Reranker
+\paragraph{Up to 9B, decision fine-tuning adds nothing over the base model.}
+Up to 9B, the better mode of a decision fine-tune stays within $-2.5$ and $+0.7$ points of its zero-shot base model,
+asked the same question, with significant gains on at most three of ten collections (${}^\dagger$). Reranker
 fine-tuning of the same backbones adds 5.9 (Prism-9B) to 29.5 points (Qwen3-Reranker-0.6B). A user who takes the
 released Qwen3.5-4B or Qwen3.5-9B and asks it whether a passage answers the query gets the same ranking as from the
-decision fine-tunes built on it, at no training cost. At 27B, both kinds of fine-tuning add about the same to the untuned
+decision fine-tunes built on it, at no training cost. At 27B, both kinds of fine-tuning add about the same to the base
 model (56.4): Kev-27B 3.7 points, significantly on eight collections, and our reranker fine-tune 3.2. Clef, the other
 27B decision fine-tune, adds nothing (54.8 joint, 53.9 isolated).
 
@@ -37,13 +37,13 @@ model (56.4): Kev-27B 3.7 points, significantly on eight collections, and our re
 \paragraph{Context.}
 Table~\ref{tab:context} places the triplets among other rerankers on the same candidates. \jev{} (59.1) ranks as well
 as the reranker fine-tunes of 8B and 9B (59.0 to 59.4) and the Set-Encoder (59.0). The open Kev-27B (60.1) matches
-the closed model it imitates, and so does our 27B reranker fine-tune (59.6). A fine-tune of a strong open backbone
-reaches \jev{}, with or without decision data. \laya{} (43.5) does not improve on
+the closed model it imitates, and so does our 27B reranker fine-tune (59.6): there is no secret in \jev{} that a
+fine-tune of a strong open backbone cannot reach, with or without decision data. \laya{} (43.5) does not improve on
 its BM25 candidates (43.2).
 
 \paragraph{Joint scoring helps only the largest models.}
 Scoring all candidates in one state gains about one point for Kev-27B (60.1 vs.\ 59.0) and Clef (54.8 vs.\ 53.9), but
 costs Kev-0.6B 12.2 points and Kev-8B 13.0 (${}^\ddagger$; significant on all ten and on five collections). A likely
 reason is the length of the state. A joint state of 100 passages has about 13k tokens on TREC DL and 40k or more on
-BEIR, whereas the model cards of the small Kevs report training states of at most 7,552 tokens (Kev-0.8B and Kev-4B),
-and that of Kev-27B states of up to 32,768~\cite{KevCards}.
+BEIR, whereas Kev-0.8B and Kev-4B were trained on states of at most 7,552 tokens, and Kev-27B on states of up to
+32,768~\cite{KevCards}.

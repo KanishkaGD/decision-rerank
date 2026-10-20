@@ -18,14 +18,12 @@ ALPHA = 0.05
 Pair = Tuple[str, str, str]  # system a, system b, comparison
 
 
-def comparisons(averages: Dict[str, Optional[float]], phrasing: str = "s1rank") -> List[Pair]:
-    """The tested pairs, from the triplet table and each system's average over the ten collections. With a question
-    other than S1Rank's, the base models are its `<name>-prompted-<phrasing>` systems."""
-    from cdm.paper_tables import TRIPLETS, question_system
+def comparisons(averages: Dict[str, Optional[float]]) -> List[Pair]:
+    """The tested pairs, from the triplet table and each system's average over the ten collections."""
+    from cdm.paper_tables import TRIPLETS
 
     pairs: List[Pair] = []
-    for _, triplet in TRIPLETS:
-        rows = [(question_system(s, o, phrasing), n, o, m) for s, n, o, m in triplet]
+    for _, rows in TRIPLETS:
         decision = [s for s, _, objective, _ in rows if objective == "decision" and averages.get(s) is not None]
         best = max(decision, key=lambda s: averages[s]) if decision else None
         if best is not None:

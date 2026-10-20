@@ -74,7 +74,7 @@ def test_triplet_table(tmp_path):
     assert reranker[-1] == "\\textbf{60.0} \\\\"  # ZS mean, best of the backbone
     assert reranker[-2] == "--"  # no mean over all ten without every dataset
     joint = lines[("Kev-0.6B", "joint")]
-    assert joint[2 + 5] == "\\textbf{70.0}"  # TREC-COVID: best of the backbone in that column
+    assert joint[2 + 3] == "\\textbf{70.0}"  # TREC-COVID (DL20, DL22 hidden): best of the backbone in that column
     assert joint[-1] == "-- \\\\"  # zero-shot mean needs all three collections
     assert "\\label{tab:triplets}" in tex and triplet_table({}).count("--") > 0
 
@@ -84,49 +84,43 @@ def test_calibration_table():
 
     ece = {("kev-27b-joint", d): 0.15 for d in DL_DATASETS}
     ece.update({("kev-27b-isolated", d): 0.25 for d in DL_DATASETS})
-    ece.update({("qwen3.8-27b-reranker", d): 0.2 for d in DL_DATASETS})
-    brier = {("kev-27b-joint", d): 0.16 for d in DL_DATASETS}
+    ece.update({("prism-4b", d): 0.2 for d in DL_DATASETS})
     cutoff = {("kev-27b-joint", d): {"cut_F1@0.5": "0.4", "cut_F1@oracle": "0.5", "cut_regret": "0.1",
                                      "cut_oracle_tau": "0.5", "cut_size@0.5": "8", "topk_F1@10": "0.3",
                                      "count_MAE": "7", "count_median_ref": "8.6"}
               for d in DL_DATASETS}
-    posthoc = {("qwen3.8-27b-reranker", d, "temperature"): {"ECE": "0.1"} for d in DL_DATASETS}
-    tex = calibration_table(cutoff, posthoc, ece, brier)
-    # Better-calibrated mode; per group and column the best value bold, the second underlined; |S| is not ranked.
-    kev = "& Kev-27B (j) & \\textbf{0.150} & -- & -- & \\textbf{0.160} & \\textbf{40.0} & -- & \\textbf{10.0} & 8.0 & " \
-          "\\textbf{7.0} \\\\"
-    ours = "& \\textit{Ours-27B} & \\underline{0.200} & \\textbf{0.100} & -- & -- & -- & -- & -- & -- & -- \\\\"
-    assert any(line.endswith(kev) for line in tex.splitlines())
-    assert any(line.endswith(ours) for line in tex.splitlines())
-    assert "\\label{tab:calibration}" in tex and "guessing the median: 8.6" in tex
+    posthoc = {("prism-4b", d, "temperature"): {"ECE": "0.1"} for d in DL_DATASETS}
+    tex = calibration_table(cutoff, posthoc, ece)
+    lines = tex.splitlines()
+    assert "Kev-27B (j) & 0.150 & -- & -- & 40.0 & -- & 10.0 & 8.0 & 7.0 \\\\" in lines  # better-calibrated mode
+    assert "Prism-4B & 0.200 & 0.100 & -- & -- & -- & -- & -- & -- \\\\" in lines
+    assert "\\label{tab:calibration-full}" in tex and "median count: 8.6" in tex
 
 
-def test_count_median_reference():
-    from cdm.paper_tables import DL_DATASETS, count_median_reference
+def test_calibration_ece_brier_table():
+    from cdm.paper_tables import DL_DATASETS, calibration_ece_brier_table
 
-    reference = count_median_reference({("a", d): 8.0 + i for i, d in enumerate(DL_DATASETS)})
-    assert reference == 8.0 + (len(DL_DATASETS) - 1) / 2
+    ece = {("kev-4b-joint", d): 0.25 for d in DL_DATASETS}
+    ece.update({("kev-4b-isolated", d): 0.2 for d in DL_DATASETS})
+    ece.update({("prism-4b", d): 0.3 for d in DL_DATASETS})
+    brier = {("kev-4b-isolated", d): 0.21 for d in DL_DATASETS}
+    brier.update({("prism-4b", d): 0.17 for d in DL_DATASETS})
+    lines = calibration_ece_brier_table(ece, brier).splitlines()
+    # Better-calibrated mode chosen by ECE; per group the lowest value bold, the second lowest underlined.
+    assert "\\rowcolor{rowdecision}$\\triangle$ & Kev-4B (i) & \\textbf{0.200} & \\underline{0.210} \\\\" in lines
+    assert "\\rowcolor{rowreranker}$\\blacksquare$ & Prism-4B & \\underline{0.300} & \\textbf{0.170} \\\\" in lines
 
 
-def test_question_rows(tmp_path):
-    """Base models asked the paper's question are `<name>-prompted-answer`; each question sees its own rows."""
-    from cdm.paper_tables import load_cells, question_ablation_table
+def test_context_short_table():
+    from cdm.paper_tables import DATASETS, context_short_table
 
-    rows = [{"job": "rerank", "system": s, "dataset": "dl19", "first_stage": "bm25-d100", "phrasing": p, "nDCG@10": v}
-            for s, p, v in [("qwen3.5-4b-prompted", "none", "0.5"), ("qwen3.5-4b-prompted-answer", "none", "0.6"),
-                            ("kev-4b-joint", "s1rank", "0.4"), ("kev-4b-joint", "answer", "0.3"),
-                            ("prism-4b", "none", "0.7")]]
-    _write(tmp_path / "results.csv", RESULT_COLUMNS, rows)
-    _write(tmp_path / "literature.csv", ["system", "dataset", "metric", "value", "candidates", "role"], [])
-    answer, _ = load_cells(str(tmp_path), "answer")
-    s1rank, _ = load_cells(str(tmp_path), "s1rank")
-    assert answer[("qwen3.5-4b-prompted", "dl19")][0] == 0.6 and s1rank[("qwen3.5-4b-prompted", "dl19")][0] == 0.5
-    assert answer[("kev-4b-joint", "dl19")][0] == 0.3 and s1rank[("kev-4b-joint", "dl19")][0] == 0.4
-    assert answer[("prism-4b", "dl19")] == s1rank[("prism-4b", "dl19")]
-    assert ("qwen3.5-4b-prompted-answer", "dl19") not in answer
-    tex = question_ablation_table({"s1rank": s1rank, "answer": answer}, {"s1rank": {}, "answer": {}},
-                                  {"s1rank": {}, "answer": {}})
-    assert "Prism-4B" not in tex and "\\label{tab:question-ablation}" in tex
+    cells = {("jev-joint", d): (0.5, d == "dl19") for d, _ in DATASETS}
+    tex = context_short_table(cells)
+    row = next(x for x in tex.splitlines()
+               if x.startswith("\\rowcolor{rowdecision}$\\blacktriangle$ & \\jev{} & System One, joint"))
+    # The only reranker in the table: best in every column (bold), dagger where a published number is included.
+    assert row.split(" & ")[3:] == ["\\textbf{50.0}\\rlap{$^\\dagger$}", "\\textbf{50.0}",
+                                    "\\textbf{50.0}\\rlap{$^\\dagger$}", "\\textbf{50.0} \\\\"]
 
 
 def test_triplet_table_significance_marks(tmp_path):
@@ -134,16 +128,12 @@ def test_triplet_table_significance_marks(tmp_path):
 
     columns = ["job", "system", "dataset", "variant", "subset", "sig_comparison", "sig_holm"]
     _write(tmp_path / "results.csv", columns, [
-        {"job": "significance", "system": "prism-4b", "dataset": "dl19", "variant": "vs-kev-4b-isolated@answer",
+        {"job": "significance", "system": "prism-4b", "dataset": "dl19", "variant": "vs-kev-4b-isolated",
          "sig_comparison": "reranker-vs-decision", "sig_holm": "1"},
-        {"job": "significance", "system": "prism-4b", "dataset": "dl20", "variant": "vs-kev-4b-isolated@answer",
+        {"job": "significance", "system": "prism-4b", "dataset": "dl20", "variant": "vs-kev-4b-isolated",
          "sig_comparison": "reranker-vs-decision", "sig_holm": "0"},
-        # S1Rank's question (no suffix): only in its own tables.
-        {"job": "significance", "system": "prism-4b", "dataset": "dl21", "variant": "vs-kev-4b-isolated",
-         "sig_comparison": "reranker-vs-decision", "sig_holm": "1"},
     ])
     marks = load_significance(str(tmp_path))
     assert marks == {("prism-4b", "dl19"): "\\ast"}
-    assert load_significance(str(tmp_path), "s1rank") == {("prism-4b", "dl21"): "\\ast"}
     tex = triplet_table({("prism-4b", "dl19"): (0.744, False)}, marks)
     assert "\\textbf{74.4}\\rlap{$^{\\ast}$}" in tex

@@ -1,11 +1,10 @@
 """
-The base model of a triplet (the paper's "untuned model"): a backbone without any relevance training, asked the
-paper's question (`answer`, systems `<name>-answer`) or S1Rank's (`s1rank`, question ablation) zero-shot. It is the
-third row next to its decision fine-tune (Kev, Clef) and its reranker fine-tune (Qwen3-Reranker, Prism, Ours), so the
-three differ only in training.
+The base model of a triplet: a backbone without any relevance training, asked S1Rank's
+question zero-shot. It is the third row next to its decision fine-tune (Kev, Clef) and its reranker fine-tune
+(Qwen3-Reranker, Prism), so the three differ only in training.
 
 - mode "chat" (the base rows of the paper): the backbone's post-trained release with its chat template, thinking
-  switched off; one user turn with the query, the passage and the question without its field references.
+  switched off; one user turn with the query, the passage and S1Rank's question without its field references.
 - mode "completion" (not used in the paper): the pretrained -Base checkpoint, which has no chat
   format, continues "... Answer:".
 
@@ -26,15 +25,7 @@ QUESTION = (
 )
 CHAT_USER = 'Query: {query}\nDocument: {doc}\n\n' + QUESTION + ' Answer with only "yes" or "no".'
 COMPLETION = "Query: {query}\nDocument: {doc}\n" + QUESTION + " Answer yes or no.\nAnswer:"
-# The paper's question (src/cdm/phrasings.py, "answer"), in the same two templates.
-ANSWER_QUESTION = "Does the document answer the query?"
-TEMPLATES = {
-    "s1rank": (CHAT_USER, COMPLETION),
-    "answer": (
-        'Query: {query}\nDocument: {doc}\n\n' + ANSWER_QUESTION + ' Answer with only "yes" or "no".',
-        "Query: {query}\nDocument: {doc}\n" + ANSWER_QUESTION + " Answer yes or no.\nAnswer:",
-    ),
-}
+TEMPLATES = {"s1rank": (CHAT_USER, COMPLETION)}
 DOC = "\x00DOC\x00"  # placeholder: the prompt is rendered once around it, the passage tokens go in between
 
 

@@ -4,16 +4,12 @@ number in the paper is typed by hand. Standard library only:
 
     python -m cdm.paper_tables
 
-The paper's question is `answer` ("Does document ... answer the query?", QUESTION) for every decision and base model;
-S1Rank's question appears only in the question ablation (question-ablation.tex). Base models asked the `answer`
-question are the systems `<name>-prompted-answer`; the loaders file them under `<name>-prompted`.
-
-Tables of the arXiv version: the triplets (RQ1's main table: per backbone the base model, its decision fine-tunes and
-its reranker fine-tunes; triplets.tex), every other system on the same candidates (context.tex), RQ2 in one table
-(calibration, post-hoc scaling, the fixed cutoff and the count test; calibration.tex) and S1Rank's question against
-the paper's (question-ablation.tex). Every reranker is read on its dataset's default candidates (BM25 top-100); cells
-taken from the literature (role `baseline` in results/literature.csv) win over computed ones and are marked with a
-dagger.
+In the paper: the triplets (RQ1's main table: per backbone the base model, its decision fine-tunes and its reranker
+fine-tune; triplets.tex), the other systems as means (context-short.tex) and calibration (RQ2: ECE and Brier;
+calibration.tex). Supplementary, for the claims the paper makes without numbers: every other system per collection
+(context.tex) and calibration with the fixed cutoff, the count test and post-hoc scaling (calibration-full.tex).
+Every reranker is read on its dataset's default candidates (BM25 top-100); cells taken from the literature (role
+`baseline` in results/literature.csv) win over computed ones and are marked with a dagger.
 """
 
 import argparse
@@ -24,8 +20,6 @@ from typing import Dict, List, Optional, Tuple
 from cdm.config import RESULTS_FOLDER
 from cdm.datasets import get_dataset
 
-# The header comment of each table names `make tables` in the paper's folder, as in our working repository, so that
-# the tables here are byte-identical to the paper's.
 TABLES_FOLDER = "tables"
 
 # Column order and headers: TREC DL, then BEIR.
@@ -110,8 +104,6 @@ TRIPLETS: List[Tuple[str, List[Tuple[str, str, str, str]]]] = [
             ("kev-27b-isolated", "Kev-27B", "decision", "isolated"),
             ("clef-joint", "Clef", "decision", "joint"),
             ("clef-isolated", "Clef", "decision", "isolated"),
-            # Our reranker fine-tune (checkpoint final, chosen on msmarco-dev).
-            ("qwen3.8-27b-reranker", "\\textit{Ours-27B}", "reranker", ""),
         ],
     ),
 ]
@@ -146,32 +138,8 @@ CONTEXT_ROWS: List[Tuple[str, List[Row]]] = [
 ]
 
 METRIC = "nDCG@10"
-# The question asked of every decision and base model in the paper, and the one it is
-# compared with in the ablation (S1Rank's). Systems that ask no question have phrasing "none" and appear under both.
-QUESTION = "answer"
-ABLATION_QUESTION = "s1rank"
-NO_QUESTION = ("none", "")
-BASE_SYSTEMS = {s for _, rows in TRIPLETS for s, _, objective, _ in rows if objective == "base"}
-
-
-def question_system(system: str, objective: str, question: str) -> str:
-    """The system id of a table row for a question: base models asked another question than S1Rank's are separate
-    systems, `<name>-prompted-<question>`."""
-    return f"{system}-{question}" if objective == "base" and question != ABLATION_QUESTION else system
-
-
-def _row_system(row: Dict[str, str], question: str) -> Optional[str]:
-    """The table system a results.csv row stands for under `question`, or None if it belongs to another question."""
-    phrasing, system = row.get("phrasing", ""), row["system"]
-    if phrasing not in (question,) + NO_QUESTION:
-        return None
-    if system in BASE_SYSTEMS:
-        return system if question == ABLATION_QUESTION else None
-    head, _, tail = system.rpartition("-")
-    if head in BASE_SYSTEMS:
-        return head if tail == question else None
-    return system
-
+# The paper's tables use S1Rank's question (and "none" for systems without one).
+TABLE_PHRASINGS = {"s1rank", "none", ""}
 COST = "api_cost_usd_per_1k_queries"
 
 Cell = Tuple[float, bool]  # value, taken from the literature
@@ -186,17 +154,18 @@ def _float(value: str) -> Optional[float]:
         return None
 
 
-def load_cells(results_folder: str = RESULTS_FOLDER, question: str = QUESTION) -> Tuple[Cells, Costs]:
+def load_cells(results_folder: str = RESULTS_FOLDER) -> Tuple[Cells, Costs]:
     """(system, dataset) -> (nDCG@10, from literature) on the default candidates, and -> API cost per 1k queries."""
     cells: Cells = {}
     cost: Costs = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
-            system = _row_system(row, question)
-            if system is None or row["subset"] or row["variant"] or row["dataset"] not in FIRST_STAGE:
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
+            if row["subset"] or row["variant"] or row["dataset"] not in FIRST_STAGE:
                 continue
             first_stage = FIRST_STAGE[row["dataset"]]
-            key = (system, row["dataset"])
+            key = (row["system"], row["dataset"])
             if row["job"] == "rerank" and row["first_stage"] == first_stage:
                 value = _float(row[METRIC])
                 if value is not None:
@@ -206,15 +175,19 @@ def load_cells(results_folder: str = RESULTS_FOLDER, question: str = QUESTION) -
     # BM25 itself: the first stage's own evaluation (system bm25 / official, variant d100).
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
             if row["job"] != "first-stage" or row["subset"] or row["variant"] != "d100":
                 continue
             if row["dataset"] in FIRST_STAGE and f"{row['system']}-d100" == FIRST_STAGE[row["dataset"]]:
                 value = _float(row[METRIC])
                 if value is not None:
                     cells[("bm25", row["dataset"])] = (value, False)
-    # Published numbers on the same candidates replace computed ones.
+    # Published numbers on the same candidates replace computed ones (CLAUDE.md, "Experiment rules").
     with open(os.path.join(results_folder, "literature.csv"), newline="") as f:
         for row in csv.DictReader(f):
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
             if row["role"] == "baseline" and row["metric"] == METRIC and row["candidates"] == "bm25-d100":
                 cells[(row["system"], row["dataset"])] = (float(row["value"]), True)
     return cells, cost
@@ -245,9 +218,8 @@ def _header(lines: List[str], first: str, extra: List[str], shown: Optional[List
     ]
 
 
-# Datasets left out of the triplet table (they still count in Avg). The ECIR version hid DL20 and DL22 for space; the
-# arXiv version shows all ten.
-TRIPLET_HIDDEN: Tuple[str, ...] = ()
+# The paper's triplet table leaves out DL20 and DL22 for space; they still count in Avg.
+TRIPLET_HIDDEN = ("dl20", "dl22")
 
 
 def _rank_marks(values: List[Optional[float]]) -> Tuple[Optional[str], Optional[str]]:
@@ -256,7 +228,7 @@ def _rank_marks(values: List[Optional[float]]) -> Tuple[Optional[str], Optional[
     return (printed[0] if printed else None), (printed[1] if len(printed) > 1 else None)
 
 
-# Row shading by training objective; the colours (rowbase, rowdecision, rowreranker) are defined in the paper.
+# Row shading by training objective; the colours are defined in paper/main.tex (rowbase, rowdecision, rowreranker).
 ROW_COLORS = {"base": "rowbase", "decision": "rowdecision", "reranker": "rowreranker"}
 
 
@@ -273,7 +245,7 @@ SYMBOLS = {
     ("reranker", ""): "$\\blacksquare$",
 }
 SYMBOL_LEGEND = (
-    "$\\circ$~untuned model, $\\blacktriangle$/$\\triangle$~decision fine-tune (joint/isolated),"
+    "$\\circ$~base model, $\\blacktriangle$/$\\triangle$~decision fine-tune (joint/isolated),"
     " $\\blacksquare$~reranker fine-tune"
 )
 
@@ -296,21 +268,18 @@ SIGNIFICANCE_MARKS = {"reranker-vs-decision": "\\ast", "decision-vs-base": "\\da
 Significance = Dict[Tuple[str, str], str]  # (system, dataset) -> marks of its significant comparisons
 
 
-def load_significance(results_folder: str = RESULTS_FOLDER, question: str = QUESTION) -> Significance:
-    """(system, dataset) -> the superscripts of the comparisons in which it differs significantly (Holm), from the
-    `cdm significance --phrasing <question>` rows (variant `vs-<other>@<question>`; no suffix for S1Rank's)."""
+def load_significance(results_folder: str = RESULTS_FOLDER) -> Significance:
+    """(system, dataset) -> the superscripts of the comparisons in which it differs significantly (Holm)."""
     marks: Dict[Tuple[str, str], str] = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
-            if row["job"] != "significance" or row.get("sig_holm") != "1":
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
                 continue
-            suffix = row["variant"].rpartition("@")[2] if "@" in row["variant"] else ABLATION_QUESTION
-            system = _row_system(row, question)
-            if suffix != question or system is None:
+            if row["job"] != "significance" or row.get("sig_holm") != "1":
                 continue
             mark = SIGNIFICANCE_MARKS.get(row.get("sig_comparison", ""))
             if mark:
-                key = (system, row["dataset"])
+                key = (row["system"], row["dataset"])
                 marks[key] = marks.get(key, "") + mark
     return marks
 
@@ -333,18 +302,19 @@ def triplet_table(cells: Cells, significance: Optional[Significance] = None) -> 
 
     ncols = 3 + len(columns)
     lines = [
-        "% Generated by `python -m cdm.paper_tables` (make tables, in paper/) from results/results.csv -- do not edit",
+        "% Generated by `python -m cdm.paper_tables` from results/results.csv -- do not edit",
         "% by hand.",
         "\\begin{table*}[!t]",
-        "\\caption{Untuned model, decision fine-tunes and reranker fine-tunes of the same backbone (nDCG@10,",
-        "$\\times 100$, BM25 top-100). Untuned and decision models are asked whether the passage answers the query.",
-        "Avg: mean over all ten collections; ZS: mean over the collections without a training split in any",
-        "fine-tune's data (TREC-COVID, Touch\\'e, DBPedia). Per backbone and column: best in bold, second best",
+        "\\caption{Base model, decision fine-tune and reranker fine-tune of the same foundation model (nDCG@10,",
+        "$\\times 100$, BM25 top-100). Avg: mean over all ten",
+        "collections, including DL20 and DL22, which are not shown for space; ZS: mean over the collections without a",
+        "training split (TREC-COVID, Touch\\'e, DBPedia). Per foundation model and column: best in bold, second best",
         f"underlined. Training: {SYMBOL_LEGEND} (rows shaded grey, red, blue);",
-        "\\textit{Ours}: our reranker fine-tunes.",
+        "\\textit{Ours-9B}: our reranker fine-tune.",
         "Paired $t$-test, Holm-corrected over",
         "the ten collections, $p < 0.05$: $^\\ast$ reranker fine-tune vs.\\ the decision fine-tune with the best Avg,",
-        "$^\\dagger$ that decision fine-tune vs.\\ the untuned model, $^\\ddagger$ joint vs.\\ isolated.}",
+        "$^\\dagger$ that decision fine-tune vs.\\ the base model, $^\\ddagger$ joint vs.\\ isolated. No reranker",
+        "fine-tune of the 27B model exists.}",
         "\\label{tab:triplets}",
         "\\centering",
         "\\scriptsize",
@@ -404,12 +374,11 @@ def context_table(cells: Cells, cost: Costs) -> str:
 
     ncols = 2 + len(datasets) + 2
     lines = [
-        "% Generated by `python -m cdm.paper_tables` (make tables, in paper/) from results/results.csv and",
+        "% Generated by `python -m cdm.paper_tables` from results/results.csv and",
         "% results/literature.csv -- do not edit by hand.",
         "\\begin{table*}[!t]",
         "\\caption{Context: other rerankers (nDCG@10, $\\times 100$) on the BM25 top-100 of TREC DL 2019--2023 and",
-        "five BEIR collections; System One models in joint mode (\\laya{} isolated), asked whether the passage answers",
-        "the query (Sect.~\\ref{sec:setup}). $^\\dagger$: published number on",
+        "five BEIR collections; System One models in joint mode (\\laya{} isolated). $^\\dagger$: published number on",
         "the same candidates~\\cite{Abdallah2025HowGood,SetEncoderCard}, not recomputed. Avg: mean over all ten",
         "collections (only where all are available). \\$/1k: mean API cost in US dollars per 1,000 queries over the",
         "collections run. Best reranker per column in bold.}",
@@ -441,16 +410,17 @@ CUTOFF_VARIANTS = ("", "a100")
 CutoffRows = Dict[Tuple[str, str], Dict[str, str]]  # (system, dataset) -> stored cutoff row
 
 
-def load_cutoff(results_folder: str = RESULTS_FOLDER, question: str = QUESTION) -> CutoffRows:
+def load_cutoff(results_folder: str = RESULTS_FOLDER) -> CutoffRows:
     """(system, dataset) -> the `cdm cutoff` row on the default candidates (default variant before a100)."""
     rows: Dict[Tuple[str, str, str], Dict[str, str]] = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
-            system = _row_system(row, question)
-            if system is None or row["job"] != "cutoff" or row["subset"] or row["variant"] not in CUTOFF_VARIANTS:
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
+            if row["job"] != "cutoff" or row["subset"] or row["variant"] not in CUTOFF_VARIANTS:
                 continue
             if row["dataset"] in DL_DATASETS and row["first_stage"] == FIRST_STAGE[row["dataset"]]:
-                rows[(system, row["dataset"], row["variant"])] = row
+                rows[(row["system"], row["dataset"], row["variant"])] = row
     out: CutoffRows = {}
     for system, dataset, _ in rows:
         for variant in CUTOFF_VARIANTS:
@@ -493,28 +463,26 @@ def load_posthoc(results_folder: str = RESULTS_FOLDER) -> PosthocRows:
     out: PosthocRows = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
-            if row.get("phrasing", "") not in NO_QUESTION:  # rerankers only: they ask no question
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
                 continue
             if row["job"] == "posthoc" and not row["subset"] and row["dataset"] in FIRST_STAGE:
                 out[(row["system"], row["dataset"], row["variant"])] = row
     return out
 
 
-def load_rerank_column(
-    column: str, results_folder: str = RESULTS_FOLDER, question: str = QUESTION, job: str = "rerank"
-) -> Dict[Tuple[str, str], float]:
-    """(system, dataset) -> a metric of the default `job` row (variant before a100, as for the cutoff rows) for the
-    given question."""
+def load_rerank_column(column: str, results_folder: str = RESULTS_FOLDER) -> Dict[Tuple[str, str], float]:
+    """(system, dataset) -> a metric of the default rerank row (variant before a100, as for the cutoff rows)."""
     found: Dict[Tuple[str, str, str], float] = {}
     with open(os.path.join(results_folder, "results.csv"), newline="") as f:
         for row in csv.DictReader(f):
-            system = _row_system(row, question)
-            if system is None or row["job"] != job or row["subset"] or row["variant"] not in CUTOFF_VARIANTS:
+            if row.get("phrasing", "") not in TABLE_PHRASINGS:
+                continue
+            if row["job"] != "rerank" or row["subset"] or row["variant"] not in CUTOFF_VARIANTS:
                 continue
             value = _float(row.get(column, ""))
             default = row["dataset"] in FIRST_STAGE and row["first_stage"] == FIRST_STAGE[row["dataset"]]
             if default and value is not None:
-                found[(system, row["dataset"], row["variant"])] = value
+                found[(row["system"], row["dataset"], row["variant"])] = value
     out: Dict[Tuple[str, str], float] = {}
     for system, dataset, _ in found:
         for variant in CUTOFF_VARIANTS:
@@ -529,7 +497,7 @@ def _mean_of(values: Dict[Tuple[str, str], float], system: str, datasets: List[s
     return sum(found) / len(found) if found and len(found) == len(datasets) else None
 
 
-# The compact RQ2 table: per backbone the base model, each decision
+# The paper's RQ2 table: per backbone the base model, each decision
 # fine-tune in its better-calibrated mode and the reranker fine-tunes, then the other systems; calibration (ECE, also
 # after temperature and Platt scaling for the rerankers) and the fixed cutoff in one table.
 CALIBRATION_GROUPS: List[Tuple[str, List[Tuple[List[str], str, str]]]] = [
@@ -546,7 +514,6 @@ CALIBRATION_GROUPS: List[Tuple[str, List[Tuple[List[str], str, str]]]] = [
         "Other systems",
         [
             (["jev-joint", "jev-isolated"], "\\jev{}", "decision"),
-            (["laya"], "\\laya{}", "decision"),
             (["monot5-3b"], "monoT5-3B", "reranker"),
             (["bge-m3"], "bge-reranker-v2-m3", "reranker"),
             (["set-encoder-large"], "Set-Encoder-large", "reranker"),
@@ -555,30 +522,68 @@ CALIBRATION_GROUPS: List[Tuple[str, List[Tuple[List[str], str, str]]]] = [
 ]
 
 
-# Groups in the left panel of the calibration table; the rest goes right, so both panels have about the same height.
-CALIBRATION_LEFT_PANEL = {"Qwen3-0.6B", "Qwen3-8B", "Qwen3.5-0.8B", "Other systems"}
+# Groups in the left panel of the calibration table (Qwen3-0.6B to Qwen3.5-4B); the rest goes right.
+CALIBRATION_LEFT_PANEL = 4
 
 
-def count_median_reference(values: Dict[Tuple[str, str], float]) -> Optional[float]:
-    """Mean over DL 2019-2023 of the count test's reference (always guessing the median count). It depends only on
-    the labels, so any system's value for a collection will do."""
-    per_dataset = {d: v for (_, d), v in values.items()}
-    if not all(d in per_dataset for d in DL_DATASETS):
-        return None
-    return sum(per_dataset[d] for d in DL_DATASETS) / len(DL_DATASETS)
+def calibration_ece_brier_table(ece: Dict[Tuple[str, str], float], brier: Dict[Tuple[str, str], float]) -> str:
+    """RQ2 for the short paper: mean ECE and Brier score over DL 2019-2023, decision fine-tunes in their
+    better-calibrated mode (lower ECE); per group the lowest value in bold and the second lowest underlined."""
+    header = [
+        "\\begin{tabular}[t]{clrr}",
+        "\\toprule",
+        " & System & ECE & Brier \\\\",
+    ]
+    panels: List[List[str]] = [list(header), list(header)]
+    for index, (heading, members) in enumerate(CALIBRATION_GROUPS):
+        panel = panels[0 if index < CALIBRATION_LEFT_PANEL else 1]
+        rows = []
+        for systems, name, objective in members:
+            scored = [(e, s) for e, s in ((_mean_of(ece, s, DL_DATASETS), s) for s in systems) if e is not None]
+            if not scored:
+                continue
+            mean_ece, system = min(scored)
+            mode = ""
+            if len(systems) > 1:
+                mode = "joint" if system.endswith("-joint") else "isolated"
+                name += " (j)" if mode == "joint" else " (i)"
+            elif objective == "decision":
+                mode = "joint" if system.endswith("-joint") else "isolated"
+            rows.append((_symbol(objective, mode), name, objective, mean_ece, _mean_of(brier, system, DL_DATASETS)))
+
+        def marks(values: List[Optional[float]]) -> Tuple[Optional[str], Optional[str]]:
+            printed = sorted({f"{v:.3f}" for v in values if v is not None}, key=float)
+            return (printed[0] if printed else None), (printed[1] if len(printed) > 1 else None)
+
+        ece_marks = marks([r[3] for r in rows])
+        brier_marks = marks([r[4] for r in rows])
+        panel += ["\\midrule", f"\\multicolumn{{4}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
+        for symbol, name, objective, e, b in rows:
+            values = [_emphasize(f"{e:.3f}", *ece_marks), "--" if b is None else _emphasize(f"{b:.3f}", *brier_marks)]
+            panel.append(_shade(objective) + " & ".join([symbol, name] + values) + " \\\\")
+    for panel in panels:
+        panel += ["\\bottomrule", "\\end{tabular}"]
+    lines = [
+        "% Generated by `python -m cdm.paper_tables` from the rerank rows of",
+        "% results/results.csv -- do not edit by hand.",
+        "\\begin{table}[!t]",
+        "\\caption{Calibration on the judged pairs of TREC DL 2019--2023 (means; lower is better). ECE: expected",
+        "calibration error (15 bins); Brier: mean squared error of the probability against the 0/1 label. Per",
+        "foundation model: base model, decision fine-tunes in their better-calibrated mode (j/i: joint/isolated),",
+        "reranker fine-tunes; best in bold, second best underlined. Symbols and shading as in Table~\\ref{tab:triplets}.}",
+        "\\label{tab:calibration}",
+        "\\centering",
+        "\\scriptsize",
+        "\\setlength{\\tabcolsep}{4pt}",
+    ]
+    lines += panels[0] + ["\\hspace{2em}"] + panels[1]
+    lines += ["\\end{table}", ""]
+    return "\n".join(lines)
 
 
-def calibration_table(
-    cutoff: CutoffRows,
-    posthoc: PosthocRows,
-    ece: Dict[Tuple[str, str], float],
-    brier: Optional[Dict[Tuple[str, str], float]] = None,
-) -> str:
-    """RQ2 in one table, for the paper's question: mean ECE over DL 2019-2023 (native, temperature, Platt), Brier score,
-    set F1 at p >= 0.5 (native, Platt), the regret of 0.5 against the per-collection oracle cutoff, the mean set size
-    at 0.5 and the count error. Decision models in their better-calibrated mode; per group and column the best value
-    in bold, the second underlined (lower is better, except F1)."""
-    brier = brier or {}
+def calibration_table(cutoff: CutoffRows, posthoc: PosthocRows, ece: Dict[Tuple[str, str], float]) -> str:
+    """RQ2 in one table: mean ECE over DL 2019-2023 (native, temperature, Platt), set F1 at p >= 0.5 (native, Platt),
+    the regret of 0.5 against the per-collection oracle cutoff and the mean set size at 0.5."""
 
     def posthoc_mean(system: str, method: str, column: str) -> Optional[float]:
         values = {
@@ -588,156 +593,116 @@ def calibration_table(
         }
         return _mean_of(values, system, DL_DATASETS)
 
+    def cell(value: Optional[float], fmt: str, scale: float = 1.0) -> str:
+        return "--" if value is None else fmt.format(scale * value)
+
     # The count test's reference (always guessing the median count) depends only on the labels: one value for all.
     summaries = (cutoff_summary(cutoff, system) for system in sorted({key[0] for key in cutoff}))
     references = [s["count_ref"] for s in summaries if s and "count_ref" in s]
-    reference = f" (always guessing the median: {references[0]:.1f})" if references else ""
+    reference = f" (always guessing the median count: {references[0]:.1f})" if references else ""
     lines = [
-        "% Generated by `python -m cdm.paper_tables` (make tables, in paper/) from the rerank, `cdm cutoff` and",
+        "% Generated by `python -m cdm.paper_tables` from the rerank, `cdm cutoff` and",
         "% `cdm posthoc` rows of results/results.csv -- do not edit by hand.",
-        "\\begin{table*}[!t]",
-        "\\caption{Calibration and its uses on the judged pairs of TREC DL 2019--2023 (means). Per backbone:",
-        "untuned model, decision fine-tunes in their better-calibrated mode (j/i: joint/isolated), reranker fine-tunes.",
-        "ECE (lower is better): N native; T, P after temperature/Platt scaling fitted on MS~MARCO dev (rerankers",
-        "only). Brier: mean squared error of the probability. $F_1$@.5 ($\\times 100$): set kept at $p \\ge 0.5$, native",
-        "(N) and Platt-scaled (P); Regret: $F_1$ at each collection's best cutoff minus $F_1$@.5; $|S|$: passages kept",
-        "at 0.5 (of 100). Count: mean absolute error of the summed probabilities against the number of relevant",
-        f"passages{reference}. Per backbone and column: best in bold, second best underlined.}}",
-        "\\label{tab:calibration}",
+        "\\begin{table}[!t]",
+        "\\caption{Calibration and one cutoff, means over TREC DL 2019--2023. Per foundation model: base model, decision",
+        "fine-tunes in their better-calibrated mode (j/i: joint/isolated), reranker fine-tunes. N: native; T, P:",
+        "temperature/Platt scaling fitted on MS~MARCO dev. $F_1$@.5 ($\\times 100$): set kept at $p \\ge 0.5$;",
+        "Regret: $F_1$ at each collection's best cutoff minus $F_1$@.5; $|S|$: passages kept at 0.5 (of 100). Count:",
+        f"mean absolute error of the summed probabilities against the number of relevant passages{reference}.}}",
+        "\\label{tab:calibration-full}",
         "\\centering",
         "\\scriptsize",
-        "\\setlength{\\tabcolsep}{2.2pt}",
+        "\\setlength{\\tabcolsep}{2.5pt}",
         "\\begin{adjustbox}{max width=\\textwidth}",
     ]
     header = [
-        "\\begin{tabular}[t]{clrrrrrrrrr}",
+        "\\begin{tabular}[t]{lrrrrrrrr}",
         "\\toprule",
-        " & & \\multicolumn{3}{c}{ECE} & & \\multicolumn{2}{c}{$F_1$@.5} & & & \\\\",
-        "\\cmidrule(lr){3-5}\\cmidrule(lr){7-8}",
-        " & System & N & T & P & Brier & N & P & Regret & $|S|$ & Count \\\\",
+        " & \\multicolumn{3}{c}{ECE} & \\multicolumn{2}{c}{$F_1$@.5} & & & \\\\",
+        "\\cmidrule(lr){2-4}\\cmidrule(lr){5-6}",
+        "System & N & T & P & N & P & Regret & $|S|$ & Count \\\\",
     ]
-    # Lower is better, except for F1 (values 4 and 5); |S| (value 7) is not ranked.
-    higher_better = {4, 5}
-    unranked = {7}
+    # Two panels side by side (the small backbones, then the rest), to fit the short paper's page limit.
     panels: List[List[str]] = [list(header), list(header)]
-    for heading, members in CALIBRATION_GROUPS:
-        panel = panels[0 if heading in CALIBRATION_LEFT_PANEL else 1]
-        rows = []
-        for systems, name, objective in members:
-            scored = [(e, s) for e, s in ((_mean_of(ece, s, DL_DATASETS), s) for s in systems) if e is not None]
+    for index, (heading, members) in enumerate(CALIBRATION_GROUPS):
+        panel = panels[0 if index < CALIBRATION_LEFT_PANEL else 1]
+        panel += ["\\midrule", f"\\multicolumn{{9}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
+        for systems, name, _ in members:
+            scored = [(_mean_of(ece, s, DL_DATASETS), s) for s in systems]
+            scored = [(e, s) for e, s in scored if e is not None]
             if not scored:
+                panel.append(" & ".join([name] + ["--"] * 8) + " \\\\")
                 continue
             mean_ece, system = min(scored)
-            mode = ""
-            if objective == "decision" and system != "laya":
-                mode = "joint" if system.endswith("-joint") else "isolated"
-                if len(systems) > 1:
-                    name += " (j)" if mode == "joint" else " (i)"
-            elif system == "laya":
-                mode = "isolated"
-            summary = cutoff_summary(cutoff, system) or {}
+            if len(systems) > 1:
+                name += " (j)" if system.endswith("-joint") else " (i)"
+            summary = cutoff_summary(cutoff, system)
             values = [
-                mean_ece,
-                posthoc_mean(system, "temperature", "ECE"),
-                posthoc_mean(system, "platt", "ECE"),
-                _mean_of(brier, system, DL_DATASETS),
-                summary.get("F1@0.5"),
-                posthoc_mean(system, "platt", "cut_F1@0.5"),
-                summary.get("regret"),
-                summary.get("size@0.5"),
-                summary.get("count_MAE"),
+                f"{mean_ece:.3f}",
+                cell(posthoc_mean(system, "temperature", "ECE"), "{:.3f}"),
+                cell(posthoc_mean(system, "platt", "ECE"), "{:.3f}"),
+                cell(None if summary is None else summary["F1@0.5"], "{:.1f}", 100),
+                cell(posthoc_mean(system, "platt", "cut_F1@0.5"), "{:.1f}", 100),
+                cell(None if summary is None else summary["regret"], "{:.1f}", 100),
+                cell(None if summary is None else summary["size@0.5"], "{:.1f}"),
+                cell(None if summary is None else summary.get("count_MAE"), "{:.1f}"),
             ]
-            rows.append((_symbol(objective, mode), name, objective, values))
-        formats = ["{:.3f}"] * 4 + ["{:.1f}"] * 5
-        scales = [1.0] * 4 + [100.0] * 3 + [1.0] * 2
-        printed = [
-            [None if v is None else f.format(v * k) for v, f, k in zip(values, formats, scales)]
-            for _, _, _, values in rows
-        ]
-
-        def marks(column: int) -> Tuple[Optional[str], Optional[str]]:
-            if column in unranked:
-                return None, None
-            found = sorted({p[column] for p in printed if p[column] is not None}, key=float,
-                           reverse=column in higher_better)
-            return (found[0] if found else None), (found[1] if len(found) > 1 else None)
-
-        column_marks = [marks(i) for i in range(len(formats))]
-        panel += ["\\midrule", f"\\multicolumn{{11}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
-        for (symbol, name, objective, _), cells in zip(rows, printed):
-            out = ["--" if t is None else _emphasize(t, *column_marks[i]) for i, t in enumerate(cells)]
-            panel.append(_shade(objective) + " & ".join([symbol, name] + out) + " \\\\")
+            panel.append(" & ".join([name] + values) + " \\\\")
     for panel in panels:
         panel += ["\\bottomrule", "\\end{tabular}"]
     lines += panels[0] + ["\\quad"] + panels[1]
-    lines += ["\\end{adjustbox}", "\\end{table*}", ""]
+    lines += ["\\end{adjustbox}", "\\end{table}", ""]
     return "\n".join(lines)
 
 
-# The question ablation: every system that asks a question, with S1Rank's question
-# and with the paper's. Rerankers ask none and are left out.
-ABLATION_GROUPS: List[Tuple[str, List[Tuple[str, str, str, str]]]] = [
-    (backbone, [r for r in rows if r[2] != "reranker"]) for backbone, rows in TRIPLETS
-] + [
-    (
-        "Other systems",
-        [
-            ("jev-joint", "\\jev{}", "decision", "joint"),
-            ("jev-isolated", "\\jev{}", "decision", "isolated"),
-            ("laya", "\\laya{}", "decision", "isolated"),
-        ],
-    )
+# The paper's context table: systems outside the triplets, means only.
+CONTEXT_SHORT: List[Row] = [
+    ("bm25", "BM25", ""),
+    ("rankgpt-4", "RankGPT-4", "listwise"),
+    ("rankzephyr-7b", "RankZephyr-7B", "listwise"),
+    ("monot5-3b", "monoT5-3B", "cross-encoder"),
+    ("bge-m3", "bge-reranker-v2-m3", "cross-encoder"),
+    ("set-encoder-large", "Set-Encoder-large", "cross-encoder"),
+    ("jev-joint", "\\jev{}", "System One, joint"),
+    ("jev-isolated", "\\jev{}", "System One, isolated"),
+    ("laya", "\\laya{}", "System One, isolated"),
 ]
 
 
-def question_ablation_table(
-    cells: Dict[str, Cells], ece: Dict[str, Dict[Tuple[str, str], float]], count: Dict[str, Dict[Tuple[str, str], float]]
-) -> str:
-    """S1Rank's question against the paper's, per question-asking system: nDCG@10 over all ten collections and over
-    TREC DL, ECE and count error over DL 2019-2023 (each argument maps a question to its values)."""
-    old, new = ABLATION_QUESTION, QUESTION
-    datasets = [d for d, _ in DATASETS]
-
-    def pair(values: Tuple[Optional[float], Optional[float]], fmt: str, scale: float) -> List[str]:
-        a, b = values
-        out = ["--" if v is None else fmt.format(v * scale) for v in (a, b)]
-        if a is None or b is None:
-            return out + ["--"]
-        delta = float(fmt.format(b * scale)) - float(fmt.format(a * scale))
-        return out + [("$+$" if delta > 0 else "$-$" if delta < 0 else "\\phantom{$+$}") + fmt.format(abs(delta))]
-
+def context_short_table(cells: Cells) -> str:
+    """RQ1 context in little space: means over TREC DL, BEIR, all ten and the zero-shot subset per system."""
+    beir = [d for d, _ in DATASETS if d not in DL_DATASETS]
+    groups = [("DL", DL_DATASETS), ("BEIR", beir), ("Avg", [d for d, _ in DATASETS]), ("ZS", ZERO_SHOT)]
     lines = [
-        "% Generated by `python -m cdm.paper_tables` (make tables, in paper/) from the rerank and `cdm cutoff` rows of",
-        "% results/results.csv -- do not edit by hand.",
-        "\\begin{table*}[!t]",
-        "\\caption{The question ablation: S1Rank's question (\\emph{Rel.}: ``Is document \\{doc\\} relevant to the",
-        "query? Relevant means it answers the query or contains information that directly addresses it.'') against",
-        "the question used in the rest of the paper (\\emph{Ans.}: ``Does document \\{doc\\} answer the query?''), for",
-        "every system that is asked a question. nDCG@10 ($\\times 100$): mean over all ten collections (Avg) and over",
-        "TREC DL 2019--2023 (DL); ECE and Count as in Table~\\ref{tab:calibration} (DL 2019--2023). $\\Delta$: Ans.\\ minus",
-        f"Rel. Training: {SYMBOL_LEGEND}.}}",
-        "\\label{tab:question-ablation}",
+        "% Generated by `python -m cdm.paper_tables` from results/results.csv and",
+        "% results/literature.csv -- do not edit by hand.",
+        "\\begin{table}[!t]",
+        "\\caption{Other systems, same candidates (nDCG@10 $\\times 100$, means). $^\\dagger$: includes published",
+        "numbers~\\cite{Abdallah2025HowGood,SetEncoderCard}; --: not all collections available. Best in bold, second",
+        "best underlined; symbols and shading as in Table~\\ref{tab:triplets}.}",
+        "\\label{tab:context-short}",
         "\\centering",
         "\\scriptsize",
-        "\\setlength{\\tabcolsep}{3pt}",
-        "\\begin{adjustbox}{max width=\\textwidth}",
-        "\\begin{tabular}{cll" + "rrr" * 4 + "}",
+        "\\setlength{\\tabcolsep}{4pt}",
+        "\\begin{tabular}{cllrrrr}",
         "\\toprule",
-        " & & & \\multicolumn{3}{c}{nDCG@10 Avg} & \\multicolumn{3}{c}{nDCG@10 DL} & \\multicolumn{3}{c}{ECE}"
-        " & \\multicolumn{3}{c}{Count} \\\\",
-        "\\cmidrule(lr){4-6}\\cmidrule(lr){7-9}\\cmidrule(lr){10-12}\\cmidrule(lr){13-15}",
-        " & System & Mode" + " & Rel. & Ans. & $\\Delta$" * 4 + " \\\\",
+        " & System & Type & " + " & ".join(g for g, _ in groups) + " \\\\",
+        "\\midrule",
     ]
-    for heading, rows in ABLATION_GROUPS:
-        lines += ["\\midrule", f"\\multicolumn{{15}}{{l}}{{\\textit{{{heading}}}}} \\\\"]
-        for system, name, objective, mode in rows:
-            out = [_symbol(objective, mode), name, mode]
-            out += pair(tuple(_mean(cells[q], system, datasets) for q in (old, new)), "{:.1f}", 100)
-            out += pair(tuple(_mean(cells[q], system, DL_DATASETS) for q in (old, new)), "{:.1f}", 100)
-            out += pair(tuple(_mean_of(ece[q], system, DL_DATASETS) for q in (old, new)), "{:.3f}", 1)
-            out += pair(tuple(_mean_of(count[q], system, DL_DATASETS) for q in (old, new)), "{:.1f}", 1)
-            lines.append(_shade(objective) + " & ".join(out) + " \\\\")
-    lines += ["\\bottomrule", "\\end{tabular}", "\\end{adjustbox}", "\\end{table*}", ""]
+    # Best and second best per column among the rerankers (BM25 is the first stage, not compared).
+    ranks = {g: _rank_marks([_mean(cells, s, ds) for s, _, _ in CONTEXT_SHORT if s != "bm25"]) for g, ds in groups}
+    for system, name, mode in CONTEXT_SHORT:
+        objective = "" if system == "bm25" else ("decision" if mode.startswith("System One") else "reranker")
+        out = [_symbol(objective, mode.split(", ")[-1] if objective == "decision" else ""), name, mode]
+        for group, datasets in groups:
+            mean = _mean(cells, system, datasets)
+            literature = any(cells.get((system, d), (0.0, False))[1] for d in datasets)
+            text = "--" if mean is None else _fmt(mean)
+            if mean is not None and system != "bm25":
+                text = _emphasize(text, *ranks[group])
+            out.append(text + ("\\rlap{$^\\dagger$}" if mean is not None and literature else ""))
+        lines.append(_shade(objective) + " & ".join(out) + " \\\\")
+    lines += ["\\bottomrule", "\\end{tabular}", "\\end{table}", ""]
     return "\n".join(lines)
 
 
@@ -748,21 +713,16 @@ def main(argv: Optional[List[str]] = None) -> None:
     args = parser.parse_args(argv)
     cells, cost = load_cells(args.results)
     os.makedirs(args.out, exist_ok=True)
-    questions = (ABLATION_QUESTION, QUESTION)
     tables = {
         "triplets": triplet_table(cells, load_significance(args.results)),
         "context": context_table(cells, cost),
-        "calibration": calibration_table(
-            load_cutoff(args.results),
-            load_posthoc(args.results),
-            load_rerank_column("ECE", args.results),
-            load_rerank_column("Brier", args.results),
+        "calibration": calibration_ece_brier_table(
+            load_rerank_column("ECE", args.results), load_rerank_column("Brier", args.results)
         ),
-        "question-ablation": question_ablation_table(
-            {q: load_cells(args.results, q)[0] for q in questions},
-            {q: load_rerank_column("ECE", args.results, q) for q in questions},
-            {q: load_rerank_column("count_MAE", args.results, q, job="cutoff") for q in questions},
+        "calibration-full": calibration_table(
+            load_cutoff(args.results), load_posthoc(args.results), load_rerank_column("ECE", args.results)
         ),
+        "context-short": context_short_table(cells),
     }
     for name, tex in tables.items():
         path = os.path.join(args.out, f"{name}.tex")

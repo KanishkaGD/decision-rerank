@@ -107,11 +107,3 @@ The owner's current decisions on what the paper claims; `docs/roadmap.md` turns 
 24. **Our 27B reranker fine-tune back in** (owner, 2026-10-19; reverses 23 the same day). Without it, Kev-27B is the
     best system and the title would be untested at 27B; with it, RQ1 is answered on all six backbones (a tie at 27B).
     Review effort of a draft closer to the ECIR version was weighed and accepted. Everything else of 22 stands.
-25. **Clarity revision** (owner, 2026-10-19, after a critical review of the draft). Punchline 3 is reworded to "the
-    calibration advantage depends on the question" (decision fine-tuning does improve on the untuned model with the
-    same question, so "not from the model" went too far), and "calibration does not buy better passage selection" to
-    "calibration does not make up for a worse ranking" (at 27B, where the rankings tie, the better calibrated Kev-27B
-    keeps the better set). "Untuned model" replaces "base model" for the released chat model asked zero-shot, in the
-    text, the RQs and the table captions; all terms are defined once in Sect. 3. The question ablation (old Sect. 7)
-    is merged into Sect. 6 (RQ2), so the evidence for punchline 3 sits next to the claim; the discussion gets a
-    paragraph on why 27B differs. Narrative: `docs/notes/narrative.md`.
