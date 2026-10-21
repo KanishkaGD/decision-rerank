@@ -1,8 +1,6 @@
 # Decision Models as Rerankers
 
-Code and results for the arXiv paper *System One Models Are Not Better Rerankers* 
-*Do System One Models Make Better Rerankers? Decision vs. Reranker Fine-Tuning on One
-Backbone*; see "Versions" below).
+Code and results for the paper *System One Models Are Not Better Rerankers*.
 
 System One decision models (Jev, Clef, Kev, Laya) answer a typed question about an input with a calibrated
 probability. We ask whether they make better rerankers than reranker fine-tunes of the same backbone (RQ1), and
@@ -117,19 +115,6 @@ Ours-9B and Ours-27B on 200 MS MARCO dev queries (`subset` `max200`; Ours-27B's 
 Significance rows of the paper's question have the variant `vs-<other>@answer`; those without a suffix are S1Rank's
 question (the ECIR version's Table 1). The file is `results.csv` of our working repository restricted to the systems
 registered here, without the columns that point into our cluster (output paths, job ids, code revisions).
-
-## Versions
-
-- **arXiv version** (this state): the paper's question (`answer`) for every result, S1Rank's only in the question
-  ablation; Ours-27B in the Qwen3.8-27B triplet; all ten collections in Table 1; RQ2 in one table with Brier,
-  post-hoc scaling, the fixed cutoff and the count test; tables `triplets`, `context`, `calibration`,
-  `question-ablation`.
-- **ECIR 2027 submission** (2026-10-13; tag `ecir2027-submission` of our working repository, and the first version of
-  this release): S1Rank's question for every result, no Ours-27B (empty reranker cell at 27B), DL20 and DL22 left out
-  of Table 1 for space; tables `triplets`, `context-short`, `calibration` (ECE and Brier) in the paper and
-  `context`, `calibration-full` as supplementary tables. Its numbers are all still in `results/results.csv` (the
-  `s1rank` rows); every row of that release is contained here with the same values (170 `cutoff` rows were
-  recomputed with identical results, only their `updated_at` changed).
 
 ## Tests
 
